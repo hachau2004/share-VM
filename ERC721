@@ -22,12 +22,15 @@ contract Condos is ERC721URIStorage, Ownable {
         _setTokenURI(tokenId, uri);
     }
 
-    // Bắt buộc override khi dùng ERC721URIStorage
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    // Bắt buộc override khi dùng ERC721URIStorage trong OZ v5
+    function _burn(uint256 tokenId)
+        internal
+        override(ERC721, ERC721URIStorage)
+    {
         super._burn(tokenId);
     }
 
-    // Bắt buộc override khi dùng ERC721URIStorage
+    // Bắt buộc override khi dùng ERC721URIStorage trong OZ v5
     function tokenURI(uint256 tokenId)
         public
         view
