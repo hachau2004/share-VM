@@ -10,3 +10,19 @@ const Condos = artifacts.require("Condos");
 module.exports = async function (deployer, network, accounts) {
   await deployer.deploy(Condos, accounts[0]);
 };
+
+
+module.exports = {
+  networks: {
+    ganache: {
+      host: "127.0.0.1",
+      port: 8545,
+      network_id: "*", // chấp nhận mọi network id
+    }
+  },
+  compilers: {
+    solc: {
+      version: "0.8.20" // hoặc version tương thích với contracts của bạn
+    }
+  }
+};
