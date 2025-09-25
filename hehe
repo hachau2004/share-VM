@@ -13,99 +13,34 @@ module.exports = async function (deployer, network, accounts) {
 
 
 module.exports = {
-  networks: {
-    ganache: {
-      host: "127.0.0.1",
-      port: 8545,
-      network_id: "*", // chấp nhận mọi network id
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract MoolahCoin is ERC20, ERC20Capped, Ownable {
+    constructor(address initialOwner)
+        ERC20("Moolah Coin", "MC")
+        ERC20Capped(10_000_000_000 * 10 ** uint256(4)) // 10 tỷ MC với 4 decimals
+        Ownable(initialOwner)
+    {
+        _mint(initialOwner, 1_000_000 * 10 ** uint256(4)); // mint sẵn 1 triệu MC
     }
-  },
-  compilers: {
-    solc: {
-      version: "0.8.20" // hoặc version tương thích với contracts của bạn
+
+    // decimals = 4
+    function decimals() public pure override returns (uint8) {
+        return 4;
     }
-  }
-};
 
+    // Bắt buộc khi dùng ERC20 + ERC20Capped (OZ v5)
+    function _update(address from, address to, uint256 value)
+        internal
+        override(ERC20, ERC20Capped)
+    {
+        super._update(from, to, value);
+    }
+}
 
-truffle migrate --network ganache --reset
-
-
-This version of µWS is not compatible with your Node.js build:
-
-Error: Cannot find module '../binaries/uws_win32_x64_127.node'
-Require stack:
-- C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\node_modules\ganache\node_modules\@trufflesuite\uws-js-unofficial\src\uws.js
-- C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\node_modules\ganache\dist\node\core.js
-- C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\build\migrate.bundled.js
-- C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\node_modules\original-require\index.js
-- C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\build\cli.bundled.js
-Falling back to a NodeJS implementation; performance may be degraded.
-
-
-
-Compiling your contracts...
-===========================
-> Compiling @openzeppelin\contracts\access\Ownable.sol
-> Compiling @openzeppelin\contracts\interfaces\IERC165.sol
-> Compiling @openzeppelin\contracts\interfaces\IERC4906.sol
-> Compiling @openzeppelin\contracts\interfaces\IERC721.sol
-> Compiling @openzeppelin\contracts\interfaces\draft-IERC6093.sol
-> Compiling @openzeppelin\contracts\token\ERC20\ERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\IERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\extensions\ERC20Capped.sol
-> Compiling @openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol
-> Compiling @openzeppelin\contracts\token\ERC721\ERC721.sol
-> Compiling @openzeppelin\contracts\token\ERC721\IERC721.sol
-> Compiling @openzeppelin\contracts\token\ERC721\IERC721Receiver.sol
-> Compiling @openzeppelin\contracts\token\ERC721\extensions\ERC721URIStorage.sol
-> Compiling @openzeppelin\contracts\token\ERC721\extensions\IERC721Metadata.sol
-> Compiling @openzeppelin\contracts\token\ERC721\utils\ERC721Utils.sol
-> Compiling @openzeppelin\contracts\utils\Context.sol
-> Compiling @openzeppelin\contracts\utils\Panic.sol
-> Compiling @openzeppelin\contracts\utils\Strings.sol
-> Compiling @openzeppelin\contracts\utils\introspection\ERC165.sol
-> Compiling @openzeppelin\contracts\utils\introspection\IERC165.sol
-> Compiling @openzeppelin\contracts\utils\math\Math.sol
-> Compiling @openzeppelin\contracts\utils\math\SafeCast.sol
-> Compiling @openzeppelin\contracts\utils\math\SignedMath.sol
-> Compiling .\contracts\Condos.sol
-> Compiling .\contracts\MoolahCoin.sol
-> Artifacts written to C:\Users\Hachau\tokenwallet\build\contracts
-> Compiled successfully using:
-   - solc: 0.8.30+commit.73712a01.Emscripten.clang
-
-
-Starting migrations...
-======================
-> Network name:    'ganache'
-> Network id:      5777
-> Block gas limit: 6721975 (0x6691b7)
-
-
-1758760692_moolahcoin_migration.js
-==================================
-
-   Deploying 'MoolahCoin'
-   ----------------------
- *** Deployment Failed ***
-
-"MoolahCoin" hit an invalid opcode while deploying. Try:
-   * Verifying that your constructor params satisfy all assert conditions.
-   * Verifying your constructor code doesn't access an array out of bounds.
-   * Adding reason strings to your assert statements.
-
-
-Exiting: Review successful transactions manually by checking the transaction hashes above on Etherscan.
-
-
-Error:  *** Deployment Failed ***
-
-"MoolahCoin" hit an invalid opcode while deploying. Try:
-   * Verifying that your constructor params satisfy all assert conditions.
-   * Verifying your constructor code doesn't access an array out of bounds.
-   * Adding reason strings to your assert statements.
-
-    at C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\deployer\src\deployment.js:330:1
-Truffle v5.11.5 (core: 5.11.5)
-Node v22.19.0
