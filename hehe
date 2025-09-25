@@ -31,6 +31,8 @@ module.exports = {
 truffle migrate --network ganache --reset
 
 
+This version of µWS is not compatible with your Node.js build:
+
 Error: Cannot find module '../binaries/uws_win32_x64_127.node'
 Require stack:
 - C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\node_modules\ganache\node_modules\@trufflesuite\uws-js-unofficial\src\uws.js
@@ -107,35 +109,3 @@ Error:  *** Deployment Failed ***
     at C:\Users\Hachau\AppData\Roaming\npm\node_modules\truffle\build\webpack:\packages\deployer\src\deployment.js:330:1
 Truffle v5.11.5 (core: 5.11.5)
 Node v22.19.0
-
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-contract MoolahCoin is ERC20, ERC20Capped, Ownable {
-    constructor(address initialOwner)
-        ERC20("Moolah Coin", "MC")
-        ERC20Capped(10_000_000_000 * 10 ** uint256(4)) // 10 tỷ MC với 4 decimals
-        Ownable(initialOwner)
-    {
-        _mint(initialOwner, 1_000_000 * 10 ** uint256(4)); // mint sẵn 1 triệu MC
-    }
-
-    // decimals = 4
-    function decimals() public pure override returns (uint8) {
-        return 4;
-    }
-
-    // Bắt buộc khi dùng ERC20 + ERC20Capped (OZ v5)
-    function _update(address from, address to, uint256 value)
-        internal
-        override(ERC20, ERC20Capped)
-    {
-        super._update(from, to, value);
-    }
-}
-
