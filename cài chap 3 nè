@@ -1,0 +1,195 @@
+a. src/Components/Nav.js
+// src/Components/Nav.js
+import React from "react";
+
+export default function Nav() {
+  return (
+    <div style={{ padding: 12, background: "#0b79f7", color: "#fff", fontSize: 20 }}>
+      My Shoe Store
+    </div>
+  );
+}
+
+b. src/Components/Description.js
+// src/Components/Description.js
+import React from "react";
+
+export default function Description() {
+  return (
+    <div style={{ marginBottom: 12, color: "#444" }}>
+      Simple demo: browse shoes, buy, paste txHash and verify (mock).
+    </div>
+  );
+}
+
+c. src/Components/Items/all.js
+// src/Components/Items/all.js
+const Items = [
+  {
+    id: 1,
+    name: "Air Runner",
+    price: "0.05 ETH",
+    img: "https://via.placeholder.com/200x140?text=Air+Runner",
+    desc: "Lightweight running shoe."
+  },
+  {
+    id: 2,
+    name: "City Walker",
+    price: "0.04 ETH",
+    img: "https://via.placeholder.com/200x140?text=City+Walker",
+    desc: "Comfortable daily walker."
+  },
+  {
+    id: 3,
+    name: "Trail Pro",
+    price: "0.06 ETH",
+    img: "https://via.placeholder.com/200x140?text=Trail+Pro",
+    desc: "Durable trail shoe."
+  },
+  {
+    id: 4,
+    name: "Street Classic",
+    price: "0.03 ETH",
+    img: "https://via.placeholder.com/200x140?text=Street+Classic",
+    desc: "Casual classic style."
+  },
+  {
+    id: 5,
+    name: "Sport Elite",
+    price: "0.08 ETH",
+    img: "https://via.placeholder.com/200x140?text=Sport+Elite",
+    desc: "High performance shoe."
+  }
+];
+
+export default Items;
+
+d. src/Components/ProductCard.js
+// src/Components/ProductCard.js
+import React from "react";
+
+export default function ProductCard({ item, onBuy }) {
+  return (
+    <div style={cardStyle}>
+      <img src={item.img} alt={item.name} style={{ width: "100%", height: 120, objectFit: "cover" }} />
+      <h3 style={{ margin: "8px 0 4px" }}>{item.name}</h3>
+      <div style={{ color: "#666", fontSize: 14 }}>{item.desc}</div>
+      <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <strong>{item.price}</strong>
+        <button onClick={() => onBuy(item)} style={btnStyle}>Buy Now</button>
+      </div>
+    </div>
+  );
+}
+
+const cardStyle = {
+  border: "1px solid #e6e6e6",
+  borderRadius: 8,
+  padding: 12,
+  width: 220,
+  boxSizing: "border-box",
+  background: "#fff"
+};
+
+const btnStyle = {
+  padding: "6px 10px",
+  background: "#0b79f7",
+  color: "#fff",
+  border: "none",
+  borderRadius: 6,
+  cursor: "pointer"
+};
+
+e. src/Components/Shoerack.js
+// src/Components/Shoerack.js
+import React from "react";
+import Items from "./Items/all";
+import ProductCard from "./ProductCard";
+
+export default function Shoerack({ onBuy }) {
+  return (
+    <div>
+      <h2>Shop</h2>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {Items.map(it => (
+          <ProductCard key={it.id} item={it} onBuy={onBuy} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+f. src/Components/Payment.js (copy y nguyên trong file bạn gửi)
+g. src/Components/PVerification.js (copy y nguyên)
+h. src/Components/Timer.js (copy y nguyên)
+i. src/Components/Container.js
+// src/Components/Container.js
+import React, { useState } from "react";
+import Nav from "./Nav";
+import Description from "./Description";
+import Shoerack from "./Shoerack";
+import Payment from "./Payment";
+import PVerification from "./PVerification";
+
+export default function Container() {
+  const [page, setPage] = useState("shop"); // shop | payment | verify
+  const [selected, setSelected] = useState(null);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [pendingTx, setPendingTx] = useState("");
+
+  function handleBuy(item) {
+    setSelected(item);
+    setPage("payment");
+  }
+
+  function handleCancelPayment() {
+    setSelected(null);
+    setPage("shop");
+  }
+
+  function handleProceedToVerify({ orderId, txHash }) {
+    setCurrentOrder({ orderId });
+    setPendingTx(txHash || "0xMOCK_TX_HASH");
+    setPage("verify");
+  }
+
+  return (
+    <div style={{ padding: 16 }}>
+      <Nav />
+      <Description />
+
+      {page === "shop" && <Shoerack onBuy={handleBuy} />}
+
+      {page === "payment" && selected && (
+        <Payment
+          product={selected}
+          onProceedToVerify={handleProceedToVerify}
+          onCancel={handleCancelPayment}
+        />
+      )}
+
+      {page === "verify" && currentOrder && (
+        <PVerification
+          order={currentOrder}
+          txHash={pendingTx}
+          onBackToShop={() => { setPage("shop"); setSelected(null); setCurrentOrder(null); setPendingTx(""); }}
+        />
+      )}
+    </div>
+  );
+}
+
+j. src/App.js
+// src/App.js
+import React from "react";
+import Container from "./Components/Container";
+
+function App() {
+  return (
+    <div className="App" style={{ fontFamily: "Arial, sans-serif", background: "#f5f7fb", minHeight: "100vh" }}>
+      <Container />
+    </div>
+  );
+}
+
+export default App;
