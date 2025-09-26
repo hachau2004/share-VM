@@ -25,11 +25,9 @@ contract MoolahCoin is ERC20, Ownable {
         ERC20("Moolah Coin", "MC")
         Ownable(initialOwner)
     {
-        // Mint sẵn 1 triệu MC cho owner
         _mint(initialOwner, 1_000_000 * 10 ** uint256(4));
     }
 
-    // decimals = 4
     function decimals() public pure override returns (uint8) {
         return 4;
     }
