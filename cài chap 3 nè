@@ -374,3 +374,75 @@ import Shoes5 from "./Shoes5";
 const Items = [Shoes1, Shoes2, Shoes3, Shoes4, Shoes5];
 
 export default Items;
+
+
+
+> gateway@0.1.0 start
+> react-scripts start
+
+(node:2808) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:2808) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+Failed to compile.
+
+Module not found: Error: Can't resolve './Timer' in 'C:\gateway\src\Components'
+ERROR in ./src/Components/PVerification.js 6:0-28
+Module not found: Error: Can't resolve './Timer' in 'C:\gateway\src\Components'
+
+ERROR in ./src/Components/Payment.js
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: C:\gateway\src\Components\Payment.js: Unterminated string constant. (62:59)
+
+  60 | const panel = { border: "1px solid #eee", padding: 12, borderRadius: 8, background: "#fff" };
+  61 | const okBtn = { padding: "8px 12px", background: "#0b79f7", color: "#fff", border: "none", borderRadius: 6 };
+> 62 | const cancelBtn = { padding: "8px 12px", borderRadius: 6 };"
+     |                                                            ^
+    at constructor (C:\gateway\node_modules\@babel\parser\lib\index.js:367:19)
+    at FlowParserMixin.raise (C:\gateway\node_modules\@babel\parser\lib\index.js:6630:19)
+    at Object.unterminated (C:\gateway\node_modules\@babel\parser\lib\index.js:5695:20)
+    at readStringContents (C:\gateway\node_modules\@babel\parser\lib\index.js:5396:14)
+    at FlowParserMixin.readString (C:\gateway\node_modules\@babel\parser\lib\index.js:6529:9)
+    at FlowParserMixin.getTokenFromCode (C:\gateway\node_modules\@babel\parser\lib\index.js:6289:14)
+    at FlowParserMixin.getTokenFromCode (C:\gateway\node_modules\@babel\parser\lib\index.js:4830:11)
+    at FlowParserMixin.getTokenFromCode (C:\gateway\node_modules\@babel\parser\lib\index.js:3228:13)
+    at FlowParserMixin.nextToken (C:\gateway\node_modules\@babel\parser\lib\index.js:5813:10)
+    at FlowParserMixin.next (C:\gateway\node_modules\@babel\parser\lib\index.js:5723:10)
+    at FlowParserMixin.eat (C:\gateway\node_modules\@babel\parser\lib\index.js:5727:12)
+    at FlowParserMixin.isLineTerminator (C:\gateway\node_modules\@babel\parser\lib\index.js:6922:17)
+    at FlowParserMixin.semicolon (C:\gateway\node_modules\@babel\parser\lib\index.js:6925:25)
+    at FlowParserMixin.parseVarStatement (C:\gateway\node_modules\@babel\parser\lib\index.js:13240:10)
+    at FlowParserMixin.parseStatementContent (C:\gateway\node_modules\@babel\parser\lib\index.js:12860:23)
+    at FlowParserMixin.parseStatementLike (C:\gateway\node_modules\@babel\parser\lib\index.js:12776:17)
+    at FlowParserMixin.parseStatementLike (C:\gateway\node_modules\@babel\parser\lib\index.js:2949:24)
+    at FlowParserMixin.parseModuleItem (C:\gateway\node_modules\@babel\parser\lib\index.js:12753:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\gateway\node_modules\@babel\parser\lib\index.js:13325:36)
+    at FlowParserMixin.parseBlockBody (C:\gateway\node_modules\@babel\parser\lib\index.js:13318:10)
+    at FlowParserMixin.parseProgram (C:\gateway\node_modules\@babel\parser\lib\index.js:12634:10)
+    at FlowParserMixin.parseTopLevel (C:\gateway\node_modules\@babel\parser\lib\index.js:12624:25)
+    at FlowParserMixin.parseTopLevel (C:\gateway\node_modules\@babel\parser\lib\index.js:3718:28)
+    at FlowParserMixin.parse (C:\gateway\node_modules\@babel\parser\lib\index.js:14501:10)
+    at parse (C:\gateway\node_modules\@babel\parser\lib\index.js:14535:38)
+    at parser (C:\gateway\node_modules\@babel\core\lib\parser\index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (C:\gateway\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (C:\gateway\node_modules\@babel\core\lib\transformation\index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (C:\gateway\node_modules\@babel\core\lib\transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (C:\gateway\node_modules\gensync\index.js:261:32)
+    at C:\gateway\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (C:\gateway\node_modules\gensync\index.js:223:11)
+    at C:\gateway\node_modules\gensync\index.js:189:28
+    at C:\gateway\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+    at C:\gateway\node_modules\gensync\index.js:113:33
+    at step (C:\gateway\node_modules\gensync\index.js:287:14)
+    at C:\gateway\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (C:\gateway\node_modules\gensync\index.js:223:11)
+
+ERROR in [eslint]
+src\Components\Payment.js
+  Line 62:59:  Parsing error: Unterminated string constant. (62:59)
+
+webpack compiled with 3 errors
