@@ -1,100 +1,112 @@
-src/Components/Items/all.js:
+File chi tiết
+src/App.js
+import React from "react";
+import Container from "./Components/Container";
 
-// src/Components/Items/all.js
+function App() {
+  return (
+    <div className="App" style={{ fontFamily: "Arial, sans-serif", background: "#f5f7fb", minHeight: "100vh" }}>
+      <Container />
+    </div>
+  );
+}
 
-const Items = [
-  {
-    id: 1,
-    name: "Air Runner",
-    price: "0.05 ETH",
-    img: "https://via.placeholder.com/200x140?text=Air+Runner",
-    desc: "Lightweight running shoe."
-  },
-  {
-    id: 2,
-    name: "City Walker",
-    price: "0.04 ETH",
-    img: "https://via.placeholder.com/200x140?text=City+Walker",
-    desc: "Comfortable daily walker."
-  },
-  {
-    id: 3,
-    name: "Trail Pro",
-    price: "0.06 ETH",
-    img: "https://via.placeholder.com/200x140?text=Trail+Pro",
-    desc: "Durable trail shoe."
-  },
-  {
-    id: 4,
-    name: "Street Classic",
-    price: "0.03 ETH",
-    img: "https://via.placeholder.com/200x140?text=Street+Classic",
-    desc: "Casual classic style."
-  },
-  {
-    id: 5,
-    name: "Sport Elite",
-    price: "0.08 ETH",
-    img: "https://via.placeholder.com/200x140?text=Sport+Elite",
-    desc: "High performance shoe."
+export default App;
+
+src/index.js
+
+(file này có sẵn khi bạn tạo React app, chỉ để chắc chắn mình ghi lại)
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+src/Components/Nav.js
+import React from "react";
+
+export default function Nav() {
+  return (
+    <div style={{ padding: 12, background: "#0b79f7", color: "#fff", fontSize: 20 }}>
+      My Shoe Store
+    </div>
+  );
+}
+
+src/Components/Description.js
+import React from "react";
+
+export default function Description() {
+  return (
+    <div style={{ marginBottom: 12, color: "#444" }}>
+      Simple demo: browse shoes, buy, paste txHash and verify (mock).
+    </div>
+  );
+}
+
+src/Components/Container.js
+import React, { useState } from "react";
+import Nav from "./Nav";
+import Description from "./Description";
+import Shoerack from "./Shoerack";
+import Payment from "./Payment";
+import PVerification from "./PVerification";
+
+export default function Container() {
+  const [page, setPage] = useState("shop"); // shop | payment | verify
+  const [selected, setSelected] = useState(null);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [pendingTx, setPendingTx] = useState("");
+
+  function handleBuy(item) {
+    setSelected(item);
+    setPage("payment");
   }
-];
 
-export default Items;
+  function handleCancelPayment() {
+    setSelected(null);
+    setPage("shop");
+  }
 
-src/Components/Items/Shoes1.js:
+  function handleProceedToVerify({ orderId, txHash }) {
+    setCurrentOrder({ orderId });
+    setPendingTx(txHash || "0xMOCK_TX_HASH");
+    setPage("verify");
+  }
 
-// src/Items/Shoes1.js
-export default {
-  price: 200,
-  name: "Badidas",
-  logo: "Badidas.png",
-  image: "Shoe1.jpg"
-};
+  return (
+    <div style={{ padding: 16 }}>
+      <Nav />
+      <Description />
 
-src/Components/Items/Shoes2.js:
+      {page === "shop" && <Shoerack onBuy={handleBuy} />}
 
-// Shoes2.js
-export default {
-  price: 220,
-  name: "Pumani",
-  logo: "Pumani.png",
-  image: "Shoe2.jpg"
-};
+      {page === "payment" && selected && (
+        <Payment
+          product={selected}
+          onProceedToVerify={handleProceedToVerify}
+          onCancel={handleCancelPayment}
+        />
+      )}
 
-src/Components/Items/Shoes3.js:
+      {page === "verify" && currentOrder && (
+        <PVerification
+          order={currentOrder}
+          txHash={pendingTx}
+          onBackToShop={() => { setPage("shop"); setSelected(null); setCurrentOrder(null); setPendingTx(""); }}
+        />
+      )}
+    </div>
+  );
+}
 
-// Shoes3.js
-export default {
-  price: 240,
-  name: "Nikey",
-  logo: "Nikey.png",
-  image: "Shoe3.jpg"
-};
-
-src/Components/Items/Shoes4.js:
-
-// Shoes4.js
-export default {
-  price: 180,
-  name: "Convars",
-  logo: "Convars.png",
-  image: "Shoe4.jpg"
-};
-
-src/Components/Items/Shoes5.js:
-
-// Shoes5.js
-export default {
-  price: 210,
-  name: "Rebax",
-  logo: "Rebax.png",
-  image: "Shoe5.jpg"
-};
-
-src/Components/ProductCard.js:
-
-// src/Components/ProductCard.js
+src/Components/ProductCard.js
 import React from "react";
 
 export default function ProductCard({ item, onBuy }) {
@@ -129,9 +141,7 @@ const btnStyle = {
   cursor: "pointer"
 };
 
-src/Components/Shoerack.js:
-
-// src/Components/Shoerack.js
+src/Components/Shoerack.js
 import React from "react";
 import Items from "./Items/all";
 import ProductCard from "./ProductCard";
@@ -149,13 +159,10 @@ export default function Shoerack({ onBuy }) {
   );
 }
 
-src/Components/Payment.js:
-
-// src/Components/Payment.js
+src/Components/Payment.js
 import React, { useState } from "react";
 
 export default function Payment({ product, onProceedToVerify, onCancel }) {
-  // mock invoice: orderId + receiveAddress + expectedAmount
   const [order] = useState({
     orderId: `ORD-${Date.now() % 100000}`,
     address: "0xDEMOmerchantAddress000000000000000000",
@@ -188,7 +195,7 @@ export default function Payment({ product, onProceedToVerify, onCancel }) {
             <div><strong>Pay instructions</strong></div>
             <ol style={{ marginTop: 8 }}>
               <li>Send the exact amount to the receive address.</li>
-              <li>Copy txHash and paste into the box below (if you used another wallet).</li>
+              <li>Copy txHash and paste into the box below.</li>
               <li>Click "Verify payment".</li>
             </ol>
 
@@ -216,20 +223,13 @@ const panel = { border: "1px solid #eee", padding: 12, borderRadius: 8, backgrou
 const okBtn = { padding: "8px 12px", background: "#0b79f7", color: "#fff", border: "none", borderRadius: 6 };
 const cancelBtn = { padding: "8px 12px", borderRadius: 6 };
 
-
-src/Components/PVerification.js:
-
-// src/Components/PVerification.js
+src/Components/PVerification.js
 import React, { useEffect, useState } from "react";
 import Timer from "./Timer";
 
-/**
- * This is a mock verification component.
- * It simulates confirmations: if txHash non-empty, increase confirmations every 2s.
- */
 export default function PVerification({ order, txHash, onBackToShop }) {
   const [confirmations, setConfirmations] = useState(0);
-  const required = 3; // mock small number to demo
+  const required = 3;
 
   useEffect(() => {
     if (!txHash) return;
@@ -275,7 +275,7 @@ export default function PVerification({ order, txHash, onBackToShop }) {
           <div style={{ border: "1px solid #eee", padding: 12, borderRadius: 8 }}>
             <strong>Debug / Note</strong>
             <p style={{ color: "#666", marginTop: 8 }}>
-              This demo verifies client-side only (mock). For production verify server-side against a trusted node and use more confirmations.
+              This demo verifies client-side only (mock). For production verify server-side.
             </p>
           </div>
         </div>
@@ -284,9 +284,7 @@ export default function PVerification({ order, txHash, onBackToShop }) {
   );
 }
 
-src/Components/Timer.js:
-
-// src/Components/Timer.js
+src/Components/Timer.js
 import React, { useEffect, useState } from "react";
 
 export default function Timer({ seconds = 900 }) {
@@ -302,107 +300,58 @@ export default function Timer({ seconds = 900 }) {
   return <div>Time left: {mm}:{ss}</div>;
 }
 
-src/Components/Nav.js:
+src/Components/Items/Shoes1.js
+export default {
+  id: 1,
+  name: "Badidas",
+  price: "0.05 ETH",
+  img: "https://via.placeholder.com/200x140?text=Badidas",
+  desc: "Sneaker phong cách thể thao, nhẹ và êm."
+};
 
-// src/Components/Description.js
-import React from "react";
+src/Components/Items/Shoes2.js
+export default {
+  id: 2,
+  name: "Pumani",
+  price: "0.04 ETH",
+  img: "https://via.placeholder.com/200x140?text=Pumani",
+  desc: "Giày năng động cho hoạt động hằng ngày."
+};
 
-export default function Description() {
-  return (
-    <div style={{ marginBottom: 12, color: "#444" }}>
-      Simple demo: browse shoes, buy, paste txHash and verify (mock).
-    </div>
-  );
-}
+src/Components/Items/Shoes3.js
+export default {
+  id: 3,
+  name: "Nikey",
+  price: "0.06 ETH",
+  img: "https://via.placeholder.com/200x140?text=Nikey",
+  desc: "Đế bám tốt, phù hợp chạy bộ và tập luyện."
+};
 
-src/Components/Description.js:
+src/Components/Items/Shoes4.js
+export default {
+  id: 4,
+  name: "Convars",
+  price: "0.03 ETH",
+  img: "https://via.placeholder.com/200x140?text=Convars",
+  desc: "Phong cách cổ điển, phù hợp đi chơi, đi học."
+};
 
-// src/Components/Description.js
-import React from "react";
+src/Components/Items/Shoes5.js
+export default {
+  id: 5,
+  name: "Rebax",
+  price: "0.08 ETH",
+  img: "https://via.placeholder.com/200x140?text=Rebax",
+  desc: "Dòng cao cấp, thiết kế hiệu năng cho thể thao."
+};
 
-export default function Description() {
-  return (
-    <div style={{ marginBottom: 12, color: "#444" }}>
-      Simple demo: browse shoes, buy, paste txHash and verify (mock).
-    </div>
-  );
-}
+src/Components/Items/all.js
+import Shoes1 from "./Shoes1";
+import Shoes2 from "./Shoes2";
+import Shoes3 from "./Shoes3";
+import Shoes4 from "./Shoes4";
+import Shoes5 from "./Shoes5";
 
-src/Components/Container.js:
+const Items = [Shoes1, Shoes2, Shoes3, Shoes4, Shoes5];
 
-// src/Components/Container.js
-import React, { useState } from "react";
-import Nav from "./Nav";
-import Description from "./Description";
-import Shoerack from "./Shoerack";
-import Payment from "./Payment";
-import PVerification from "./PVerification";
-
-export default function Container() {
-  const [page, setPage] = useState("shop"); // shop | payment | verify
-  const [selected, setSelected] = useState(null);
-  const [currentOrder, setCurrentOrder] = useState(null);
-  const [pendingTx, setPendingTx] = useState("");
-
-  function handleBuy(item) {
-    setSelected(item);
-    setPage("payment");
-  }
-
-  function handleCancelPayment() {
-    setSelected(null);
-    setPage("shop");
-  }
-
-  function handleProceedToVerify({ orderId, txHash }) {
-    // save order info and txHash; here orderId is mocked from Payment component
-    setCurrentOrder({ orderId });
-    setPendingTx(txHash || "0xMOCK_TX_HASH");
-    setPage("verify");
-  }
-
-  return (
-    <div style={{ padding: 16 }}>
-      <Nav />
-      <Description />
-
-      {page === "shop" && <Shoerack onBuy={handleBuy} />}
-
-      {page === "payment" && selected && (
-        <Payment
-          product={selected}
-          onProceedToVerify={handleProceedToVerify}
-          onCancel={handleCancelPayment}
-        />
-      )}
-
-      {page === "verify" && currentOrder && (
-        <PVerification
-          order={currentOrder}
-          txHash={pendingTx}
-          onBackToShop={() => { setPage("shop"); setSelected(null); setCurrentOrder(null); setPendingTx(""); }}
-        />
-      )}
-    </div>
-  );
-}
-
-src/App.js
-
-// src/App.js
-import React from "react";
-import Container from "./Components/Container";
-
-function App() {
-  return (
-    <div className="App" style={{ fontFamily: "Arial, sans-serif", background: "#f5f7fb", minHeight: "100vh" }}>
-      <Container />
-    </div>
-  );
-}
-
-export default App;
-
-
-
-
+export default Items;
