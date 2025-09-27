@@ -1,3 +1,22 @@
+// src/App.js
+import React from "react";
+import Container from "./Components/Container";
+
+function App() {
+  return (
+    <div className="App" style={{ fontFamily: "Arial, sans-serif", background: "#f5f7fb", minHeight: "100vh" }}>
+      <Container />
+    </div>
+  );
+}
+
+export default App;
+
+
+
+
+
+
 File chi tiết
 src/App.js
 import React from "react";
