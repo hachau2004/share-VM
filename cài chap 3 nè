@@ -1,29 +1,7 @@
-a. src/Components/Nav.js
-// src/Components/Nav.js
-import React from "react";
+src/Components/Items/all.js:
 
-export default function Nav() {
-  return (
-    <div style={{ padding: 12, background: "#0b79f7", color: "#fff", fontSize: 20 }}>
-      My Shoe Store
-    </div>
-  );
-}
-
-b. src/Components/Description.js
-// src/Components/Description.js
-import React from "react";
-
-export default function Description() {
-  return (
-    <div style={{ marginBottom: 12, color: "#444" }}>
-      Simple demo: browse shoes, buy, paste txHash and verify (mock).
-    </div>
-  );
-}
-
-c. src/Components/Items/all.js
 // src/Components/Items/all.js
+
 const Items = [
   {
     id: 1,
@@ -64,7 +42,58 @@ const Items = [
 
 export default Items;
 
-d. src/Components/ProductCard.js
+src/Components/Items/Shoes1.js:
+
+// src/Items/Shoes1.js
+export default {
+  price: 200,
+  name: "Badidas",
+  logo: "Badidas.png",
+  image: "Shoe1.jpg"
+};
+
+src/Components/Items/Shoes2.js:
+
+// Shoes2.js
+export default {
+  price: 220,
+  name: "Pumani",
+  logo: "Pumani.png",
+  image: "Shoe2.jpg"
+};
+
+src/Components/Items/Shoes3.js:
+
+// Shoes3.js
+export default {
+  price: 240,
+  name: "Nikey",
+  logo: "Nikey.png",
+  image: "Shoe3.jpg"
+};
+
+src/Components/Items/Shoes4.js:
+
+// Shoes4.js
+export default {
+  price: 180,
+  name: "Convars",
+  logo: "Convars.png",
+  image: "Shoe4.jpg"
+};
+
+src/Components/Items/Shoes5.js:
+
+// Shoes5.js
+export default {
+  price: 210,
+  name: "Rebax",
+  logo: "Rebax.png",
+  image: "Shoe5.jpg"
+};
+
+src/Components/ProductCard.js:
+
 // src/Components/ProductCard.js
 import React from "react";
 
@@ -100,7 +129,8 @@ const btnStyle = {
   cursor: "pointer"
 };
 
-e. src/Components/Shoerack.js
+src/Components/Shoerack.js:
+
 // src/Components/Shoerack.js
 import React from "react";
 import Items from "./Items/all";
@@ -119,10 +149,187 @@ export default function Shoerack({ onBuy }) {
   );
 }
 
-f. src/Components/Payment.js (copy y nguyên trong file bạn gửi)
-g. src/Components/PVerification.js (copy y nguyên)
-h. src/Components/Timer.js (copy y nguyên)
-i. src/Components/Container.js
+src/Components/Payment.js:
+
+// src/Components/Payment.js
+import React, { useState } from "react";
+
+export default function Payment({ product, onProceedToVerify, onCancel }) {
+  // mock invoice: orderId + receiveAddress + expectedAmount
+  const [order] = useState({
+    orderId: `ORD-${Date.now() % 100000}`,
+    address: "0xDEMOmerchantAddress000000000000000000",
+    amount: product?.price || "0.00 ETH",
+    expiresAt: Date.now() + 15 * 60 * 1000
+  });
+  const [txHash, setTxHash] = useState("");
+
+  return (
+    <div>
+      <h2>Payment</h2>
+
+      <div style={{ display: "flex", gap: 20 }}>
+        <div style={{ minWidth: 260 }}>
+          <div style={panel}>
+            <div><strong>Product</strong></div>
+            <div style={{ marginTop: 8 }}>{product?.name}</div>
+            <div style={{ color: "#666", marginTop: 4 }}>{product?.desc}</div>
+            <div style={{ marginTop: 8 }}><strong>Amount:</strong> {order.amount}</div>
+            <div style={{ marginTop: 8 }}><strong>Receive address:</strong>
+              <div style={{ background: "#fafafa", padding: 8, borderRadius: 4, marginTop: 6 }}>
+                <code style={{ fontSize: 12 }}>{order.address}</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={panel}>
+            <div><strong>Pay instructions</strong></div>
+            <ol style={{ marginTop: 8 }}>
+              <li>Send the exact amount to the receive address.</li>
+              <li>Copy txHash and paste into the box below (if you used another wallet).</li>
+              <li>Click "Verify payment".</li>
+            </ol>
+
+            <div style={{ marginTop: 10 }}>
+              <input
+                placeholder="Paste txHash (e.g. 0x...)"
+                value={txHash}
+                onChange={(e) => setTxHash(e.target.value)}
+                style={{ width: "100%", padding: 8, boxSizing: "border-box" }}
+              />
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <button onClick={() => onProceedToVerify({ orderId: order.orderId, txHash })} style={okBtn}>Verify payment</button>
+              <button onClick={onCancel} style={cancelBtn}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const panel = { border: "1px solid #eee", padding: 12, borderRadius: 8, background: "#fff" };
+const okBtn = { padding: "8px 12px", background: "#0b79f7", color: "#fff", border: "none", borderRadius: 6 };
+const cancelBtn = { padding: "8px 12px", borderRadius: 6 };
+
+
+src/Components/PVerification.js:
+
+// src/Components/PVerification.js
+import React, { useEffect, useState } from "react";
+import Timer from "./Timer";
+
+/**
+ * This is a mock verification component.
+ * It simulates confirmations: if txHash non-empty, increase confirmations every 2s.
+ */
+export default function PVerification({ order, txHash, onBackToShop }) {
+  const [confirmations, setConfirmations] = useState(0);
+  const required = 3; // mock small number to demo
+
+  useEffect(() => {
+    if (!txHash) return;
+    setConfirmations(0);
+    const iv = setInterval(() => {
+      setConfirmations(c => {
+        const nc = c + 1;
+        if (nc >= required) {
+          clearInterval(iv);
+        }
+        return nc;
+      });
+    }, 2000);
+    return () => clearInterval(iv);
+  }, [txHash]);
+
+  return (
+    <div>
+      <h2>Payment Verification</h2>
+      <div style={{ display: "flex", gap: 16 }}>
+        <div style={{ minWidth: 300 }}>
+          <div style={{ border: "1px solid #eee", padding: 12, borderRadius: 8 }}>
+            <div><strong>Order:</strong> {order?.orderId}</div>
+            <div style={{ marginTop: 8 }}><strong>TxHash:</strong> <code style={{ fontSize: 12 }}>{txHash || "-"}</code></div>
+            <div style={{ marginTop: 8 }}><strong>Confirmations:</strong> {confirmations} / {required}</div>
+            <div style={{ marginTop: 8 }}><Timer seconds={15*60} /></div>
+            {confirmations >= required ? (
+              <div style={{ marginTop: 12, color: "green" }}>
+                ✅ Payment confirmed. You may ship the product.
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={onBackToShop} style={{ padding: "8px 12px" }}>Back to shop</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginTop: 12, color: "#333" }}>
+                Waiting for confirmations...
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ border: "1px solid #eee", padding: 12, borderRadius: 8 }}>
+            <strong>Debug / Note</strong>
+            <p style={{ color: "#666", marginTop: 8 }}>
+              This demo verifies client-side only (mock). For production verify server-side against a trusted node and use more confirmations.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+src/Components/Timer.js:
+
+// src/Components/Timer.js
+import React, { useEffect, useState } from "react";
+
+export default function Timer({ seconds = 900 }) {
+  const [t, setT] = useState(seconds);
+
+  useEffect(() => {
+    const iv = setInterval(() => setT(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const mm = Math.floor(t / 60).toString().padStart(2, "0");
+  const ss = (t % 60).toString().padStart(2, "0");
+  return <div>Time left: {mm}:{ss}</div>;
+}
+
+src/Components/Nav.js:
+
+// src/Components/Description.js
+import React from "react";
+
+export default function Description() {
+  return (
+    <div style={{ marginBottom: 12, color: "#444" }}>
+      Simple demo: browse shoes, buy, paste txHash and verify (mock).
+    </div>
+  );
+}
+
+src/Components/Description.js:
+
+// src/Components/Description.js
+import React from "react";
+
+export default function Description() {
+  return (
+    <div style={{ marginBottom: 12, color: "#444" }}>
+      Simple demo: browse shoes, buy, paste txHash and verify (mock).
+    </div>
+  );
+}
+
+src/Components/Container.js:
+
 // src/Components/Container.js
 import React, { useState } from "react";
 import Nav from "./Nav";
@@ -148,6 +355,7 @@ export default function Container() {
   }
 
   function handleProceedToVerify({ orderId, txHash }) {
+    // save order info and txHash; here orderId is mocked from Payment component
     setCurrentOrder({ orderId });
     setPendingTx(txHash || "0xMOCK_TX_HASH");
     setPage("verify");
@@ -179,7 +387,8 @@ export default function Container() {
   );
 }
 
-j. src/App.js
+src/App.js
+
 // src/App.js
 import React from "react";
 import Container from "./Components/Container";
@@ -193,3 +402,7 @@ function App() {
 }
 
 export default App;
+
+
+
+
