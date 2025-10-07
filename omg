@@ -1,0 +1,21 @@
+{
+"name": "gateway",
+"version": "1.0.0",
+"private": false,
+"dependencies": {
+"bulma-start": "0.0.2",
+"react": "^16.8.6",
+"react-dom": "^16.8.6",
+"react-scripts": "3.0.1",
+[ 67 ]
+Designing a Payment Gateway for Online Merchants Chapter 3
+"typescript": "^3.4.0",
+"web3": "^1.2.0"
+},
+"scripts": {
+"start": "react-scripts start",
+"build": "react-scripts build",
+"test": "react-scripts test",
+"eject": "react-scripts eject"
+}
+}
