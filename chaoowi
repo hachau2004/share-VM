@@ -2,6 +2,69 @@ sudo mkdir -p /usr/local/lib/docker/cli-plugins
 sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+sudo apt update
+bash
+Sao chép mã
+sudo apt install -y ca-certificates curl gnupg
+Tạo thư mục lưu khóa bảo mật Docker:
+
+bash
+Sao chép mã
+sudo install -m 0755 -d /etc/apt/keyrings
+Thêm khóa GPG của Docker (để Ubuntu tin tưởng repo Docker):
+
+bash
+Sao chép mã
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+Thêm repo Docker chính thức:
+
+bash
+Sao chép mã
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+Cập nhật lại danh sách package:
+
+bash
+Sao chép mã
+sudo apt update
+Cài Docker:
+
+bash
+Sao chép mã
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+⚙️ Bước 2: Kiểm tra Docker đã cài xong chưa
+bash
+Sao chép mã
+docker --version
+hoặc:
+
+bash
+Sao chép mã
+sudo docker run hello-world
+→ Nếu thấy dòng:
+
+Hello from Docker!
+
+là OK ✅
+
+⚙️ Bước 3 (tùy chọn): Chạy Docker không cần sudo
+bash
+Sao chép mã
+sudo usermod -aG docker $USER
+Rồi tắt và bật lại máy ảo Ubuntu.
+
+📌 Lưu ý đặc biệt (vì bạn dùng Mac):
+Nếu Mac của bạn là chip M1/M2/M3 (Apple Silicon) → bạn đang dùng Ubuntu ARM.
+Thì ở bước tải Docker Compose bạn cần đổi URL thành:
+
+bash
+Sao chép mã
+sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+
+TỪ ĐÂY THÌ TIẾP
 
 docker --version
 sudo usermod -aG docker $USER
