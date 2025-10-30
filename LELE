@@ -31,11 +31,12 @@ docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
 
 Sau đó khởi động toàn bộ:
 
-docker compose \
+docker-compose \
   -f docker-compose-bankchain.yaml \
   -f docker-compose-ca.yaml \
   -f docker-compose-couch.yaml \
   up -d
+
 
 
 🧾 Kiểm tra:
