@@ -43,4 +43,12 @@ Chạy:
 sudo systemctl restart docker
 
 Rồi thử lại:
-sudo docker pull ghcr.io/hyperledger
+sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5.10
+
+sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-ccenv:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5.10
+
