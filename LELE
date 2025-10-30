@@ -18,3 +18,29 @@ sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5.10
 bash
 Sao chép mã
 sudo docker images | grep hyperledger
+
+🧩 Bước 1: Kiểm tra kết nối mạng trong máy ảo
+Chạy:
+ping -c 3 google.com
+
+Nếu không thấy phản hồi (ping: unknown host google.com hoặc không có reply), thì máy ảo chưa có Internet.
+✅ Cách khắc phục:
+
+
+Mở VirtualBox → chọn VM Ubuntu → Settings → Network
+
+
+Ở “Attached to” chọn NAT
+
+
+Khởi động lại Ubuntu rồi thử lại ping google.com.
+
+
+
+🧩 Bước 2: Nếu vẫn lỗi timeout
+Có thể Docker bị giới hạn DNS.
+Chạy:
+sudo systemctl restart docker
+
+Rồi thử lại:
+sudo docker pull ghcr.io/hyperledger
