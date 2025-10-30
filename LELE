@@ -7,3 +7,14 @@ sudo docker pull hyperledger/fabric-ca:1.5.10
 
 sudo docker images | grep hyperledger
 
+sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-tools:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-ccenv:3.1
+sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5.10
+(Chú ý: fabric-ca vẫn là 1.5.10, chưa có bản 3.x.)
+
+🔍 Sau khi chạy xong, kiểm tra lại:
+bash
+Sao chép mã
+sudo docker images | grep hyperledger
