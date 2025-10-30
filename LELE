@@ -1,40 +1,24 @@
-gDi chuyển vào thư mục fabric-samples
-(đây là thư mục bạn đã git clone trước đó):
+git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
+cd Blockchain-Development-for-Finance-Projects/Chapter4/bankchain
+🪶 Bước 3: Tạo file crypto-config.yaml
+Gõ lệnh:
 
-cd ~/fabric-samples
+bash
+Sao chép mã
+nano crypto-config.yaml
+Lúc này màn hình sẽ mở trình soạn thảo nano (một trình soạn thảo trong terminal).
 
+Dán nội dung YAML vào đó (như mình gửi ở trên).
 
-Chạy script để tải Fabric binaries và config files
-(script này tự động tải peer, orderer, fabric-ca-client...):
+📝 Bước 4: Lưu file lại
+Nhấn Ctrl + O → rồi Enter (để lưu).
 
-curl -sSL https://bit.ly/2ysbOFE | bash -s -- 3.1.0 1.5.10
+Nhấn Ctrl + X (để thoát khỏi nano).
 
+🧾 Bước 5: Kiểm tra lại file vừa tạo
+Gõ lệnh:
 
-💡 Giải thích:
-
-3.1.0 là version của Fabric binaries
-
-1.5.10 là version của Fabric CA
-
-Quá trình này sẽ mất vài phút.
-
-Sau khi tải xong, thêm binary vào PATH:
-
-export PATH=${PWD}/bin:$PATH
-echo 'export PATH=${PWD}/bin:$PATH' >> ~/.bashrc
-source ~/.bashrc
-
-
-Kiểm tra lại:
-
-peer version
-orderer version
-fabric-ca-client version
-
-
-👉 Nếu hiển thị version như:
-
-peer:
- Version: 3.1.0
-fabric-ca-client:
- Version: 1.5.10
+bash
+Sao chép mã
+cat crypto-config.yaml
+Nếu bạn thấy đúng nội dung YAML hiện ra → nghĩa là bạn đã tạo thành công.
