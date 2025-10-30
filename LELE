@@ -31,27 +31,27 @@ docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
 
 Sau đó khởi động toàn bộ:
 
-Chạy lần lượt:
+1️⃣ Gỡ sạch những gói compose bị trùng
+
+sudo apt remove docker-compose docker-compose-plugin docker-compose-v2 -y
+
+
+2️⃣ Cài lại plugin chính thức từ Docker
 
 sudo apt update
-sudo apt install docker-compose -y
+sudo apt install docker-compose-plugin -y
 
 
-Sau đó kiểm tra:
+3️⃣ Kiểm tra lại
 
-docker-compose version
-
-
-Nếu thấy trả về như:
-
-docker-compose version 1.29.2, build ...
+docker compose version
 
 
-→ là OK ✅
+⚠️ Lưu ý: cú pháp bây giờ là docker compose (có dấu cách) chứ không còn là docker-compose (có dấu gạch nối) nữa.
 
-Rồi bạn chạy lại lệnh:
+4️⃣ Sau khi có kết quả version OK, chạy lại lệnh này để khởi động mạng Bankchain:
 
-docker-compose \
+docker compose \
   -f docker-compose-bankchain.yaml \
   -f docker-compose-ca.yaml \
   -f docker-compose-couch.yaml \
