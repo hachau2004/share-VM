@@ -1,3 +1,8 @@
+nano crypto-config.yaml
+Xóa toàn bộ nội dung cũ, rồi copy–paste đúng bản chuẩn dưới đây:
+
+yaml
+Sao chép mã
 OrdererOrgs:
   - Name: Orderer
     Domain: bankchain.com
@@ -21,69 +26,32 @@ PeerOrgs:
       Count: 2
     Users:
       Count: 1
+⚠️ Lưu ý:
 
-2. Tạo configtx.yaml file
-File được tạo ở folder bankchain. File này: 
-	Định nghĩa consortium (BankConsortium gồm Bank1 + Bank2).
-	Định nghĩa anchor peer cho từng ngân hàng.
-	Đây chính là “luật chơi” của mạng blockchain: ai tham gia, quyền gì, kết nối thế nào.
-configtx.yaml:
+Phải cách bằng 2 dấu cách, không dùng tab.
 
-Organizations:
+Dòng OrdererOrgs: và PeerOrgs: nằm ở đầu (không có thụt đầu dòng).
 
-  - &OrdererOrg
-    Name: OrdererMSP
-    ID: OrdererMSP
-    MSPDir: crypto-config/ordererOrganizations/bankchain.com/msp
+Mỗi cấp lùi 2 spaces thôi.
 
-  - &BankA
-    Name: BankAMSP
-    ID: BankAMSP
-    MSPDir: crypto-config/peerOrganizations/banka.bankchain.com/msp
-    AnchorPeers:
-      - Host: peer0.banka.bankchain.com
-        Port: 7051
+Lưu lại:
 
-  - &BankB
-    Name: BankBMSP
-    ID: BankBMSP
-    MSPDir: crypto-config/peerOrganizations/bankb.bankchain.com/msp
-    AnchorPeers:
-      - Host: peer0.bankb.bankchain.com
-        Port: 8051
+Nhấn Ctrl + O, Enter
 
-Orderer:
-  OrdererType: solo
-  Addresses:
-    - orderer.bankchain.com:7050
-  Organizations:
-    - *OrdererOrg
+Nhấn Ctrl + X để thoát
 
-Application:    
-  Organizations:
+Xóa thư mục cũ (nếu còn trống):
 
-Profiles:
-
-  BankchainGenesis:
-    Orderer:
-      OrdererType: solo
-      Addresses:
-        - orderer.bankchain.com:7050
-      Organizations:
-        - *OrdererOrg
-    Consortiums:
-      BankConsortium:
-        Organizations:
-          - *BankA
-          - *BankB
-
-  BankChannel:
-    Consortium: BankConsortium
-    Application:
-      Organizations:
-        - *BankA
-        - *BankB
-
-
+bash
+Sao chép mã
 rm -rf crypto-config
+Sinh lại certificate:
+
+bash
+Sao chép mã
 cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+Kiểm tra:
+
+bash
+Sao chép mã
+tree crypto-config
