@@ -1,2 +1,9 @@
 git clone https://github.com/hyperledger/fabric-samples.git --depth 1
+sudo docker pull hyperledger/fabric-peer:3.1
+sudo docker pull hyperledger/fabric-orderer:3.1
+sudo docker pull hyperledger/fabric-tools:3.1
+sudo docker pull hyperledger/fabric-ccenv:3.1
+sudo docker pull hyperledger/fabric-ca:1.5.10
+
+sudo docker images | grep hyperledger
 
