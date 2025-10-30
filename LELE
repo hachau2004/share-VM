@@ -31,6 +31,26 @@ docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
 
 Sau đó khởi động toàn bộ:
 
+Chạy lần lượt:
+
+sudo apt update
+sudo apt install docker-compose -y
+
+
+Sau đó kiểm tra:
+
+docker-compose version
+
+
+Nếu thấy trả về như:
+
+docker-compose version 1.29.2, build ...
+
+
+→ là OK ✅
+
+Rồi bạn chạy lại lệnh:
+
 docker-compose \
   -f docker-compose-bankchain.yaml \
   -f docker-compose-ca.yaml \
