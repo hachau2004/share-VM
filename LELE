@@ -1,55 +1,80 @@
-🔧 Cách sửa lỗi “docker: unknown command: docker compose”
-🪜 Bước 1: Kiểm tra Docker đã nhận plugin chưa
+Bước 2: Tạo lại file bị thiếu
 
 Chạy lệnh:
 
-ls /usr/libexec/docker/cli-plugins/
+nano base/docker-compose-base-bankchain.yaml
 
 
-Nếu bạn thấy có file tên:
+Rồi dán nội dung mẫu dưới đây vào file:
 
-docker-compose
+version: '2'
+
+services:
+  orderer.bankchain.com:
+    container_name: orderer.bankchain.com
+    image: ghcr.io/hyperledger/fabric-orderer:${IMAGE_TAG}
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=info
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/:/var/hyperledger/orderer/tls
+    ports:
+      - 7050:7050
+
+  peer0.banka.bankchain.com:
+    container_name: peer0.banka.bankchain.com
+    image: ghcr.io/hyperledger/fabric-peer:${IMAGE_TAG}
+    environment:
+      - CORE_PEER_ID=peer0.banka.bankchain.com
+      - CORE_PEER_ADDRESS=peer0.banka.bankchain.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_LOCALMSPID=BankAMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.bankchain.com/peers/peer0.banka.bankchain.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.bankchain.com/peers/peer0.banka.bankchain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
 
 
-→ Là plugin đã được cài đúng chỗ, nhưng Docker chưa nhận ra.
+Lưu lại bằng:
 
-🪜 Bước 2: Kiểm tra đường dẫn CLI plugin
+Ctrl + O → Enter
+Ctrl + X
 
-Chạy lệnh:
-
-docker version
-
-
-Ở cuối sẽ có dòng “Client:” → xem Docker Root Dir hoặc CLI Plugins Dir.
-Nếu /usr/libexec/docker/cli-plugins không nằm trong đó, ta cần tạo symlink.
-
-🪜 Bước 3: Tạo liên kết để Docker nhận Compose
-
-Chạy lệnh sau:
-
-sudo mkdir -p /usr/local/lib/docker/cli-plugins
-sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
-
-🪜 Bước 4: Kiểm tra lại
-
-Giờ chạy lại lệnh:
-
-docker compose version
-
-
-Nếu ra ví dụ như:
-
-Docker Compose version v2.24.0
-
-
-→ ✅ OK rồi!
-
-🪜 Bước 5: Chạy lại lệnh khởi động mạng Bankchain
+Bước 3: Chạy lại lệnh compose
+export SYS_CHANNEL=bk-sys-channel
 docker compose \
   -f docker-compose-bankchain.yaml \
   -f docker-compose-ca.yaml \
   -f docker-compose-couch.yaml \
   up -d
+
+
+📸 Sau khi chạy, gửi mình ảnh của:
+
+ls base
+
+
+và
+
+docker ps
 
 ⛓ Bước 4 — Tạo channel & test
 (a) Copy genesis block vào orderer
