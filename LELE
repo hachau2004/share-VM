@@ -1,106 +1,85 @@
-2️⃣ Nếu cryptogen và configtxgen chưa được nhận, thêm vào PATH:
-export PATH=~/fabric-samples/bin:$PATH
+OrdererOrgs:
+  - Name: Orderer
+    Domain: bankchain.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
 
+PeerOrgs:
+  - Name: BankA
+    Domain: banka.bankchain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
 
-⚙️ (Lệnh này giúp hệ thống “biết” công cụ cryptogen và configtxgen nằm ở đâu.)
+  - Name: BankB
+    Domain: bankb.bankchain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
 
-3️⃣ Thiết lập biến môi trường cấu hình
-export FABRIC_CFG_PATH=$PWD
+2. Tạo configtx.yaml file
+File được tạo ở folder bankchain. File này: 
+	Định nghĩa consortium (BankConsortium gồm Bank1 + Bank2).
+	Định nghĩa anchor peer cho từng ngân hàng.
+	Đây chính là “luật chơi” của mạng blockchain: ai tham gia, quyền gì, kết nối thế nào.
+configtx.yaml:
 
-🚀 Bắt đầu 4 bước khởi chạy network
-🧩 Bước 1 — Generate certificates
+Organizations:
 
-Sinh chứng chỉ (MSP, TLS, v.v.) cho các tổ chức:
+  - &OrdererOrg
+    Name: OrdererMSP
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/bankchain.com/msp
 
-rm -rf crypto-config channel-artifacts && mkdir -p crypto-config channel-artifacts
-cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+  - &BankA
+    Name: BankAMSP
+    ID: BankAMSP
+    MSPDir: crypto-config/peerOrganizations/banka.bankchain.com/msp
+    AnchorPeers:
+      - Host: peer0.banka.bankchain.com
+        Port: 7051
 
+  - &BankB
+    Name: BankBMSP
+    ID: BankBMSP
+    MSPDir: crypto-config/peerOrganizations/bankb.bankchain.com/msp
+    AnchorPeers:
+      - Host: peer0.bankb.bankchain.com
+        Port: 8051
 
-Sau khi chạy xong, gõ:
+Orderer:
+  OrdererType: solo
+  Addresses:
+    - orderer.bankchain.com:7050
+  Organizations:
+    - *OrdererOrg
 
-tree crypto-config
+Application:    
+  Organizations:
 
+Profiles:
 
-(nếu chưa cài tree thì chạy sudo apt install tree -y)
-→ Bạn sẽ thấy thư mục chứa certs cho banka, bankb, và orderer.
+  BankchainGenesis:
+    Orderer:
+      OrdererType: solo
+      Addresses:
+        - orderer.bankchain.com:7050
+      Organizations:
+        - *OrdererOrg
+    Consortiums:
+      BankConsortium:
+        Organizations:
+          - *BankA
+          - *BankB
 
-🧱 Bước 2 — Generate channel artifacts
-
-Tạo file genesis block cho channel:
-
-configtxgen -configPath $PWD \
-  -profile BankchainGenesis \
-  -channelID bkchannel \
-  -outputBlock ./channel-artifacts/bkchannel.block
-
-
-Sau đó tạo anchor peer update:
-
-configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
-  -asOrg BankAMSP -outputAnchorPeersUpdate ./channel-artifacts/BankAMSPanchors.tx
-
-configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
-  -asOrg BankBMSP -outputAnchorPeersUpdate ./channel-artifacts/BankBMSPanchors.tx
-
-🐳 Bước 3 — Docker Compose (khởi động toàn bộ network)
-
-Kéo image (để tránh lỗi version):
-
-export IMAGE_TAG=3.1
-export CA_IMAGE_TAG=1.5.10
-
-docker pull ghcr.io/hyperledger/fabric-peer:$IMAGE_TAG
-docker pull ghcr.io/hyperledger/fabric-orderer:$IMAGE_TAG
-docker pull couchdb:3.3
-docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
-
-
-Sau đó khởi động toàn bộ:
-
-docker compose \
-  -f docker-compose-bankchain.yaml \
-  -f docker-compose-ca.yaml \
-  -f docker-compose-couch.yaml \
-  up -d
-
-
-🧾 Kiểm tra:
-
-docker ps
-
-
-→ Bạn nên thấy khoảng 10–11 container đang chạy (peer0/1, orderer, ca, cli, couchdb...)
-
-⛓ Bước 4 — Tạo channel & test
-(a) Copy genesis block vào orderer
-docker cp ./channel-artifacts/bkchannel.block orderer.bankchain.com:/var/hyperledger/orderer/bkchannel.block
-
-(b) Orderer join channel
-docker exec -it orderer.bankchain.com bash -lc \
-'osnadmin channel join \
-  --channelID bkchannel \
-  --config-block /var/hyperledger/orderer/bkchannel.block \
-  -o localhost:7053 \
-  --ca-file /var/hyperledger/orderer/tls/ca.crt \
-  --client-cert /var/hyperledger/orderer/tls/server.crt \
-  --client-key /var/hyperledger/orderer/tls/server.key'
-
-
-Kiểm tra:
-
-docker exec orderer.bankchain.com osnadmin channel list -o localhost:7053 \
-  --ca-file /var/hyperledger/orderer/tls/ca.crt \
-  --client-cert /var/hyperledger/orderer/tls/server.crt \
-  --client-key /var/hyperledger/orderer/tls/server.key
-
-(c) Peer join channel (từ container CLI)
-docker exec -it cli bash
-
-
-→ Trong CLI container, chạy lần lượt các lệnh:
-
-export CHANNEL_NAME=bkchannel
-export ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt
-
-
-Rồi chạy tiếp các lệnh peer channel join cho từng peer (như hướng dẫn của bạn gửi).
+  BankChannel:
+    Consortium: BankConsortium
+    Application:
+      Organizations:
+        - *BankA
+        - *BankB
