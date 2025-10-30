@@ -24,26 +24,58 @@ cat crypto-config.yaml
 Nếu bạn thấy đúng nội dung YAML hiện ra → nghĩa là bạn đã tạo thành công.
 
 
-OrdererOrgs:
-  - Name: Orderer
-    Domain: bankchain.com
-    EnableNodeOUs: true
-    Specs:
-      - Hostname: orderer
+Organizations:
 
-PeerOrgs:
-  - Name: BankA
-    Domain: banka.bankchain.com
-    EnableNodeOUs: true
-    Template:
-      Count: 2
-    Users:
-      Count: 1
+  - &OrdererOrg
+    Name: OrdererMSP
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/bankchain.com/msp
 
-  - Name: BankB
-    Domain: bankb.bankchain.com
-    EnableNodeOUs: true
-    Template:
-      Count: 2
-    Users:
-      Count: 1
+  - &BankA
+    Name: BankAMSP
+    ID: BankAMSP
+    MSPDir: crypto-config/peerOrganizations/banka.bankchain.com/msp
+    AnchorPeers:
+      - Host: peer0.banka.bankchain.com
+        Port: 7051
+
+  - &BankB
+    Name: BankBMSP
+    ID: BankBMSP
+    MSPDir: crypto-config/peerOrganizations/bankb.bankchain.com/msp
+    AnchorPeers:
+      - Host: peer0.bankb.bankchain.com
+        Port: 8051
+
+Orderer:
+  OrdererType: solo
+  Addresses:
+    - orderer.bankchain.com:7050
+  Organizations:
+    - *OrdererOrg
+
+Application:    
+  Organizations:
+
+Profiles:
+
+  BankchainGenesis:
+    Orderer:
+      OrdererType: solo
+      Addresses:
+        - orderer.bankchain.com:7050
+      Organizations:
+        - *OrdererOrg
+    Consortiums:
+      BankConsortium:
+        Organizations:
+          - *BankA
+          - *BankB
+
+  BankChannel:
+    Consortium: BankConsortium
+    Application:
+      Organizations:
+        - *BankA
+        - *BankB
+
