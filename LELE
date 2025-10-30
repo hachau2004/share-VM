@@ -1,142 +1,106 @@
-version: '2'
-
-networks:
-  bankchain:
-
-services:
-  
-  couchdb0:
-    container_name: couchdb0
-    image: hyperledger/fabric-couchdb
-    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
-    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
-    # for example map it to utilize Fauxton User Interface in dev environments.
-    ports:
-      - "5984:5984"
-    networks:
-      - bankchain
-
-  peer0.banka.example.com:
-    container_name: peer0.banka.example.com
-    extends:
-      file:  base/docker-compose-base-bankchain.yaml
-      service: peer0.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb0
-
-  couchdb1:
-    container_name: couchdb1
-    image: hyperledger/fabric-couchdb
-    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
-    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
-    # for example map it to utilize Fauxton User Interface in dev environments.
-    ports:
-      - "6984:5984"
-    networks:
-      - bankchain
-
-  peer1.banka.example.com:
-    container_name: peer1.banka.example.com
-    extends:
-      file:  base/docker-compose-base-bankchain.yaml
-      service: peer1.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb1
-
- 
- 
-  couchdb2:
-    container_name: couchdb2
-    image: hyperledger/fabric-couchdb
-    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
-    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
-    # for example map it to utilize Fauxton User Interface in dev environments.
-    ports:
-      - "7984:5984"
-    networks:
-      - bankchain
-
-  peer0.bankb.example.com:
-    container_name: peer0.bankb.example.com
-    extends:
-      file:  base/docker-compose-base-bankchain.yaml
-      service: peer0.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb2
+2️⃣ Nếu cryptogen và configtxgen chưa được nhận, thêm vào PATH:
+export PATH=~/fabric-samples/bin:$PATH
 
 
-  couchdb3:
-    container_name: couchdb3
-    image: hyperledger/fabric-couchdb
-    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
-    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
-    # for example map it to utilize Fauxton User Interface in dev environments.
-    ports:
-      - "8984:5984"
-    networks:
-      - bankchain
+⚙️ (Lệnh này giúp hệ thống “biết” công cụ cryptogen và configtxgen nằm ở đâu.)
 
- 
-  peer1.bankb.example.com:
-    container_name: peer1.bankb.example.com
-    extends:
-      file:  base/docker-compose-base-bankchain.yaml
-      service: peer1.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb3
+3️⃣ Thiết lập biến môi trường cấu hình
+export FABRIC_CFG_PATH=$PWD
+
+🚀 Bắt đầu 4 bước khởi chạy network
+🧩 Bước 1 — Generate certificates
+
+Sinh chứng chỉ (MSP, TLS, v.v.) cho các tổ chức:
+
+rm -rf crypto-config channel-artifacts && mkdir -p crypto-config channel-artifacts
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+
+
+Sau khi chạy xong, gõ:
+
+tree crypto-config
+
+
+(nếu chưa cài tree thì chạy sudo apt install tree -y)
+→ Bạn sẽ thấy thư mục chứa certs cho banka, bankb, và orderer.
+
+🧱 Bước 2 — Generate channel artifacts
+
+Tạo file genesis block cho channel:
+
+configtxgen -configPath $PWD \
+  -profile BankchainGenesis \
+  -channelID bkchannel \
+  -outputBlock ./channel-artifacts/bkchannel.block
+
+
+Sau đó tạo anchor peer update:
+
+configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
+  -asOrg BankAMSP -outputAnchorPeersUpdate ./channel-artifacts/BankAMSPanchors.tx
+
+configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
+  -asOrg BankBMSP -outputAnchorPeersUpdate ./channel-artifacts/BankBMSPanchors.tx
+
+🐳 Bước 3 — Docker Compose (khởi động toàn bộ network)
+
+Kéo image (để tránh lỗi version):
+
+export IMAGE_TAG=3.1
+export CA_IMAGE_TAG=1.5.10
+
+docker pull ghcr.io/hyperledger/fabric-peer:$IMAGE_TAG
+docker pull ghcr.io/hyperledger/fabric-orderer:$IMAGE_TAG
+docker pull couchdb:3.3
+docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
+
+
+Sau đó khởi động toàn bộ:
+
+docker compose \
+  -f docker-compose-bankchain.yaml \
+  -f docker-compose-ca.yaml \
+  -f docker-compose-couch.yaml \
+  up -d
+
+
+🧾 Kiểm tra:
+
+docker ps
+
+
+→ Bạn nên thấy khoảng 10–11 container đang chạy (peer0/1, orderer, ca, cli, couchdb...)
+
+⛓ Bước 4 — Tạo channel & test
+(a) Copy genesis block vào orderer
+docker cp ./channel-artifacts/bkchannel.block orderer.bankchain.com:/var/hyperledger/orderer/bkchannel.block
+
+(b) Orderer join channel
+docker exec -it orderer.bankchain.com bash -lc \
+'osnadmin channel join \
+  --channelID bkchannel \
+  --config-block /var/hyperledger/orderer/bkchannel.block \
+  -o localhost:7053 \
+  --ca-file /var/hyperledger/orderer/tls/ca.crt \
+  --client-cert /var/hyperledger/orderer/tls/server.crt \
+  --client-key /var/hyperledger/orderer/tls/server.key'
+
+
+Kiểm tra:
+
+docker exec orderer.bankchain.com osnadmin channel list -o localhost:7053 \
+  --ca-file /var/hyperledger/orderer/tls/ca.crt \
+  --client-cert /var/hyperledger/orderer/tls/server.crt \
+  --client-key /var/hyperledger/orderer/tls/server.key
+
+(c) Peer join channel (từ container CLI)
+docker exec -it cli bash
+
+
+→ Trong CLI container, chạy lần lượt các lệnh:
+
+export CHANNEL_NAME=bkchannel
+export ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt
+
+
+Rồi chạy tiếp các lệnh peer channel join cho từng peer (như hướng dẫn của bạn gửi).
