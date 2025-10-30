@@ -59,12 +59,14 @@ Ctrl + O → Enter
 Ctrl + X
 
 Bước 3: Chạy lại lệnh compose
-export SYS_CHANNEL=bk-sys-channel
-docker compose \
-  -f docker-compose-bankchain.yaml \
-  -f docker-compose-ca.yaml \
-  -f docker-compose-couch.yaml \
-  up -d
+export SYS_CHANNEL=bankchain-sys-channel
+
+docker-compose \
+    -f docker-compose-bankchain.yaml \
+    -f docker-compose-ca.yaml \
+    -f docker-compose-couch.yaml \
+    up -d
+
 
 
 📸 Sau khi chạy, gửi mình ảnh của:
