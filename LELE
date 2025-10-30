@@ -1,70 +1,55 @@
-🧱 Bước 2 — Generate channel artifacts
+🔧 Cách sửa lỗi “docker: unknown command: docker compose”
+🪜 Bước 1: Kiểm tra Docker đã nhận plugin chưa
 
-Tạo file genesis block cho channel:
+Chạy lệnh:
 
-configtxgen -configPath $PWD \
-  -profile BankchainGenesis \
-  -channelID bkchannel \
-  -outputBlock ./channel-artifacts/bkchannel.block
+ls /usr/libexec/docker/cli-plugins/
 
 
-Sau đó tạo anchor peer update:
+Nếu bạn thấy có file tên:
 
-configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
-  -asOrg BankAMSP -outputAnchorPeersUpdate ./channel-artifacts/BankAMSPanchors.tx
-
-configtxgen -configPath $PWD -profile BankChannel -channelID bkchannel \
-  -asOrg BankBMSP -outputAnchorPeersUpdate ./channel-artifacts/BankBMSPanchors.tx
-
-🐳 Bước 3 — Docker Compose (khởi động toàn bộ network)
-
-Kéo image (để tránh lỗi version):
-
-export IMAGE_TAG=3.1
-export CA_IMAGE_TAG=1.5.10
-
-docker pull ghcr.io/hyperledger/fabric-peer:$IMAGE_TAG
-docker pull ghcr.io/hyperledger/fabric-orderer:$IMAGE_TAG
-docker pull couchdb:3.3
-docker pull ghcr.io/hyperledger/fabric-ca:$CA_IMAGE_TAG
+docker-compose
 
 
-Sau đó khởi động toàn bộ:
+→ Là plugin đã được cài đúng chỗ, nhưng Docker chưa nhận ra.
 
-1️⃣ Gỡ sạch những gói compose bị trùng
+🪜 Bước 2: Kiểm tra đường dẫn CLI plugin
 
-sudo apt remove docker-compose docker-compose-plugin docker-compose-v2 -y
+Chạy lệnh:
 
-
-2️⃣ Cài lại plugin chính thức từ Docker
-
-sudo apt update
-sudo apt install docker-compose-plugin -y
+docker version
 
 
-3️⃣ Kiểm tra lại
+Ở cuối sẽ có dòng “Client:” → xem Docker Root Dir hoặc CLI Plugins Dir.
+Nếu /usr/libexec/docker/cli-plugins không nằm trong đó, ta cần tạo symlink.
+
+🪜 Bước 3: Tạo liên kết để Docker nhận Compose
+
+Chạy lệnh sau:
+
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+
+🪜 Bước 4: Kiểm tra lại
+
+Giờ chạy lại lệnh:
 
 docker compose version
 
 
-⚠️ Lưu ý: cú pháp bây giờ là docker compose (có dấu cách) chứ không còn là docker-compose (có dấu gạch nối) nữa.
+Nếu ra ví dụ như:
 
-4️⃣ Sau khi có kết quả version OK, chạy lại lệnh này để khởi động mạng Bankchain:
+Docker Compose version v2.24.0
 
+
+→ ✅ OK rồi!
+
+🪜 Bước 5: Chạy lại lệnh khởi động mạng Bankchain
 docker compose \
   -f docker-compose-bankchain.yaml \
   -f docker-compose-ca.yaml \
   -f docker-compose-couch.yaml \
   up -d
-
-
-
-🧾 Kiểm tra:
-
-docker ps
-
-
-→ Bạn nên thấy khoảng 10–11 container đang chạy (peer0/1, orderer, ca, cli, couchdb...)
 
 ⛓ Bước 4 — Tạo channel & test
 (a) Copy genesis block vào orderer
