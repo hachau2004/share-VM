@@ -1,56 +1,40 @@
-git clone https://github.com/hyperledger/fabric-samples.git --depth 1
-sudo docker pull hyperledger/fabric-peer:3.1
-sudo docker pull hyperledger/fabric-orderer:3.1
-sudo docker pull hyperledger/fabric-tools:3.1
-sudo docker pull hyperledger/fabric-ccenv:3.1
-sudo docker pull hyperledger/fabric-ca:1.5.10
+gDi chuyển vào thư mục fabric-samples
+(đây là thư mục bạn đã git clone trước đó):
 
-sudo docker images | grep hyperledger
-
-sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-tools:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-ccenv:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5.10
-(Chú ý: fabric-ca vẫn là 1.5.10, chưa có bản 3.x.)
-
-🔍 Sau khi chạy xong, kiểm tra lại:
-bash
-Sao chép mã
-sudo docker images | grep hyperledger
-
-🧩 Bước 1: Kiểm tra kết nối mạng trong máy ảo
-Chạy:
-ping -c 3 google.com
-
-Nếu không thấy phản hồi (ping: unknown host google.com hoặc không có reply), thì máy ảo chưa có Internet.
-✅ Cách khắc phục:
+cd ~/fabric-samples
 
 
-Mở VirtualBox → chọn VM Ubuntu → Settings → Network
+Chạy script để tải Fabric binaries và config files
+(script này tự động tải peer, orderer, fabric-ca-client...):
+
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- 3.1.0 1.5.10
 
 
-Ở “Attached to” chọn NAT
+💡 Giải thích:
+
+3.1.0 là version của Fabric binaries
+
+1.5.10 là version của Fabric CA
+
+Quá trình này sẽ mất vài phút.
+
+Sau khi tải xong, thêm binary vào PATH:
+
+export PATH=${PWD}/bin:$PATH
+echo 'export PATH=${PWD}/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
 
 
-Khởi động lại Ubuntu rồi thử lại ping google.com.
+Kiểm tra lại:
+
+peer version
+orderer version
+fabric-ca-client version
 
 
+👉 Nếu hiển thị version như:
 
-🧩 Bước 2: Nếu vẫn lỗi timeout
-Có thể Docker bị giới hạn DNS.
-Chạy:
-sudo systemctl restart docker
-
-Rồi thử lại:
-sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5
-
-sudo docker pull ghcr.io/hyperledger/fabric-peer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-ccenv:3.1
-sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5
-
-sudo docker images | grep hyperledger
-
+peer:
+ Version: 3.1.0
+fabric-ca-client:
+ Version: 1.5.10
