@@ -52,4 +52,5 @@ sudo docker pull ghcr.io/hyperledger/fabric-orderer:3.1
 sudo docker pull ghcr.io/hyperledger/fabric-ccenv:3.1
 sudo docker pull ghcr.io/hyperledger/fabric-ca:1.5
 
+sudo docker images | grep hyperledger
 
