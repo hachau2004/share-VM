@@ -1,0 +1,64 @@
+hachau@hachau:~/fabric-samples/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain$ docker logs orderer.example.com --tail 30
+	Metrics.Statsd.Prefix = ""
+	ChannelParticipation.Enabled = false
+	ChannelParticipation.MaxRequestBodySize = 1048576
+	Admin.ListenAddress = "127.0.0.1:9443"
+	Admin.TLS.Enabled = false
+	Admin.TLS.PrivateKey = ""
+	Admin.TLS.Certificate = ""
+	Admin.TLS.RootCAs = []
+	Admin.TLS.ClientAuthRequired = true
+	Admin.TLS.ClientRootCAs = []
+	Admin.TLS.TLSHandshakeTimeShift = 0s
+2025-11-01 08:01:12.017 UTC 0004 INFO [orderer.common.server] initializeServerConfig -> Starting orderer with TLS enabled
+2025-11-01 08:01:12.038 UTC 0005 INFO [blkstorage] NewProvider -> Creating new file ledger directory at /var/hyperledger/production/orderer/chains
+2025-11-01 08:01:12.051 UTC 0006 INFO [orderer.common.server] Main -> Bootstrapping the system channel
+2025-11-01 08:01:12.053 UTC 0007 INFO [blkstorage] newBlockfileMgr -> Getting block information from block storage
+2025-11-01 08:01:12.057 UTC 0008 INFO [orderer.common.server] initializeBootstrapChannel -> Initialized the system channel 'system-channel' from bootstrap block
+2025-11-01 08:01:12.059 UTC 0009 INFO [orderer.common.server] extractSystemChannel -> Found system channel config block, number: 0
+2025-11-01 08:01:12.059 UTC 000a INFO [orderer.common.server] selectClusterBootBlock -> Cluster boot block is bootstrap (genesis) block; Blocks Header.Number system-channel=0, bootstrap=0
+2025-11-01 08:01:12.060 UTC 000b INFO [orderer.common.server] Main -> Starting with system channel: system-channel, consensus type: solo
+2025-11-01 08:01:12.060 UTC 000c INFO [certmonitor] trackCertExpiration -> The enrollment certificate will expire on 2035-10-30 05:14:00 +0000 UTC
+2025-11-01 08:01:12.060 UTC 000d INFO [certmonitor] trackCertExpiration -> The server TLS certificate will expire on 2035-10-30 05:14:00 +0000 UTC
+2025-11-01 08:01:12.067 UTC 000e WARN [orderer.consensus.solo] HandleChain -> Use of the Solo orderer is deprecated and remains only for use in test environments but may be removed in the future.
+2025-11-01 08:01:12.067 UTC 000f INFO [orderer.commmon.multichannel] initSystemChannel -> Starting system channel 'system-channel' with genesis block hash fa00f9c06563f25f8f9712aef39f396086e02cec2452a42b84662663fab4ac57 and orderer type solo
+2025-11-01 08:01:12.070 UTC 0010 INFO [orderer.common.server] Main -> Starting orderer:
+ Version: v2.5.12
+ Commit SHA: af0b647
+ Go version: go1.23.5
+ OS/Arch: linux/arm64
+2025-11-01 08:01:12.070 UTC 0011 INFO [orderer.common.server] Main -> Beginning to serve requests
+2025-11-01 08:24:46.677 UTC 0012 INFO [orderer.common.server] func1 -> Received signal: 15 (terminated)
+hachau@hachau:~/fabric-samples/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain$ docker logs peer0.banka.example.com --tail 30
+		/internal/peer/node/start.go:130
+	github.com/spf13/cobra.(*Command).execute
+		/vendor/github.com/spf13/cobra/command.go:872
+	github.com/spf13/cobra.(*Command).ExecuteC
+		/vendor/github.com/spf13/cobra/command.go:990
+	github.com/spf13/cobra.(*Command).Execute
+		/vendor/github.com/spf13/cobra/command.go:918
+	main.main
+		/cmd/peer/main.go:56
+	runtime.main
+		/usr/local/go/src/runtime/proc.go:272
+	runtime.goexit
+		/usr/local/go/src/runtime/asm_arm64.s:1223
+	unable to connect to CouchDB, check the hostname and port
+
+goroutine 1 [running]:
+github.com/hyperledger/fabric/core/ledger/ledgermgmt.NewLedgerMgr(0x400004d778)
+	/core/ledger/ledgermgmt/ledger_mgmt.go:85 +0x50c
+github.com/hyperledger/fabric/internal/peer/node.serve({0x0?, 0xdc6567a00000000?, 0x400004dbe8?})
+	/internal/peer/node/start.go:445 +0x1d90
+github.com/hyperledger/fabric/internal/peer/node.init.func6(0x2afb600?, {0x2b88060?, 0x4?, 0x1dc819f?})
+	/internal/peer/node/start.go:130 +0x60
+github.com/spf13/cobra.(*Command).execute(0x2afb600, {0x2b88060, 0x0, 0x0})
+	/vendor/github.com/spf13/cobra/command.go:872 +0x56c
+github.com/spf13/cobra.(*Command).ExecuteC(0x2af9f80)
+	/vendor/github.com/spf13/cobra/command.go:990 +0x318
+github.com/spf13/cobra.(*Command).Execute(...)
+	/vendor/github.com/spf13/cobra/command.go:918
+main.main()
+	/cmd/peer/main.go:56 +0x300
+hachau@hachau:~/fabric-samples/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain$ docker logs cli --tail 30
+root@9c671e5d566d:/opt/gopath/src/github.com/hyperledger/fabric/peer# hachau@hachau:~/fabric-samples/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain$ 
