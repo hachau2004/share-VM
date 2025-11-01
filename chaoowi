@@ -265,6 +265,7 @@ nano configtx.yaml
 
 
 Profiles:
+
     TwoOrgsOrdererGenesis:
         <<: *ChannelDefaults
         Orderer:
@@ -284,6 +285,11 @@ Profiles:
         <<: *ChannelDefaults
         Application:
             <<: *ApplicationDefaults
+            Organizations:
+                - *Org1
+                - *Org2
+            Capabilities:
+                <<: *ApplicationCapabilities
 
     BankChannel:
         Consortium: SampleConsortium
