@@ -125,6 +125,48 @@ source ~/.bashrc
 peer version
 fabric-ca-client version
 
+FIX PEER VERSION:
+🔹 1️⃣ Xóa bản cũ bị sai kiến trúc
+rm -rf ~/fabric-samples/bin
+
+🔹 2️⃣ Tải đúng bản cho ARM64
+
+Hiện Hyperledger chưa phát hành binary chính thức cho ARM,
+nhưng có thể chạy bằng Docker ARM64 images, tức là bỏ qua phần binary,
+vì các container (orderer, peer, CA…) đều có image ARM64 sẵn.
+
+👉 Tải bộ fabric-samples đúng cách:
+
+cd ~
+rm -rf fabric-samples
+git clone https://github.com/hyperledger/fabric-samples.git
+cd fabric-samples
+
+🔹 3️⃣ Kéo về Docker image ARM64
+
+Chạy lệnh này (thay cho việc chạy peer trực tiếp):
+
+docker pull hyperledger/fabric-peer:3.1
+docker pull hyperledger/fabric-orderer:3.1
+docker pull hyperledger/fabric-ca:1.5.10
+docker pull hyperledger/fabric-tools:3.1
+
+
+Các image này đều có bản linux/arm64 — VirtualBox ARM sẽ chạy được.
+
+🔹 4️⃣ Sửa lại biến môi trường (chỉ giữ phần config)
+
+Không cần PATH trỏ tới bin/ nữa:
+
+echo 'export FABRIC_CFG_PATH=$HOME/fabric-samples/config' >> ~/.bashrc
+source ~/.bashrc
+
+🔹 5️⃣ Kiểm tra Docker image
+docker images | grep hyperledger
+
+
+→ Nếu thấy các dòng fabric-peer, fabric-orderer, fabric-ca là OK ✅
+
 ⚙️ PHẦN 2 – LAB 4.1: Dựng mạng Bankchain
 🔹 Bước 1. Clone project Bankchain
 cd ~/fabric-samples
