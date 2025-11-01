@@ -264,17 +264,38 @@ Mở file:
 nano configtx.yaml
 
 
-Thêm vào cuối file:
-
 Profiles:
+    TwoOrgsOrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+
+    TwoOrgsChannel:
+        Consortium: SampleConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+
     BankChannel:
         Consortium: SampleConsortium
+        <<: *ChannelDefaults
         Application:
+            <<: *ApplicationDefaults
             Organizations:
-                - *BankA
-                - *BankB
+                - *Org1
+                - *Org2
             Capabilities:
                 <<: *ApplicationCapabilities
+
 
 
 (Lưu ý: “BankA” và “BankB” phải trùng với tên Org trong phần Organizations: ở đầu file configtx.yaml.)
