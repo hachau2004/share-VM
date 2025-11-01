@@ -151,6 +151,14 @@ docker pull hyperledger/fabric-orderer:3.1
 docker pull hyperledger/fabric-ca:1.5.10
 docker pull hyperledger/fabric-tools:3.1
 
+FIX DOCKER:
+docker pull hyperledger/fabric-tools:2.5
+💡 Sau khi tải xong, kiểm tra toàn bộ image:
+bash
+Sao chép mã
+docker images | grep hyperledger
+
+
 
 Các image này đều có bản linux/arm64 — VirtualBox ARM sẽ chạy được.
 
