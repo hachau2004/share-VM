@@ -241,6 +241,55 @@ export FABRIC_CFG_PATH=$PWD
 mkdir -p channel-artifacts
 configtxgen -profile BankChannel -channelID bankchannel -outputBlock ./channel-artifacts/bankchannel.block
 
+FIXXXX:
+Bước 1 – Kiểm tra lại file configtx.yaml
+
+Chạy lệnh sau trong thư mục bankchain:
+
+cat configtx.yaml | grep Profile -A 5
+
+
+Nếu không thấy dòng:
+
+Profiles:
+    BankChannel:
+
+
+→ thì bạn đang thiếu định nghĩa profile BankChannel.
+
+Bước 2 – Mở file configtx.yaml và thêm đoạn sau ở cuối (nếu chưa có)
+
+Mở file:
+
+nano configtx.yaml
+
+
+Thêm vào cuối file:
+
+Profiles:
+    BankChannel:
+        Consortium: SampleConsortium
+        Application:
+            Organizations:
+                - *BankA
+                - *BankB
+            Capabilities:
+                <<: *ApplicationCapabilities
+
+
+(Lưu ý: “BankA” và “BankB” phải trùng với tên Org trong phần Organizations: ở đầu file configtx.yaml.)
+
+Bước 3 – Chạy lại lệnh
+
+Sau khi lưu file (Ctrl + O, Enter, Ctrl + X):
+
+configtxgen -profile BankChannel -channelID bankchannel -outputBlock ./channel-artifacts/bankchannel.block
+
+
+Nếu thấy:
+
+INFO Generated new channel genesis block
+
 🔹 Bước 4. Chạy Orderer và Peers
 docker compose -f docker-compose-bankchain.yaml up -d
 
