@@ -18,6 +18,40 @@ Kiểm tra:
 curl --version
 git --version
 docker --version
+Xóa bản cũ (x86_64) vừa tải
+sudo rm /usr/local/lib/docker/cli-plugins/docker-compose
+
+🔹 2️⃣ Tải đúng bản dành cho ARM64
+sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+
+🔹 3️⃣ Cấp quyền thực thi
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+🔹 4️⃣ Kiểm tra lại
+docker compose version
+
+
+✅ Nếu thành công, bạn sẽ thấy kết quả kiểu:
+
+Docker Compose version v2.xx.x
+
+⚠️ Nếu vẫn báo lỗi “unknown command”
+
+Chạy thử:
+
+docker --help | grep compose
+
+
+Nếu không thấy gì, khởi động lại dịch vụ Docker:
+
+sudo systemctl restart docker
+
+
+Rồi kiểm tra lại lệnh:
+
+docker compose version
+
 
 🔹 Bước 3. Cài Docker Compose (v2)
 sudo mkdir -p /usr/local/lib/docker/cli-plugins
