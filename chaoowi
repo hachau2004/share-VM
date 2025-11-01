@@ -79,6 +79,36 @@ echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> ~/.bashrc
 source ~/.bashrc
 go version
 
+FIX GO:
+Xóa bản Go cũ bị sai kiến trúc:
+
+sudo rm -rf /usr/local/go
+
+
+2️⃣ Tải đúng bản Go 1.24.0 ARM64:
+
+wget https://go.dev/dl/go1.24.0.linux-arm64.tar.gz
+
+
+3️⃣ Giải nén và cấu hình lại:
+
+sudo tar -C /usr/local -xzf go1.24.0.linux-arm64.tar.gz
+echo 'export GOROOT=/usr/local/go' >> ~/.bashrc
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> ~/.bashrc
+source ~/.bashrc
+
+
+4️⃣ Kiểm tra lại:
+
+go version
+
+
+✅ Kết quả mong đợi:
+
+go version go1.24.0 linux/arm64
+
+
 🔹 Bước 7. Cài Hyperledger Fabric 3.1.0 và CA 1.5.10
 git clone https://github.com/hyperledger/fabric-samples.git
 cd fabric-samples
