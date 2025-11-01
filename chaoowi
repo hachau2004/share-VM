@@ -309,7 +309,11 @@ Profiles:
 export FABRIC_CFG_PATH=$PWD
 
 Bước 3 – Chạy lại lệnh
+🧩 1️⃣ Tạo genesis block:
+configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./channel-artifacts/genesis.block
 
+🧩 2️⃣ Sau đó tạo channel block (BankChannel):
+configtxgen -profile BankChannel -channelID bankchannel -outputCreateC
 Sau khi lưu file (Ctrl + O, Enter, Ctrl + X):
 
 configtxgen -profile BankChannel -channelID bankchannel -outputBlock ./channel-artifacts/bankchannel.block
