@@ -438,3 +438,9 @@ services:
       - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     networks:
       - bankchain
+
+
+docker-compose -f docker-compose-bankchain.yaml down
+docker-compose -f docker-compose-bankchain.yaml up -d
+docker ps
+
