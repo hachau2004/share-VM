@@ -175,11 +175,17 @@ docker images | grep hyperledger
 
 → Nếu thấy các dòng fabric-peer, fabric-orderer, fabric-ca là OK ✅
 
+
+
 ⚙️ PHẦN 2 – LAB 4.1: Dựng mạng Bankchain
 🔹 Bước 1. Clone project Bankchain
 cd ~/fabric-samples
 git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
 cd Blockchain-Development-for-Finance-Projects/Chapter4/bankchain
+
+FIX:
+cd ~/fabric-samples/Blockchain-Development-for-Finance-Projects
+ls
 
 🔹 Bước 2. Sinh chứng chỉ số
 cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
