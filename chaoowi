@@ -1,42 +1,109 @@
+ước 1. Cập nhật Ubuntu
+
+Mở terminal và chạy:
+
+sudo apt update
+
+
+Mục đích: làm mới danh sách gói phần mềm trong kho Ubuntu.
+
+🔹 Bước 2. Cài công cụ cơ bản
+sudo apt install -y curl git docker.io
+
+
+Dùng để tải file (curl), clone repo (git), và chạy container (docker).
+
+Kiểm tra:
+
+curl --version
+git --version
+docker --version
+
+🔹 Bước 3. Cài Docker Compose (v2)
 sudo mkdir -p /usr/local/lib/docker/cli-plugins
-sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+docker compose version
 
+🔹 Bước 4. Cho phép chạy Docker không cần sudo
+sudo usermod -aG docker $USER
+newgrp docker
 
+🔹 Bước 5. Cài Node.js 22.x
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+nodejs -v
+npm -v
 
-docker pull hyperledger/fabric-tools:latest
-
-
-•	Thêm binaries vào PATH;
-
-export PATH=${PWD}/bin:$PATH
-
-Để dùng vĩnh viễn:
-
-echo 'export PATH=${PWD}/bin:$PATH' >> ~/.bashrc
+🔹 Bước 6. Cài Go 1.24.0
+wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz
+echo 'export GOROOT=/usr/local/go' >> ~/.bashrc
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> ~/.bashrc
 source ~/.bashrc
+go version
 
-•	Kiểm tra kết quả:
+🔹 Bước 7. Cài Hyperledger Fabric 3.1.0 và CA 1.5.10
+git clone https://github.com/hyperledger/fabric-samples.git
+cd fabric-samples
+curl -LO https://github.com/hyperledger/fabric/releases/download/v3.1.0/hyperledger-fabric-linux-amd64-3.1.0.tar.gz
+tar -xzf hyperledger-fabric-linux-amd64-3.1.0.tar.gz -C .
 
-peer version
-orderer version
-fabric-ca-client version
-
-Nếu đánh lệnh peer version báo lỗi “peer not found”…là do thiếu bước thêm đường dẫn vào PATH, nên Ubuntu vẫn chưa “nhìn thấy” lệnh peer. Thêm đường dẫn bằng lệnh: 
-
-export PATH=$HOME/fabric-samples/bin:$PATH
-
-Sau đó thử lại:
-
-peer version
-
-Nếu lệnh này chạy được (in ra version của Fabric Peer), nghĩa là OK.
-
-Để lệnh peer luôn dùng được (khỏi export lại mỗi lần mở terminal), Thêm dòng export này vào cuối file ~/.bashrc
+curl -LO https://github.com/hyperledger/fabric-ca/releases/download/v1.5.10/hyperledger-fabric-ca-linux-amd64-1.5.10.tar.gz
+tar -xzf hyperledger-fabric-ca-linux-amd64-1.5.10.tar.gz -C .
 
 echo 'export PATH=$HOME/fabric-samples/bin:$PATH' >> ~/.bashrc
-
+echo 'export FABRIC_CFG_PATH=$HOME/fabric-samples/config' >> ~/.bashrc
 source ~/.bashrc
-Kiểm tra thêm: 
 
-which peer
+peer version
+fabric-ca-client version
+
+⚙️ PHẦN 2 – LAB 4.1: Dựng mạng Bankchain
+🔹 Bước 1. Clone project Bankchain
+cd ~/fabric-samples
+git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
+cd Blockchain-Development-for-Finance-Projects/Chapter4/bankchain
+
+🔹 Bước 2. Sinh chứng chỉ số
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+
+🔹 Bước 3. Sinh channel block
+export FABRIC_CFG_PATH=$PWD
+mkdir -p channel-artifacts
+configtxgen -profile BankChannel -channelID bankchannel -outputBlock ./channel-artifacts/bankchannel.block
+
+🔹 Bước 4. Chạy Orderer và Peers
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+Nếu lỗi /etc/hyperledger/fabric, hãy:
+
+touch dummy_fabric
+mkdir -p orderer-config
+
+
+Sau đó sửa file docker-compose-bankchain.yaml thêm 2 dòng mount:
+
+      - ./dummy_fabric:/etc/hyperledger/fabric
+      - ./orderer-config:/etc/hyperledger/orderer-cfg
+
+🔹 Bước 5. Kiểm tra mạng
+docker ps
+
+
+Phải thấy các container orderer, peer0.banka, peer0.bankb, cli đang “Up”.
+
+🪪 PHẦN 3 – LAB 4.2: Tạo danh tính cho các ngân hàng
+npm i fabric-ca-client fabric-network
+node enrollAdmin-BankA.js
+node registerUser-BankA.js
+node enrollAdmin-BankB.js
+node registerUser-BankB.js
+ls wallet-BankA/
+ls wallet-BankB/
+
+
+Kết quả: 2 thư mục wallet chứa danh tính admin và user cho 2 ngân hàng.
