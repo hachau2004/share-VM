@@ -190,6 +190,52 @@ ls
 🔹 Bước 2. Sinh chứng chỉ số
 cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
 
+FIXX:
+Cách khắc phục lỗi cryptogen: command not found
+🧩 Bước 1. Tải các binary của Hyperledger Fabric
+
+Chạy các lệnh sau:
+
+cd ~
+curl -sSL https://bit.ly/2ysbOFE | bash -s
+
+
+🔹 Lệnh này sẽ tải về các công cụ (tool binaries) của Fabric gồm:
+cryptogen, configtxgen, peer, orderer, v.v.
+Và tự động đặt chúng trong thư mục ~/fabric-samples/bin.
+
+🧩 Bước 2. Thêm vào PATH
+
+Sau khi tải xong, thêm dòng sau vào file ~/.bashrc:
+
+export PATH=$PATH:$HOME/fabric-samples/bin
+
+
+Rồi chạy lại:
+
+source ~/.bashrc
+
+🧩 Bước 3. Kiểm tra lại
+
+Chạy:
+
+cryptogen version
+
+
+✅ Nếu hiện ra thông tin như:
+
+cryptogen:
+ Version: 2.5.0
+...
+
+
+là đã OK.
+
+Sau đó, quay lại thư mục bankchain và chạy lại lệnh:
+
+cd ~/fabric-samples/Blockchain-Development-for-Finance-Projects/Chapter\ 4/bankchain
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+
 🔹 Bước 3. Sinh channel block
 export FABRIC_CFG_PATH=$PWD
 mkdir -p channel-artifacts
