@@ -306,6 +306,8 @@ Profiles:
 
 (Lưu ý: “BankA” và “BankB” phải trùng với tên Org trong phần Organizations: ở đầu file configtx.yaml.)
 
+export FABRIC_CFG_PATH=$PWD
+
 Bước 3 – Chạy lại lệnh
 
 Sau khi lưu file (Ctrl + O, Enter, Ctrl + X):
