@@ -1,19 +1,33 @@
-✅ 1. MỞ FILE
+✅ ✅ CÁCH SỬA DỨT ĐIỂM
+✅ 1. Vào file:
+~/fabric-samples/bankchain/base/docker-compose-base-bankchain.yaml
 
-Chạy:
 
-nano ~/fabric-samples/bankchain/docker-compose-bankchain.yaml
+Tìm những dòng dạng:
 
-✅ 2. BẠN PHẢI SỬA 3 DÒNG IMAGE QUAN TRỌNG
-❌ Sai (đang khiến bạn lỗi)
-hyperledger/fabric-tools:3.1
-hyperledger/fabric-peer:3.1
-hyperledger/fabric-orderer:3.1
+image: hyperledger/fabric-peer:1.5.11
+image: hyperledger/fabric-orderer:1.5.11
+image: hyperledger/fabric-tools:3.1
 
-✅ Đúng (bản arm64 ổn định)
-hyperledger/fabric-tools:1.5.11
-hyperledger/fabric-peer:1.5.11
-hyperledger/fabric-orderer:1.5.11
+✅ THAY BẰNG:
+image: hyperledger/fabric-peer:2.5
+image: hyperledger/fabric-orderer:2.5
+image: hyperledger/fabric-tools:2.5
+
+
+⚠️ Fabric CA mới là 1.5.x, còn peer/orderer/tools phải là 2.5.x.
+
+✅ 2. Sau khi sửa xong → XÓA SẠCH hệ thống
+docker rm -f $(docker ps -aq)
+docker volume prune -f
+docker network prune -f
+
+✅ 3. Kéo lại toàn bộ image Fabric
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.5.0 1.5.11
+
+✅ 4. Chạy lại Bankchain
+cd ~/fabric-samples/bankchain
+docker compose -f docker-compose-bankchain.yaml up -d
 
 
 ✅ 1.5.11 là bản hỗ trợ đầy đủ ARM64
