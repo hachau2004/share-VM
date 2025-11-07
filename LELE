@@ -1,41 +1,50 @@
-onfig/peerOrganizations/banka.bankchain.com/ca
-ls -l
-bash: cd: /home/hachau/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.bankchain.com/ca: No such file or directory
-total 348
--rw-rw-r-- 1 hachau docker    192 Nov  7 21:53 README.md
--rw-rw-r-- 1 hachau docker     76 Nov  7 21:53 _env
--rw-rw-r-- 1 hachau docker    175 Nov  7 21:53 _gitignore
-drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 base
--rw-rw-r-- 1 hachau docker  23950 Nov  7 21:53 byfnbankchain.sh
--rw-rw-r-- 1 hachau docker   1583 Nov  7 21:53 ccp-generate-bankchain.sh
--rw-rw-r-- 1 hachau docker   1698 Nov  7 21:53 ccp-template-bankchain.json
--rw-rw-r-- 1 hachau docker   1040 Nov  7 21:53 ccp-template-bankchain.yaml
-drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 channel-artifacts
--rw-rw-r-- 1 hachau docker    352 Nov  7 21:53 channel.tx
--rw-rw-r-- 1 hachau docker  16042 Nov  7 21:53 configtx.yaml
--rw-rw-r-- 1 hachau docker   4254 Nov  7 21:53 connection-banka.json
--rw-rw-r-- 1 hachau docker   3911 Nov  7 21:53 connection-banka.yaml
--rw-rw-r-- 1 hachau docker   4247 Nov  7 21:53 connection-bankb.json
--rw-rw-r-- 1 hachau docker   3904 Nov  7 21:53 connection-bankb.yaml
-drwxr-xr-x 4 hachau docker   4096 Nov  7 22:02 crypto-config
--rw-rw-r-- 1 hachau docker   4043 Nov  7 21:53 crypto-config.yaml
--rw-rw-r-- 1 hachau docker   7482 Nov  7 21:53 docker-compose-bankchain.yaml
--rw-rw-r-- 1 hachau docker   7485 Nov  7 21:53 docker-compose-ca.yaml
--rw-rw-r-- 1 hachau docker   3006 Nov  7 21:53 docker-compose-cli.yaml
--rw-rw-r-- 1 hachau docker   5322 Nov  7 21:53 docker-compose-couch.yaml
--rw-rw-r-- 1 hachau docker   2999 Nov  7 21:53 docker-compose-e2e-template-bankchain.yaml
--rw-rw-r-- 1 hachau docker   3207 Nov  7 21:53 docker-compose-e2e.yaml
--rw-rw-r-- 1 hachau docker   2665 Nov  7 21:53 docker-compose-etcdraft2.yaml
--rw-rw-r-- 1 hachau docker   1291 Nov  7 21:53 docker-compose-kafka.yaml
--rw-rw-r-- 1 hachau docker   4167 Nov  7 21:53 docker-compose-org3.yaml
--rw-rw-r-- 1 hachau docker   1861 Nov  7 21:53 enrollAdmin-BankA.js
--rw-rw-r-- 1 hachau docker   1861 Nov  7 21:53 enrollAdmin-BankB.js
--rw-rw-r-- 1 hachau docker  10620 Nov  7 21:53 eyfn.sh
-drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 first-network
--rw-rw-r-- 1 hachau docker 146673 Nov  7 21:53 nohup.out
--rw-rw-r-- 1 hachau docker   1063 Nov  7 21:53 package.json
--rw-rw-r-- 1 hachau docker   2609 Nov  7 21:53 registerUser-BankA.js
--rw-rw-r-- 1 hachau docker   2609 Nov  7 21:53 registerUser-BankB.js
-drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 scripts
--rw-rw-r-- 1 hachau docker   1516 Nov  7 21:53 startBankchain.sh
+BƯỚC 1 — LẤY PRIVATE KEY CỦA BANK A CA
 
+Chạy:
+
+cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.example.com/ca
+ls -l
+
+
+Bạn sẽ thấy:
+
+ca.banka.example.com-cert.pem
+
+1 file tên dài kết thúc _sk → Đây là PRIVATE KEY
+
+👉 Gửi mình ảnh output để xác nhận tên file _sk
+
+✅ BƯỚC 2 — LẤY PRIVATE KEY CỦA BANK B CA
+
+Chạy:
+
+cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/bankb.example.com/ca
+ls -l
+
+
+Bạn sẽ thấy:
+
+ca.bankb.example.com-cert.pem
+
+1 file _sk
+
+👉 Gửi mình ảnh output này luôn
+
+✅ BƯỚC 3 — MÌNH SẼ TẠO CHO BẠN 2 LỆNH EXPORT:
+
+Ví dụ:
+
+export BANKCHAIN_CA1_PRIVATE_KEY=xxxx_sk
+export BANKCHAIN_CA2_PRIVATE_KEY=yyyy_sk
+
+
+và thêm:
+
+export IMAGE_TAG=3.1
+
+✅ BƯỚC 4 — START CA SAU KHI ĐÃ EXPORT
+
+Chạy:
+
+cd ~/fabric-samples/bankchain
+docker compose -f docker-compose-ca.yaml up -d
