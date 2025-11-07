@@ -379,10 +379,80 @@ PHẦN 4.1 – BƯỚC 4
 
 Di chuyển vào bankchain:
 
+✅ Bước 1 – TÌM PRIVATE KEY CA1 & CA2
+
+Chạy:
+
+cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.bankchain.com/ca
+ls
+
+
+Bạn sẽ thấy 2 file:
+
+ca.banka.bankchain.com-cert.pem
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_sk ← file này là PRIVATE KEY
+
+Copy tên file _sk, ví dụ:
+
+7abf5c1231231c124sd12312414ddf23f_sk
+
+
+Gán biến:
+
+export BANKCHAIN_CA1_PRIVATE_KEY=7abf5c1231231c124sd12312414ddf23f_sk
+
+✅ Bước 2 – PRIVATE KEY CA2
+
+Chạy:
+
+cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/bankb.bankchain.com/ca
+ls
+
+
+Bạn thấy file:
+
+ca.bankb.bankchain.com-cert.pem
+abcd23fa3c445as4df23432acb3423df_sk
+
+
+Gán biến:
+
+export BANKCHAIN_CA2_PRIVATE_KEY=abcd23fa3c445as4df23432acb3423df_sk
+
+✅ Bước 3 – Set IMAGE_TAG cho Fabric 3.1
+export IMAGE_TAG=3.1
+
+✅ Bước 4 – CHẠY LẠI CA
+
+Quay lại bankchain:
+
 cd ~/fabric-samples/bankchain
+docker compose -f docker-compose-ca.yaml up -d
 
 
-Chạy CA containers trước (ARM64 compatible):
+✅ Lúc này KHÔNG CÒN cảnh báo PRIVATE_KEY
+✅ CA container sẽ start thành công
+
+✅ Bước 5 – Kiểm tra container
+docker ps
+
+
+Bạn cần thấy:
+
+ca.banka.bankchain.com
+
+ca.bankb.bankchain.com
+
+✅ BÂY GIỜ BẠN HÃY GỬI MÌNH 3 ẢNH:
+1️⃣ Output của:
+ls ~/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.bankchain.com/ca
+
+2️⃣ Output của:
+ls ~/fabric-samples/bankchain/crypto-config/peerOrganizations/bankb.bankchain.com/ca
+
+3️⃣ Output sau khi đã set biến & chạy:
+docker ps
 
 docker-compose -f docker-compose-ca.yaml up -d
 
