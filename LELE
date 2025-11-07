@@ -1,56 +1,69 @@
-✅ GIẢI PHÁP CHÍNH XÁC — KIỂM TRA & SỬA LẠI
-✅ 1. MỞ FILE CHÍNH XÁC:
-
-Chạy:
-
-nano ~/fabric-samples/bankchain/docker-compose-ca.yaml
-
-✅ 2. TÌM TẤT CẢ CÁC DÒNG CHỨA:
-hyperledger/fabric-ca
+✅ BƯỚC 5 — KHỞI ĐỘNG CA + PEER + ORDERER
+✅ 5.1 Start CA (bạn đã chạy)
+✅ 5.2 Start peer + orderer
+docker compose -f docker-compose-bankchain.yaml up -d
 
 
-Bạn có thể search trong nano:
-Nhấn Ctrl + W, gõ:
+Kiểm tra:
 
-fabric-ca
-
-✅ 3. ĐẢM BẢO 2 DÒNG NÀY ĐÚNG 100%:
-
-Thay:
-
-❌ Sai:
-
-image: hyperledger/fabric-ca:${IMAGE_TAG}
-
-
-✅ Đúng:
-
-image: hyperledger/fabric-ca:1.5.11
-
-
-⚠️ DỰ ÁN NÀY THƯỜNG CÓ 2 SERVICE CA:
-
-ca0
-
-ca1
-
-👉 Bạn phải sửa cả hai, nếu không Docker Compose vẫn tìm 3.1.
-
-✅ 4. LƯU FILE
-
-Trong nano:
-
-Ctrl + O, Enter
-
-Ctrl + X
-
-✅ 5. XOÁ CONTAINER & IMAGE CŨ ĐỂ TRÁNH NÓ GIỮ TAG 3.1**
-docker rm -f $(docker ps -aq)
-docker rmi hyperledger/fabric-ca:3.1 || true
-
-✅ 6. CHẠY LẠI CA
-cd ~/fabric-samples/bankchain
-docker compose -f docker-compose-ca.yaml up -d
-
-✅ 7. KIỂM TRA KẾT QUẢ
 docker ps
+
+
+Phải thấy:
+
+✅ orderer.bankchain.com
+✅ peer0.banka
+✅ peer1.banka
+✅ peer0.bankb
+✅ peer1.bankb
+✅ couchdb (nếu dùng)
+
+✅ BƯỚC 6 — TẠO CHANNEL
+6.1 Tạo channel từ CLI
+docker exec -it cli bash
+
+
+Trong CLI:
+
+peer channel create -o orderer.bankchain.com:7050 \
+-c bankchain \
+-f ./channel-artifacts/channel.tx \
+--outputBlock ./channel-artifacts/bankchain.block
+
+✅ BƯỚC 7 — JOIN PEERS VÀO CHANNEL
+Bank A
+export CORE_PEER_LOCALMSPID="BankAMSP"
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+
+peer channel join -b ./channel-artifacts/bankchain.block
+
+Bank B
+export CORE_PEER_LOCALMSPID="BankBMSP"
+export CORE_PEER_ADDRESS=peer0.bankb.example.com:8051
+
+peer channel join -b ./channel-artifacts/bankchain.block
+
+✅ BƯỚC 8 — CẬP NHẬT ANCHOR PEER
+Bank A
+peer channel update \
+-o orderer.bankchain.com:7050 \
+-c bankchain \
+-f ./channel-artifacts/bankaMSPanchors.tx
+
+Bank B
+peer channel update \
+-o orderer.bankchain.com:7050 \
+-c bankchain \
+-f ./channel-artifacts/bankbMSPanchors.tx
+
+✅ BƯỚC 9 — DEPLOY CHAINCODE
+9.1 Install chaincode
+peer lifecycle chaincode install bankchain.tar.gz
+
+9.2 Approve + Commit
+
+(Đoạn này tùy theo bạn có file chaincode nào – bạn gửi mình mình set đúng)
+
+✅ BƯỚC 10 — TEST GIAO DỊCH
+Query thử:
+peer chaincode query -C bankchain -n bankcc -c '{"Args":["GetAllCustomers"]}'
