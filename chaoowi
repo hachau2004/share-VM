@@ -491,165 +491,42 @@ docker ps
 Bạn sẽ thấy các container như orderer.example.com, peer0.banka.example.com, cli, couchdb, v.v.
 
 
-version: '2'
+✅ Bước 1: Mở file base
 
-volumes:
-  orderer.example.com:
-  peer0.banka.example.com:
-  peer1.banka.example.com:
-  peer0.bankb.example.com:
-  peer1.bankb.example.com:
+Bạn chạy:
 
-networks:
-  bankchain:
+nano base/docker-compose-base-bankchain.yaml
 
-services:
 
-  orderer.example.com:
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: orderer.example.com
-    container_name: orderer.example.com
-    networks:
-      - bankchain
+(Đây mới là file chứa các image bị sai)
 
-  peer0.banka.example.com:
-    container_name: peer0.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb0
+✅ Bước 2: Tìm tất cả dòng có ${IMAGE_TAG}
 
-  peer1.banka.example.com:
-    container_name: peer1.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb1
+Bạn tìm các dòng giống:
 
-  peer0.bankb.example.com:
-    container_name: peer0.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb2
+image: hyperledger/fabric-peer:${IMAGE_TAG}
+image: hyperledger/fabric-orderer:${IMAGE_TAG}
+image: hyperledger/fabric-tools:${IMAGE_TAG}
 
-  peer1.bankb.example.com:
-    container_name: peer1.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    depends_on:
-      - couchdb3
+✅ Bước 3: Thay bằng phiên bản chuẩn (2.2)
 
-  cli:
-    container_name: cli
-    image: hyperledger/fabric-tools:2.2
-    tty: true
-    stdin_open: true
-    environment:
-      - SYS_CHANNEL=system-channel
-      - GOPATH=/opt/gopath
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - FABRIC_LOGGING_SPEC=INFO
-      - CORE_PEER_ID=cli
-      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-      - CORE_PEER_LOCALMSPID=BankAMSP
-      - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash
-    volumes:
-      - /var/run/:/host/var/run/
-      - ./../chaincode/:/opt/gopath/src/github.com/chaincode
-      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
-      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
-      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
-      - ./dummy_fabric:/etc/hyperledger/fabric
-      - ./orderer-config:/etc/hyperledger/orderer-cfg
-    depends_on:
-      - orderer.example.com
-      - peer0.banka.example.com
-      - peer1.banka.example.com
-      - peer0.bankb.example.com
-      - peer1.bankb.example.com
-    networks:
-      - bankchain
+Sửa thành:
 
-  couchdb0:
-    container_name: couchdb0
-    image: hyperledger/fabric-couchdb:0.4.20
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    ports:
-      - "5984:5984"
-    networks:
-      - bankchain
+image: hyperledger/fabric-peer:2.2
+image: hyperledger/fabric-orderer:2.2
+image: hyperledger/fabric-tools:2.2
 
-  couchdb1:
-    container_name: couchdb1
-    image: hyperledger/fabric-couchdb:0.4.20
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    ports:
-      - "6984:5984"
-    networks:
-      - bankchain
 
-  couchdb2:
-    container_name: couchdb2
-    image: hyperledger/fabric-couchdb:0.4.20
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    ports:
-      - "7984:5984"
-    networks:
-      - bankchain
+Lưu lại: Ctrl + O → Enter → Ctrl + X
 
-  couchdb3:
-    container_name: couchdb3
-    image: hyperledger/fabric-couchdb:0.4.20
-    environment:
-      - COUCHDB_USER=
-      - COUCHDB_PASSWORD=
-    ports:
-      - "8984:5984"
-    networks:
-      - bankchain
+✅ Bước 4: Xoá toàn bộ container cũ để tránh xung đột
+
+Chạy:
+
+docker system prune -af
+
+✅ Bước 5: Chạy lại Docker Compose
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ Bước 6: Kiểm tra
+docker ps
