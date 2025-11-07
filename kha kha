@@ -374,4 +374,6 @@ configtxlator proto_decode --input /opt/channel-artifacts/config_block.pb --type
 Bạn sẽ thấy anchor_peers đúng host/port.
 
 
-find ~/Blockchain-Development-for-Finance-Projects -maxdepth 4 -type d -iname "*bank*"
+cp -r "~/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain" ~/fabric-samples/bankchain
+cp -r ~/Blockchain-Development-for-Finance-Projects/"Chapter 4"/bankchain ~/fabric-samples/bankchain
+ls ~/fabric-samples/bankchain
