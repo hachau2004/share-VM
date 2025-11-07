@@ -2,7 +2,20 @@
 ✅ 5.1 Start CA (bạn đã chạy)
 ✅ 5.2 Start peer + orderer
 docker compose -f docker-compose-bankchain.yaml up -d
+✅ ✅ Cách 1 — Gỡ CLI ra luôn (khuyến nghị)
 
+Vì Fabric 3.1 không dùng CLI container nữa.
+
+👉 Mở file:
+
+~/fabric-samples/bankchain/docker-compose-bankchain.yaml
+
+
+Tìm đoạn:
+
+cli:
+  container_name: cli
+  image: hyperledger/fabric-tools:3.1
 
 Kiểm tra:
 
