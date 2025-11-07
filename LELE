@@ -1,142 +1,41 @@
-version: '2'
-
-services:
-
-  orderer.bankchain.com:
-    container_name: orderer.bankchain.com
-    image: hyperledger/fabric-orderer:3.1
-    environment:
-      - FABRIC_LOGGING_SPEC=INFO
-      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
-    command: orderer
-    volumes:
-      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-      - ./crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/msp:/var/hyperledger/orderer/msp
-    ports:
-      - 7050:7050
-
-  peer0.banka.example.com:
-    container_name: peer0.banka.example.com
-    image: hyperledger/fabric-peer:3.1
-    environment:
-      - CORE_PEER_ID=peer0.banka.example.com
-      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_LOCALMSPID=BankaMSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    volumes:
-      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
-    ports:
-      - 7051:7051
-      - 7053:7053
-    depends_on:
-      - couchdb0
-
-  peer0.bankb.example.com:
-    container_name: peer0.bankb.example.com
-    image: hyperledger/fabric-peer:3.1
-    environment:
-      - CORE_PEER_ID=peer0.bankb.example.com
-      - CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
-      - CORE_PEER_LOCALMSPID=BankbMSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-    volumes:
-      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
-    ports:
-      - 9051:9051
-      - 9053:9053
-    depends_on:
-      - couchdb1
-
-  couchdb0:
-    container_name: couchdb0
-    image: couchdb:3.3
-    ports:
-      - 5984:5984
-
-  couchdb1:
-    container_name: couchdb1
-    image: couchdb:3.3
-    ports:
-      - 6984:5984
-✅ Hướng dẫn sau khi thêm file này:
-Tạo lại thư mục và file nếu chưa có:
-
-bash
-Sao chép mã
-mkdir -p base
-nano base/docker-compose-base-bankchain.yaml
-→ Dán nội dung trên vào.
-
-Lưu lại:
-Ctrl + O → Enter → Ctrl + X
-
-Chạy lại:
-
-bash
-Sao chép mã
-export SYS_CHANNEL=bankchain-sys-channel
-
-docker-compose \
-  -f docker-compose-bankchain.yaml \
-  -f docker-compose-ca.yaml \
-  -f docker-compose-couch.yaml \
-  up -d
-
-⛓ Bước 4 — Tạo channel & test
-(a) Copy genesis block vào orderer
-docker cp ./channel-artifacts/bkchannel.block orderer.bankchain.com:/var/hyperledger/orderer/bkchannel.block
-
-(b) Orderer join channel
-docker exec -it orderer.bankchain.com bash -lc \
-'osnadmin channel join \
-  --channelID bkchannel \
-  --config-block /var/hyperledger/orderer/bkchannel.block \
-  -o localhost:7053 \
-  --ca-file /var/hyperledger/orderer/tls/ca.crt \
-  --client-cert /var/hyperledger/orderer/tls/server.crt \
-  --client-key /var/hyperledger/orderer/tls/server.key'
-
-
-Kiểm tra:
-
-docker exec orderer.bankchain.com osnadmin channel list -o localhost:7053 \
-  --ca-file /var/hyperledger/orderer/tls/ca.crt \
-  --client-cert /var/hyperledger/orderer/tls/server.crt \
-  --client-key /var/hyperledger/orderer/tls/server.key
-
-(c) Peer join channel (từ container CLI)
-docker exec -it cli bash
-
-
-→ Trong CLI container, chạy lần lượt các lệnh:
-
-export CHANNEL_NAME=bkchannel
-export ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt
-
-
-Rồi chạy tiếp các lệnh peer channel join cho từng peer (như hướng dẫn của bạn gửi).
-
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-docker-compose \
-  -f docker-compose-bankchain.yaml \
-  -f docker-compose-ca.yaml \
-  -f docker-compose-couch.yaml \
-  up -d
+onfig/peerOrganizations/banka.bankchain.com/ca
+ls -l
+bash: cd: /home/hachau/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.bankchain.com/ca: No such file or directory
+total 348
+-rw-rw-r-- 1 hachau docker    192 Nov  7 21:53 README.md
+-rw-rw-r-- 1 hachau docker     76 Nov  7 21:53 _env
+-rw-rw-r-- 1 hachau docker    175 Nov  7 21:53 _gitignore
+drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 base
+-rw-rw-r-- 1 hachau docker  23950 Nov  7 21:53 byfnbankchain.sh
+-rw-rw-r-- 1 hachau docker   1583 Nov  7 21:53 ccp-generate-bankchain.sh
+-rw-rw-r-- 1 hachau docker   1698 Nov  7 21:53 ccp-template-bankchain.json
+-rw-rw-r-- 1 hachau docker   1040 Nov  7 21:53 ccp-template-bankchain.yaml
+drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 channel-artifacts
+-rw-rw-r-- 1 hachau docker    352 Nov  7 21:53 channel.tx
+-rw-rw-r-- 1 hachau docker  16042 Nov  7 21:53 configtx.yaml
+-rw-rw-r-- 1 hachau docker   4254 Nov  7 21:53 connection-banka.json
+-rw-rw-r-- 1 hachau docker   3911 Nov  7 21:53 connection-banka.yaml
+-rw-rw-r-- 1 hachau docker   4247 Nov  7 21:53 connection-bankb.json
+-rw-rw-r-- 1 hachau docker   3904 Nov  7 21:53 connection-bankb.yaml
+drwxr-xr-x 4 hachau docker   4096 Nov  7 22:02 crypto-config
+-rw-rw-r-- 1 hachau docker   4043 Nov  7 21:53 crypto-config.yaml
+-rw-rw-r-- 1 hachau docker   7482 Nov  7 21:53 docker-compose-bankchain.yaml
+-rw-rw-r-- 1 hachau docker   7485 Nov  7 21:53 docker-compose-ca.yaml
+-rw-rw-r-- 1 hachau docker   3006 Nov  7 21:53 docker-compose-cli.yaml
+-rw-rw-r-- 1 hachau docker   5322 Nov  7 21:53 docker-compose-couch.yaml
+-rw-rw-r-- 1 hachau docker   2999 Nov  7 21:53 docker-compose-e2e-template-bankchain.yaml
+-rw-rw-r-- 1 hachau docker   3207 Nov  7 21:53 docker-compose-e2e.yaml
+-rw-rw-r-- 1 hachau docker   2665 Nov  7 21:53 docker-compose-etcdraft2.yaml
+-rw-rw-r-- 1 hachau docker   1291 Nov  7 21:53 docker-compose-kafka.yaml
+-rw-rw-r-- 1 hachau docker   4167 Nov  7 21:53 docker-compose-org3.yaml
+-rw-rw-r-- 1 hachau docker   1861 Nov  7 21:53 enrollAdmin-BankA.js
+-rw-rw-r-- 1 hachau docker   1861 Nov  7 21:53 enrollAdmin-BankB.js
+-rw-rw-r-- 1 hachau docker  10620 Nov  7 21:53 eyfn.sh
+drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 first-network
+-rw-rw-r-- 1 hachau docker 146673 Nov  7 21:53 nohup.out
+-rw-rw-r-- 1 hachau docker   1063 Nov  7 21:53 package.json
+-rw-rw-r-- 1 hachau docker   2609 Nov  7 21:53 registerUser-BankA.js
+-rw-rw-r-- 1 hachau docker   2609 Nov  7 21:53 registerUser-BankB.js
+drwxrwxr-x 2 hachau docker   4096 Nov  7 21:53 scripts
+-rw-rw-r-- 1 hachau docker   1516 Nov  7 21:53 startBankchain.sh
 
