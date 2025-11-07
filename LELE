@@ -223,3 +223,4 @@ docker compose -f docker-compose-ca.yaml up -d
 3. Chạy Bankchain (file mới 2.5.12)
 docker compose -f docker-compose-bankchain.yaml up -d
 
+hachau@hachau:~/fabric-samples/bankchain$
