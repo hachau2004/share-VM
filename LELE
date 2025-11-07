@@ -156,96 +156,98 @@ networks:
 
 services:
 
+  # ===============================
+  # ORDERER
+  # ===============================
   orderer.example.com:
-    extends:
-      file:   base/docker-compose-base-bankchain.yaml
-      service: orderer.example.com
+    image: hyperledger/fabric-orderer:1.5.11
     container_name: orderer.example.com
+    extends:
+      file: base/docker-compose-base-bankchain.yaml
+      service: orderer.example.com
     networks:
       - bankchain
 
+
+  # ===============================
+  # ORG BANK A PEERS
+  # ===============================
+
   peer0.banka.example.com:
+    image: hyperledger/fabric-peer:1.5.11
     container_name: peer0.banka.example.com
     extends:
-      file:  base/docker-compose-base-bankchain.yaml
+      file: base/docker-compose-base-bankchain.yaml
       service: peer0.banka.example.com
     networks:
       - bankchain
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     depends_on:
       - couchdb0
 
   peer1.banka.example.com:
+    image: hyperledger/fabric-peer:1.5.11
     container_name: peer1.banka.example.com
     extends:
-      file:  base/docker-compose-base-bankchain.yaml
+      file: base/docker-compose-base-bankchain.yaml
       service: peer1.banka.example.com
     networks:
       - bankchain
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     depends_on:
       - couchdb1
 
+  # ===============================
+  # ORG BANK B PEERS
+  # ===============================
+
   peer0.bankb.example.com:
+    image: hyperledger/fabric-peer:1.5.11
     container_name: peer0.bankb.example.com
     extends:
-      file:  base/docker-compose-base-bankchain.yaml
+      file: base/docker-compose-base-bankchain.yaml
       service: peer0.bankb.example.com
     networks:
       - bankchain
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     depends_on:
       - couchdb2
 
 
   peer1.bankb.example.com:
+    image: hyperledger/fabric-peer:1.5.11
     container_name: peer1.bankb.example.com
     extends:
-      file:  base/docker-compose-base-bankchain.yaml
+      file: base/docker-compose-base-bankchain.yaml
       service: peer1.bankb.example.com
     networks:
       - bankchain
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
     depends_on:
       - couchdb3
- 
 
+
+  # ===============================
+  # CLI CONTAINER (RẤT QUAN TRỌNG)
+  # ===============================
+
+  cli:
+    image: hyperledger/fabric-tools:1.5.11
+    container_name: cli
     tty: true
     stdin_open: true
     environment:
       - SYS_CHANNEL=$SYS_CHANNEL
-      - GOPATH=/opt/gopath
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      #- FABRIC_LOGGING_SPEC=DEBUG
       - FABRIC_LOGGING_SPEC=INFO
+      - GOPATH=/opt/gopath
       - CORE_PEER_ID=cli
       - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
       - CORE_PEER_LOCALMSPID=BankAMSP
@@ -262,5 +264,19 @@ services:
         - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
         - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
         - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    networks:
+      - bankchain
     depends_on:
       - orderer.example.com
+      - peer0.banka.example.com
+
+
+✅ TIẾP THEO BẠN LÀM:
+✅ Tắt toàn bộ container cũ:
+docker compose -f docker-compose-bankchain.yaml down -v
+
+✅ Chạy lại:
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ Kiểm tra:
+docker ps
