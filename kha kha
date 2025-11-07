@@ -374,58 +374,126 @@ configtxlator proto_decode --input /opt/channel-artifacts/config_block.pb --type
 Bạn sẽ thấy anchor_peers đúng host/port.
 
 
-cp -r "~/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain" ~/fabric-samples/bankchain
-cp -r ~/Blockchain-Development-for-Finance-Projects/"Chapter 4"/bankchain ~/fabric-samples/bankchain
-ls ~/fabric-samples/bankchain
-cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
-mkdir channel-artifacts
-Tạo genesis block cho orderer:
+PHẦN 4.1 – BƯỚC 4
+✅ START FABRIC CA
 
-bash
-Sao chép mã
-configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
-✅ Giải thích:
-TwoOrgsOrdererGenesis → profile trong configtx.yaml
+Di chuyển vào bankchain:
 
-Tạo block khởi tạo cho orderer (system channel)
+cd ~/fabric-samples/bankchain
 
-Tạo channel transaction:
 
-bash
-Sao chép mã
-configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/bankchannel.tx -channelID bankchannel
-✅ Giải thích:
-Tạo cấu hình channel "bankchannel" để peers join vào
+Chạy CA containers trước (ARM64 compatible):
 
-Tạo Anchor peer updates:
+docker-compose -f docker-compose-ca.yaml up -d
 
-bash
-Sao chép mã
-configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/BankAAnchor.tx -channelID bankchannel -asOrg BankAMSP
+✅ Kỳ vọng:
 
-configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/BankBAnchor.tx -channelID bankchannel -asOrg BankBMSP
-✅ Giải thích:
-Chỉ định anchor peer của mỗi tổ chức
+2 CA khởi chạy:
 
-Sử dụng khi peers cập nhật thông tin về network topology
+ca.banka.bankchain.com
 
-✅ BƯỚC 3 — KIỂM TRA KẾT QUẢ
-Chạy:
+ca.bankb.bankchain.com
 
-bash
-Sao chép mã
-ls channel-artifacts
+✅ BƯỚC 5 — KHỞI ĐỘNG ORDERER
+docker-compose -f docker-compose-bankchain.yaml up -d orderer.bankchain.com
+
+
+Kiểm tra:
+
+docker ps
+
+
+Bạn phải thấy container orderer chạy.
+
+✅ BƯỚC 6 — TẠO CHANNEL (CLI)
+
+Trước tiên vào CLI container:
+
+docker exec -it cli.bankchain.com bash
+
+
+Bên trong container CLI, chạy:
+
+peer channel create -o orderer.bankchain.com:7050 \
+    -c bankchannel \
+    -f ./channel-artifacts/channel.tx \
+    --outputBlock ./channel-artifacts/bankchannel.block
+
+
 Kết quả đúng:
 
-Sao chép mã
-BankAAnchor.tx
-BankBAnchor.tx
-bankchannel.tx
-genesis.block
-✅ BẠN HÃY LÀM GIÚP MÌNH:
-1️⃣ Chạy lần lượt tất cả lệnh từ cryptogen đến anchor peer update
-2️⃣ Gửi ảnh output của lệnh:
+✅ bankchannel.block được tạo trong container CLI.
 
-bash
-Sao chép mã
-ls channel-artifacts
+✅ BƯỚC 7 — JOIN PEER BANK A
+
+Trong CLI container:
+
+export CORE_PEER_LOCALMSPID=BankAMSP
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp/admincerts/banka
+export CORE_PEER_ADDRESS=peer0.banka.bankchain.com:7051
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+✅ Kết quả: Successfully submitted proposal to join channel
+
+✅ BƯỚC 8 — JOIN PEER BANK B
+
+Vẫn trong CLI:
+
+export CORE_PEER_LOCALMSPID=BankBMSP
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp/admincerts/bankb
+export CORE_PEER_ADDRESS=peer0.bankb.bankchain.com:8051
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ BƯỚC 9 — UPDATE ANCHOR PEERS
+Bank A:
+export CORE_PEER_LOCALMSPID=BankAMSP
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp/admincerts/banka
+export CORE_PEER_ADDRESS=peer0.banka.bankchain.com:7051
+
+peer channel update -o orderer.bankchain.com:7050 \
+  -c bankchannel \
+  -f ./channel-artifacts/bankaMSPanchors.tx
+
+Bank B:
+export CORE_PEER_LOCALMSPID=BankBMSP
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp/admincerts/bankb
+export CORE_PEER_ADDRESS=peer0.bankb.bankchain.com:8051
+
+peer channel update -o orderer.bankchain.com:7050 \
+  -c bankchannel \
+  -f ./channel-artifacts/bankbMSPanchors.tx
+
+✅ GIỜ TỚI LƯỢT BẠN:
+
+👉 Làm 3 bước và gửi mình hình:
+
+✅ 1. Chạy:
+
+docker-compose -f docker-compose-ca.yaml up -d
+
+
+→ Gửi ảnh docker ps
+
+✅ 2. Chạy:
+
+docker-compose -f docker-compose-bankchain.yaml up -d orderer.bankchain.com
+
+
+→ Gửi ảnh docker ps
+
+✅ 3. Vào CLI:
+
+docker exec -it cli.bankchain.com bash
+
+
+→ Gửi ảnh nếu vào được CLI
+
