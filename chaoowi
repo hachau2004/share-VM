@@ -530,3 +530,6 @@ docker compose -f docker-compose-bankchain.yaml up -d
 
 ✅ Bước 6: Kiểm tra
 docker ps
+
+nano first-network/docker-compose-base.yaml
+
