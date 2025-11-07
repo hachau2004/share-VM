@@ -1,50 +1,34 @@
-BƯỚC 1 — LẤY PRIVATE KEY CỦA BANK A CA
+BƯỚC 1 — EXPORT 3 BIẾN MÔI TRƯỜNG BẮT BUỘC
 
-Chạy:
+Chạy 3 lệnh sau trong terminal Ubuntu:
 
-cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.example.com/ca
-ls -l
-
-
-Bạn sẽ thấy:
-
-ca.banka.example.com-cert.pem
-
-1 file tên dài kết thúc _sk → Đây là PRIVATE KEY
-
-👉 Gửi mình ảnh output để xác nhận tên file _sk
-
-✅ BƯỚC 2 — LẤY PRIVATE KEY CỦA BANK B CA
-
-Chạy:
-
-cd ~/fabric-samples/bankchain/crypto-config/peerOrganizations/bankb.example.com/ca
-ls -l
-
-
-Bạn sẽ thấy:
-
-ca.bankb.example.com-cert.pem
-
-1 file _sk
-
-👉 Gửi mình ảnh output này luôn
-
-✅ BƯỚC 3 — MÌNH SẼ TẠO CHO BẠN 2 LỆNH EXPORT:
-
-Ví dụ:
-
-export BANKCHAIN_CA1_PRIVATE_KEY=xxxx_sk
-export BANKCHAIN_CA2_PRIVATE_KEY=yyyy_sk
-
-
-và thêm:
-
+export BANKCHAIN_CA1_PRIVATE_KEY=priv_sk
+export BANKCHAIN_CA2_PRIVATE_KEY=priv_sk
 export IMAGE_TAG=3.1
 
-✅ BƯỚC 4 — START CA SAU KHI ĐÃ EXPORT
+✅ BƯỚC 2 — KIỂM TRA XEM ĐÃ EXPORT ĐÚNG CHƯA
+echo $BANKCHAIN_CA1_PRIVATE_KEY
+echo $BANKCHAIN_CA2_PRIVATE_KEY
+echo $IMAGE_TAG
+
+
+Kết quả phải là:
+
+priv_sk
+priv_sk
+3.1
+
+✅ BƯỚC 3 — KHỞI ĐỘNG CA (KHÔNG BÁO LỖI NỮA)
+cd ~/fabric-samples/bankchain
+docker compose -f docker-compose-ca.yaml up -d
+
+
+✅ Lần này CA sẽ start OK
+✅ Không còn cảnh báo private_key
+✅ Không còn cảnh báo image_tag
+
+✅ BƯỚC 4 — KIỂM TRA CA ĐANG CHẠY
 
 Chạy:
 
-cd ~/fabric-samples/bankchain
-docker compose -f docker-compose-ca.yaml up -d
+docker ps
