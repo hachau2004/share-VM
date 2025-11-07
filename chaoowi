@@ -327,22 +327,39 @@ Nếu thấy:
 
 INFO Generated new channel genesis block
 
-🔹 Bước 4. Chạy Orderer và Peers
-docker compose -f docker-compose-bankchain.yaml up -d
+1. Tạo thư mục dummy như hướng dẫn
 
-
-Nếu lỗi /etc/hyperledger/fabric, hãy:
+Chạy:
 
 touch dummy_fabric
 mkdir -p orderer-config
 
+2. Sửa file docker-compose-bankchain.yaml
 
-Sau đó sửa file docker-compose-bankchain.yaml thêm 2 dòng mount:
+Mở file:
+
+nano docker-compose-bankchain.yaml
+
+
+Trong phần volumes của container (thường là orderer hoặc cli), thêm 2 dòng sau:
 
       - ./dummy_fabric:/etc/hyperledger/fabric
       - ./orderer-config:/etc/hyperledger/orderer-cfg
 
-🔹 Bước 5. Kiểm tra mạng
+
+Lưu lại:
+Ctrl + O → Enter → Ctrl + X
+
+3. Chạy lại Docker Compose
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+➡️ Sau khi sửa đúng, lỗi invalid reference format sẽ hết và Docker sẽ kéo các image Fabric.
+
+✅ BƯỚC 5 — Kiểm tra các container đang chạy
+
+Chạy:
+
 docker ps
 
 
