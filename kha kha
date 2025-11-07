@@ -377,3 +377,55 @@ Bạn sẽ thấy anchor_peers đúng host/port.
 cp -r "~/Blockchain-Development-for-Finance-Projects/Chapter 4/bankchain" ~/fabric-samples/bankchain
 cp -r ~/Blockchain-Development-for-Finance-Projects/"Chapter 4"/bankchain ~/fabric-samples/bankchain
 ls ~/fabric-samples/bankchain
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+mkdir channel-artifacts
+Tạo genesis block cho orderer:
+
+bash
+Sao chép mã
+configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
+✅ Giải thích:
+TwoOrgsOrdererGenesis → profile trong configtx.yaml
+
+Tạo block khởi tạo cho orderer (system channel)
+
+Tạo channel transaction:
+
+bash
+Sao chép mã
+configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/bankchannel.tx -channelID bankchannel
+✅ Giải thích:
+Tạo cấu hình channel "bankchannel" để peers join vào
+
+Tạo Anchor peer updates:
+
+bash
+Sao chép mã
+configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/BankAAnchor.tx -channelID bankchannel -asOrg BankAMSP
+
+configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/BankBAnchor.tx -channelID bankchannel -asOrg BankBMSP
+✅ Giải thích:
+Chỉ định anchor peer của mỗi tổ chức
+
+Sử dụng khi peers cập nhật thông tin về network topology
+
+✅ BƯỚC 3 — KIỂM TRA KẾT QUẢ
+Chạy:
+
+bash
+Sao chép mã
+ls channel-artifacts
+Kết quả đúng:
+
+Sao chép mã
+BankAAnchor.tx
+BankBAnchor.tx
+bankchannel.tx
+genesis.block
+✅ BẠN HÃY LÀM GIÚP MÌNH:
+1️⃣ Chạy lần lượt tất cả lệnh từ cryptogen đến anchor peer update
+2️⃣ Gửi ảnh output của lệnh:
+
+bash
+Sao chép mã
+ls channel-artifacts
