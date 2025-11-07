@@ -1,90 +1,204 @@
-✅ 1. CÀI PHẦN MỀM CẦN THIẾT
+1 — XÓA CÁC BẢN CŨ (amd64) ĐÃ TẢI
+
+Chạy các lệnh này để dọn dẹp (an toàn):
+
+# xóa go cũ
+sudo rm -rf /usr/local/go
+rm -f ~/go1*.tar.gz
+
+# xóa fabric binaries amd64 nếu đã giải nén
+rm -rf ~/fabric-samples/bin
+rm -f ~/hyperledger-fabric-linux-amd64-*.tar.gz
+
+# xóa fabric-ca amd64 nếu có
+rm -f ~/hyperledger-fabric-ca-linux-amd64-*.tar.gz
+
+2 — CẬP NHẬT HỆ THỐNG & CÀI CÁC CÔNG CỤ CƠ BẢN
 sudo apt update
-sudo apt install -y curl git docker.io
+sudo apt upgrade -y
+sudo apt install -y curl wget git ca-certificates apt-transport-https gnupg lsb-release jq
 
+3 — CÀI DOCKER + DOCKER COMPOSE (trong VM)
 
-Cài Docker Compose V2:
+Nếu bạn đang dùng Docker Desktop trên macOS và muốn Docker ở host, bỏ qua phần cài trong VM.
+Trong VM Ubuntu ARM64:
 
-sudo mkdir -p /usr/local/lib/docker/cli-plugins
-sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
--o /usr/local/lib/docker/cli-plugins/docker-compose
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+# cài Docker (mặc định apt may provide older package; dùng repo chính thức)
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
+echo \
+  "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-Thêm user vào nhóm docker:
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
 
+# cho phép chạy docker không cần sudo
 sudo usermod -aG docker $USER
 newgrp docker
 
-✅ 2. CÀI NODE.JS 22 LTS
+# cài Docker Compose v2 plugin (ARM64 binary)
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -fSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# kiểm tra
+docker --version
+docker compose version
+
+
+Nếu docker run hello-world không chạy, báo lỗi mình xử lý.
+
+4 — CÀI NODE.JS (ARM64)
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
+node -v
+npm -v
 
-✅ 3. CÀI GO 1.24.0
-wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz
+5 — CÀI GO CHO ARM64
+# xóa /usr/local/go nếu còn (đã làm ở bước 1)
+# tải Go cho arm64
+wget https://go.dev/dl/go1.24.0.linux-arm64.tar.gz
+sudo tar -C /usr/local -xzf go1.24.0.linux-arm64.tar.gz
 
-
-Thêm PATH:
-
-echo "export GOROOT=/usr/local/go" >> ~/.bashrc
-echo "export GOPATH=$HOME/go" >> ~/.bashrc
-echo "export PATH=\$PATH:/usr/local/go/bin:\$GOPATH/bin" >> ~/.bashrc
+# thiết lập env (thêm chỉ nếu chưa có)
+grep -q 'export GOROOT' ~/.bashrc || {
+  echo "export GOROOT=/usr/local/go" >> ~/.bashrc
+  echo "export GOPATH=\$HOME/go" >> ~/.bashrc
+  echo "export PATH=\$PATH:/usr/local/go/bin:\$GOPATH/bin" >> ~/.bashrc
+}
 source ~/.bashrc
 
-✅ 4. CÀI HYPERLEDGER FABRIC 3.1 Binaries
+go version   # should show linux/arm64
+
+6 — LẤY FABRIC-SAMPLES (project Bankchain sẽ copy vào đây)
 cd ~
 git clone https://github.com/hyperledger/fabric-samples.git
 cd fabric-samples
 
-curl -LO https://github.com/hyperledger/fabric/releases/download/v3.1.0/hyperledger-fabric-linux-amd64-3.1.0.tar.gz
-tar -xzf hyperledger-fabric-linux-amd64-3.1.0.tar.gz -C .
+7 — TẢI BINARY HYPERLEDGER FABRIC (ARM64)
+cd ~/fabric-samples
+curl -LO https://github.com/hyperledger/fabric/releases/download/v3.1.0/hyperledger-fabric-linux-arm64-3.1.0.tar.gz
+tar -xzf hyperledger-fabric-linux-arm64-3.1.0.tar.gz -C .
+# kiểm tra
+./bin/peer version
+./bin/configtxgen version
+./bin/cryptogen version
+./bin/configtxlator version
+./bin/osnadmin version
 
 
-Cài Fabric-CA:
+Các lệnh trên phải chạy không báo Exec format error và hiển thị linux/arm64.
 
-curl -LO https://github.com/hyperledger/fabric-ca/releases/download/v1.5.10/hyperledger-fabric-ca-linux-amd64-1.5.10.tar.gz
-tar -xzf hyperledger-fabric-ca-linux-amd64-1.5.10.tar.gz -C .
+8 — TẢI FABRIC-CA (ARM64)
+cd ~/fabric-samples
+curl -LO https://github.com/hyperledger/fabric-ca/releases/download/v1.5.10/hyperledger-fabric-ca-linux-arm64-1.5.10.tar.gz
+tar -xzf hyperledger-fabric-ca-linux-arm64-1.5.10.tar.gz -C .
+./bin/fabric-ca-client version
 
-
-Thêm PATH:
-
-echo 'export PATH=$HOME/fabric-samples/bin:$PATH' >> ~/.bashrc
-echo 'export FABRIC_CFG_PATH=$HOME/fabric-samples/config' >> ~/.bashrc
+9 — THÊM PATH CHO BINARIES FABRIC
+grep -q 'fabric-samples/bin' ~/.bashrc || {
+  echo 'export PATH=$HOME/fabric-samples/bin:$PATH' >> ~/.bashrc
+  echo 'export FABRIC_CFG_PATH=$HOME/fabric-samples/config' >> ~/.bashrc
+}
 source ~/.bashrc
 
-✅ 5. COPY DỰ ÁN BANKCHAIN
+which peer
+peer version
+
+10 — LẤY SOURCE BANKCHAIN (sách bạn đã có)
 cd ~
 git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
-cp -r Blockchain-Development-for-Finance-Projects/Chapter4/bankchain ~/fabric-samples/
+cp -r Blockchain-Development-for-Finance-Projects/Chapter4/bankchain ~/fabric-samples/bankchain
+cd ~/fabric-samples/bankchain
+
+11 — SỬA DOCKER-COMPOSE FILE CHO ARM64 (nếu cần)
+
+Mở docker-compose-bankchain.yaml, docker-compose-ca.yaml, docker-compose-couch.yaml.
+Tìm mọi chỗ image: hyperledger/fabric-<name>:3.1 (hoặc :1.5.10) và thêm hậu tố -arm64 nếu tồn tại tag arm64 trên hub.
+Ví dụ thay:
+
+image: hyperledger/fabric-peer:3.1
+
+
+bằng
+
+image: hyperledger/fabric-peer:3.1-arm64
+
+
+LƯU Ý: Một số image có multi-arch manifests (tự chọn), nhưng để an toàn ta đổi sang tag -arm64 nếu có. Nếu repo của bạn không có -arm64 image, ta có 2 lựa chọn:
+
+dùng image multi-arch (bỏ sửa) — Docker tự chọn image phù hợp
+
+hoặc chỉ định platform: linux/arm64 trong compose service, ví dụ:
+
+services:
+  peer0.banka.bankchain.com:
+    platform: linux/arm64
+    image: hyperledger/fabric-peer:3.1
+    ...
+
+
+Nếu bạn muốn, mình sẽ tự sửa file cho bạn — nhưng cần bạn cho mình xem nội dung docker-compose-bankchain.yaml. (Bạn có thể copy-paste đoạn services: chính.)
+
+12 — TẢI DOCKER IMAGES (ARM64)
+
+Tùy trường hợp bạn dùng tag -arm64 hay platform. Dưới đây cách chung:
+
+# pull phiên bản ARM64 nếu có
+docker pull hyperledger/fabric-peer:3.1-arm64 || true
+docker pull hyperledger/fabric-orderer:3.1-arm64 || true
+docker pull hyperledger/fabric-ccenv:3.1-arm64 || true
+docker pull hyperledger/fabric-ca:1.5.10-arm64 || true
+
+# nếu không có tag -arm64, để docker tự resolve multi-arch:
+docker pull hyperledger/fabric-peer:3.1 || true
+
+
+Kiểm tra images:
+
+docker images | grep hyperledger
+
+13 — TẠO CRYPTO (cryptogen)
+
+Chạy trong thư mục bankchain:
 
 cd ~/fabric-samples/bankchain
 
-✅ LAB 4.1 – SETUP BANKCHAIN NETWORK
-✅ 6. SINH CRYPTO (CHỨNG CHỈ SỐ)
-cd ~/fabric-samples/bankchain
-cryptogen generate --config=crypto-config.yaml --output=crypto-config
+# đảm bảo dùng cryptogen từ bin
+export PATH=$HOME/fabric-samples/bin:$PATH
+cryptogen version
 
-✅ 7. SINH CHANNEL ARTIFACTS (Fabric 3.x)
-cd ~/fabric-samples/bankchain
+# generate certificates
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config
+
+
+✅ Kết quả: thư mục crypto-config/ với MSP, TLS cho orderer & peers.
+
+14 — TẠO CHANNEL ARTIFACTS (configtxgen)
 export FABRIC_CFG_PATH=$PWD
 mkdir -p channel-artifacts
 
+configtxgen -profile BankChannel -channelID bankchannel -outputBlock ./channel-artifacts/bankchannel.block
 
-Tạo channel block:
 
-configtxgen -profile BankChannel -channelID bankchannel \
--outputBlock ./channel-artifacts/bankchannel.block
+Kiểm tra file:
 
-✅ 8. SỬA ORDERER (FIX LỖI VOLUME)
+ls -l channel-artifacts/bankchannel.block
+
+15 — FIX lỗi VOLUME orderer (nếu xuất hiện)
+
+Nếu khi chạy orderer container gặp lỗi cannot mount volume over existing file /etc/hyperledger/fabric, tạo file dummy:
+
 cd ~/fabric-samples/bankchain
 touch dummy_fabric
 mkdir -p orderer-config
 
 
-Tạo file orderer.yaml:
+Tạo file orderer-config/orderer.yaml tối thiểu (nếu docker-compose tham chiếu):
 
-cat > orderer-config/orderer.yaml << 'EOF'
+cat > orderer-config/orderer.yaml <<'YAML'
 General:
   LocalMSPDir: /var/hyperledger/orderer/msp
   LocalMSPID: OrdererMSP
@@ -96,74 +210,82 @@ General:
     Certificate: /var/hyperledger/orderer/tls/server.crt
     RootCAs:
       - /var/hyperledger/orderer/tls/ca.crt
-
-Cluster:
-  ClientCertificate: /var/hyperledger/orderer/tls/server.crt
-  ClientPrivateKey: /var/hyperledger/orderer/tls/server.key
-  RootCAs:
-    - /var/hyperledger/orderer/tls/ca.crt
-
-Admin:
-  ListenAddress: 0.0.0.0:9443
-  TLS:
-    Enabled: true
-    PrivateKey: /var/hyperledger/orderer/tls/server.key
-    Certificate: /var/hyperledger/orderer/tls/server.crt
-    RootCAs:
-      - /var/hyperledger/orderer/tls/ca.crt
-
 ChannelParticipation:
   Enabled: true
-
 Operations:
   ListenAddress: 0.0.0.0:9445
-EOF
+YAML
 
-✅ 9. START ORDERER
+16 — KHỞI ĐỘNG ORDERER (docker compose)
 docker compose -f docker-compose-bankchain.yaml up -d orderer.bankchain.com
+# kiểm tra logs
+docker logs --tail=200 orderer.bankchain.com
+
+
+Nếu orderer crash: dán log vào đây. Nếu orderer up, tiếp bước sau.
+
+17 — JOIN ORDERER VÀO CHANNEL (osnadmin)
+# từ thư mục bankchain
+osnadmin channel join --channelID bankchannel \
+  --config-block ./channel-artifacts/bankchannel.block \
+  -o orderer.bankchain.com:9443 \
+  --ca-file crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt \
+  --client-cert crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.crt \
+  --client-key crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.key
 
 
 Kiểm tra:
 
-docker logs --tail=100 orderer.bankchain.com
+osnadmin channel list -o orderer.bankchain.com:9443 \
+  --ca-file crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt \
+  --client-cert crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.crt \
+  --client-key crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.key
 
-✅ 10. JOIN ORDERER → CHANNEL
-osnadmin channel join \
---channelID bankchannel \
---config-block ./channel-artifacts/bankchannel.block \
--o orderer.bankchain.com:9443 \
---ca-file crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt \
---client-cert crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.crt \
---client-key crypto-config/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/server.key
 
-✅ 11. START PEERS + CLI
+Trong list sẽ thấy bankchannel.
+
+18 — KHỞI ĐỘNG PEERS + CLI
 docker compose -f docker-compose-bankchain.yaml up -d \
-peer0.banka.bankchain.com peer1.banka.bankchain.com \
-peer0.bankb.bankchain.com peer1.bankb.bankchain.com \
-cli
+  peer0.banka.bankchain.com peer1.banka.bankchain.com \
+  peer0.bankb.bankchain.com peer1.bankb.bankchain.com \
+  cli
 
-✅ 12. JOIN PEERS → CHANNEL
 
-Vào CLI:
+Kiểm tra các container:
+
+docker ps --format 'table {{.Names}}\t{{.Status}}' | grep -E 'orderer|peer|cli|ca|couch'
+
+19 — JOIN PEER VÀO CHANNEL (bằng cli container)
+
+Vào shell cli:
 
 docker exec -it cli bash
 
-✅ Bank A – peer0
+
+Trong shell cli (bên trong container):
+
+Bank A peer0
+
+export CHANNEL=bankchannel
+export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_LOCALMSPID=BankAMSP
 export CORE_PEER_MSPCONFIGPATH=/opt/crypto/peerOrganizations/banka.bankchain.com/users/Admin@banka.bankchain.com/msp
 export CORE_PEER_ADDRESS=peer0.banka.bankchain.com:7051
-export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/banka.bankchain.com/peers/peer0.banka.bankchain.com/tls/ca.crt
 
 peer channel join -b /opt/channel-artifacts/bankchannel.block
 
-✅ Bank A – peer1
+
+Bank A peer1
+
 export CORE_PEER_ADDRESS=peer1.banka.bankchain.com:7051
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/banka.bankchain.com/peers/peer1.banka.bankchain.com/tls/ca.crt
 
 peer channel join -b /opt/channel-artifacts/bankchannel.block
 
-✅ Bank B – peer0
+
+Bank B peer0
+
 export CORE_PEER_LOCALMSPID=BankBMSP
 export CORE_PEER_MSPCONFIGPATH=/opt/crypto/peerOrganizations/bankb.bankchain.com/users/Admin@bankb.bankchain.com/msp
 export CORE_PEER_ADDRESS=peer0.bankb.bankchain.com:7051
@@ -171,190 +293,82 @@ export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/bankb.bankchain
 
 peer channel join -b /opt/channel-artifacts/bankchannel.block
 
-✅ Bank B – peer1
+
+Bank B peer1
+
 export CORE_PEER_ADDRESS=peer1.bankb.bankchain.com:7051
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/bankb.bankchain.com/peers/peer1.bankb.bankchain.com/tls/ca.crt
 
 peer channel join -b /opt/channel-artifacts/bankchannel.block
 
-✅ 13. UPDATE ANCHOR PEER (BANK A + BANK B)
 
-⚠ Đây là bước dài nhất — và là phần cuối của LAB 4.1.
+Kiểm tra:
 
-✅ 13.1 – Chuẩn bị
+peer channel list
+peer channel getinfo -c bankchannel
 
-Trong CLI:
+20 — CẬP NHẬT ANCHOR PEERS (Bank A, Bank B)
+
+Vẫn trong cli:
+
+Chuẩn bị biến:
 
 export CHANNEL=bankchannel
 export ORDERER_ADDR=orderer.bankchain.com:7050
 export ORDERER_CA=/opt/crypto/ordererOrganizations/bankchain.com/orderers/orderer.bankchain.com/tls/ca.crt
 export FABRIC_CFG_PATH=/etc/hyperledger/fabric
 
-✅ BANK A – UPDATE ANCHOR PEER
 
-Fetch config:
+BANK A
 
-peer channel fetch config /opt/channel-artifacts/config_block.pb \
--c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
+peer channel fetch config /opt/channel-artifacts/config_block.pb -c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
 
+configtxlator proto_decode --input /opt/channel-artifacts/config_block.pb --type common.Block \
+  | jq '.data.data[0].payload.data.config' > /opt/channel-artifacts/config.json
 
-Decode:
-
-configtxlator proto_decode \
---input /opt/channel-artifacts/config_block.pb \
---type common.Block \
-| jq '.data.data[0].payload.data.config' \
-> /opt/channel-artifacts/config.json
-
-
-Encode bản gốc:
-
-configtxlator proto_encode \
---input /opt/channel-artifacts/config.json \
---type common.Config \
-> /opt/channel-artifacts/config.pb
-
-
-Chèn anchor peer Bank A:
+configtxlator proto_encode --input /opt/channel-artifacts/config.json --type common.Config > /opt/channel-artifacts/config.pb
 
 jq '.channel_group.groups.Application.groups.BankAMSP.values.AnchorPeers =
 {"mod_policy":"Admins","value":{"anchor_peers":[{"host":"peer0.banka.bankchain.com","port":7051}]},"version":"0"}' \
-/opt/channel-artifacts/config.json \
-> /opt/channel-artifacts/modified_config_bankA.json
+  /opt/channel-artifacts/config.json > /opt/channel-artifacts/modified_config_bankA.json
 
+configtxlator proto_encode --input /opt/channel-artifacts/modified_config_bankA.json --type common.Config \
+  > /opt/channel-artifacts/modified_config_bankA.pb
 
-Encode bản mới:
+configtxlator compute_update --channel_id $CHANNEL --original /opt/channel-artifacts/config.pb \
+  --updated /opt/channel-artifacts/modified_config_bankA.pb --output /opt/channel-artifacts/anchors_update_bankA.pb
 
-configtxlator proto_encode \
---input /opt/channel-artifacts/modified_config_bankA.json \
---type common.Config \
-> /opt/channel-artifacts/modified_config_bankA.pb
+configtxlator proto_decode --input /opt/channel-artifacts/anchors_update_bankA.pb --type common.ConfigUpdate \
+  | jq -n --slurpfile upd /dev/stdin '{"payload":{"header":{"channel_header":{"channel_id":env.CHANNEL,"type":2}},"data":{"config_update":$upd[0]}}}' \
+  > /opt/channel-artifacts/anchors_update_bankA_envelope.json
 
+configtxlator proto_encode --input /opt/channel-artifacts/anchors_update_bankA_envelope.json --type common.Envelope \
+  > /opt/channel-artifacts/anchors_update_bankA_envelope.pb
 
-Tạo diff:
-
-configtxlator compute_update \
---channel_id $CHANNEL \
---original /opt/channel-artifacts/config.pb \
---updated  /opt/channel-artifacts/modified_config_bankA.pb \
---output   /opt/channel-artifacts/anchors_update_bankA.pb
-
-
-Bọc envelope:
-
-configtxlator proto_decode \
---input /opt/channel-artifacts/anchors_update_bankA.pb \
---type common.ConfigUpdate \
-| jq -n --slurpfile upd /dev/stdin \
-'{"payload":{"header":{"channel_header":{"channel_id":env.CHANNEL,"type":2}},"data":{"config_update":$upd[0]}}}' \
-> /opt/channel-artifacts/anchors_update_bankA_envelope.json
-
-
-Encode envelope:
-
-configtxlator proto_encode \
---input /opt/channel-artifacts/anchors_update_bankA_envelope.json \
---type common.Envelope \
-> /opt/channel-artifacts/anchors_update_bankA_envelope.pb
-
-
-Gửi update (Admin Bank A):
-
+# gửi update với Admin Bank A
 export CORE_PEER_LOCALMSPID=BankAMSP
 export CORE_PEER_MSPCONFIGPATH=/opt/crypto/peerOrganizations/banka.bankchain.com/users/Admin@banka.bankchain.com/msp
 export CORE_PEER_ADDRESS=peer0.banka.bankchain.com:7051
-export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/banka.bankchain.com/peers/peer0.banka.bankchain.com/tls/ca.crt
-
-peer channel update \
--f /opt/channel-artifacts/anchors_update_bankA_envelope.pb \
--c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
-
-✅ BANK B – UPDATE ANCHOR PEER
-
-Fetch config:
-
-peer channel fetch config /opt/channel-artifacts/config_block.pb \
--c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
+peer channel update -f /opt/channel-artifacts/anchors_update_bankA_envelope.pb -c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
 
 
-Decode:
+BANK B (tương tự, đổi host/paths và MSP tên):
 
-configtxlator proto_decode \
---input /opt/channel-artifacts/config_block.pb \
---type common.Block \
-| jq '.data.data[0].payload.data.config' \
-> /opt/channel-artifacts/config.json
-
-
-Encode bản gốc:
-
-configtxlator proto_encode \
---input /opt/channel-artifacts/config.json \
---type common.Config \
-> /opt/channel-artifacts/config.pb
-
-
-Chèn anchor peer Bank B:
-
-jq '.channel_group.groups.Application.groups.BankBMSP.values.AnchorPeers =
-{"mod_policy":"Admins","value":{"anchor_peers":[{"host":"peer0.bankb.bankchain.com","port":7051}]},"version":"0"}' \
-/opt/channel-artifacts/config.json \
-> /opt/channel-artifacts/modified_config_bankB.json
-
-
-Encode mới:
-
-configtxlator proto_encode \
---input /opt/channel-artifacts/modified_config_bankB.json \
---type common.Config \
-> /opt/channel-artifacts/modified_config_bankB.pb
-
-
-Tạo diff:
-
-configtxlator compute_update \
---channel_id $CHANNEL \
---original /opt/channel-artifacts/config.pb \
---updated  /opt/channel-artifacts/modified_config_bankB.pb \
---output   /opt/channel-artifacts/anchors_update_bankB.pb
-
-
-Bọc envelope:
-
-configtxlator proto_decode \
---input /opt/channel-artifacts/anchors_update_bankB.pb \
---type common.ConfigUpdate \
-| jq -n --slurpfile upd /dev/stdin \
-'{"payload":{"header":{"channel_header":{"channel_id":env.CHANNEL,"type":2}},"data":{"config_update":$upd[0]}}}' \
-> /opt/channel-artifacts/anchors_update_bankB_envelope.json
-
-
-Encode envelope:
-
-configtxlator proto_encode \
---input /opt/channel-artifacts/anchors_update_bankB_envelope.json \
---type common.Envelope \
-> /opt/channel-artifacts/anchors_update_bankB_envelope.pb
-
-
-Gửi update (Admin Bank B):
-
+# fetch config (như trên), modify .BankBMSP..., compute_update, bọc envelope, rồi:
 export CORE_PEER_LOCALMSPID=BankBMSP
 export CORE_PEER_MSPCONFIGPATH=/opt/crypto/peerOrganizations/bankb.bankchain.com/users/Admin@bankb.bankchain.com/msp
 export CORE_PEER_ADDRESS=peer0.bankb.bankchain.com:7051
-export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/crypto/peerOrganizations/bankb.bankchain.com/peers/peer0.bankb.bankchain.com/tls/ca.crt
+peer channel update -f /opt/channel-artifacts/anchors_update_bankB_envelope.pb -c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
 
-peer channel update \
--f /opt/channel-artifacts/anchors_update_bankB_envelope.pb \
--c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
 
-✅ ✅ ✅ KẾT QUẢ CUỐI LAB 4.1
+Xác nhận:
 
-✅ Orderer đã chạy
-✅ Orderer đã join channel
-✅ 4 peers (A0/A1/B0/B1) join channel thành công
-✅ Anchor peer của Bank A đã update
-✅ Anchor peer của Bank B đã update
-✅ Mạng Bankchain 2 ngân hàng đã chạy hoàn chỉnh
+peer channel fetch config /opt/channel-artifacts/config_block.pb -c $CHANNEL -o $ORDERER_ADDR --tls --cafile $ORDERER_CA
+configtxlator proto_decode --input /opt/channel-artifacts/config_block.pb --type common.Block \
+  | jq '.data.data[0].payload.data.config.channel_group.groups.Application.groups.BankAMSP.values.AnchorPeers,
+       .data.data[0].payload.data.config.channel_group.groups.Application.groups.BankBMSP.values.AnchorPeers'
+
+
+Bạn sẽ thấy anchor_peers đúng host/port.
