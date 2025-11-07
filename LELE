@@ -1,80 +1,62 @@
-✅ BƯỚC 5 — KHỞI ĐỘNG CA + PEER + ORDERER
-✅ 5.1 Start CA (bạn đã chạy)
-✅ 5.2 Start peer + orderer
-docker compose -f docker-compose-bankchain.yaml up -d
-✅ ✅ Cách 1 — Gỡ CLI ra luôn (khuyến nghị)
+✅ 1. MỞ FILE
 
-Vì Fabric 3.1 không dùng CLI container nữa.
+Chạy:
 
-👉 Mở file:
+nano ~/fabric-samples/bankchain/docker-compose-bankchain.yaml
 
-~/fabric-samples/bankchain/docker-compose-bankchain.yaml
+✅ 2. BẠN PHẢI SỬA 3 DÒNG IMAGE QUAN TRỌNG
+❌ Sai (đang khiến bạn lỗi)
+hyperledger/fabric-tools:3.1
+hyperledger/fabric-peer:3.1
+hyperledger/fabric-orderer:3.1
+
+✅ Đúng (bản arm64 ổn định)
+hyperledger/fabric-tools:1.5.11
+hyperledger/fabric-peer:1.5.11
+hyperledger/fabric-orderer:1.5.11
 
 
-Tìm đoạn:
+✅ 1.5.11 là bản hỗ trợ đầy đủ ARM64
+✅ Mac M4 + Ubuntu ARM64 chạy ổn định
+✅ Không còn lỗi "manifest unknown"
 
+✅ 3. TÌM VÀ SỬA TRONG FILE
+🔍 Tìm phần CLI
 cli:
-  container_name: cli
-  image: hyperledger/fabric-tools:3.1
+  image: hyperledger/fabric-tools:1.5.11
 
-Kiểm tra:
+🔍 Tìm phần peer0 banka
+peer0.banka.example.com:
+  image: hyperledger/fabric-peer:1.5.11
 
+🔍 peer1
+peer1.banka.example.com:
+  image: hyperledger/fabric-peer:1.5.11
+
+🔍 peer bankB
+peer0.bankb.example.com:
+  image: hyperledger/fabric-peer:1.5.11
+peer1.bankb.example.com:
+  image: hyperledger/fabric-peer:1.5.11
+
+🔍 Orderer
+orderer.bankchain.com:
+  image: hyperledger/fabric-orderer:1.5.11
+
+✅ 4. LƯU FILE
+
+Trong nano:
+
+Ctrl + O
+Enter
+Ctrl + X
+
+✅ 5. CHẠY LẠI
+docker compose -f docker-compose-bankchain.yaml down
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ 6. KIỂM TRA
 docker ps
-
-
-Phải thấy:
-
-✅ orderer.bankchain.com
-✅ peer0.banka
-✅ peer1.banka
-✅ peer0.bankb
-✅ peer1.bankb
-✅ couchdb (nếu dùng)
-
-✅ BƯỚC 6 — TẠO CHANNEL
-6.1 Tạo channel từ CLI
-docker exec -it cli bash
-
-
-Trong CLI:
-
-peer channel create -o orderer.bankchain.com:7050 \
--c bankchain \
--f ./channel-artifacts/channel.tx \
---outputBlock ./channel-artifacts/bankchain.block
-
-✅ BƯỚC 7 — JOIN PEERS VÀO CHANNEL
-Bank A
-export CORE_PEER_LOCALMSPID="BankAMSP"
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-
-peer channel join -b ./channel-artifacts/bankchain.block
-
-Bank B
-export CORE_PEER_LOCALMSPID="BankBMSP"
-export CORE_PEER_ADDRESS=peer0.bankb.example.com:8051
-
-peer channel join -b ./channel-artifacts/bankchain.block
-
-✅ BƯỚC 8 — CẬP NHẬT ANCHOR PEER
-Bank A
-peer channel update \
--o orderer.bankchain.com:7050 \
--c bankchain \
--f ./channel-artifacts/bankaMSPanchors.tx
-
-Bank B
-peer channel update \
--o orderer.bankchain.com:7050 \
--c bankchain \
--f ./channel-artifacts/bankbMSPanchors.tx
-
-✅ BƯỚC 9 — DEPLOY CHAINCODE
-9.1 Install chaincode
-peer lifecycle chaincode install bankchain.tar.gz
-
-9.2 Approve + Commit
-
 (Đoạn này tùy theo bạn có file chaincode nào – bạn gửi mình mình set đúng)
 
 ✅ BƯỚC 10 — TEST GIAO DỊCH
