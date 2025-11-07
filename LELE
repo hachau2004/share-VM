@@ -1,67 +1,56 @@
-✅ ✅ GIẢI PHÁP (CHÍNH XÁC 100%)
-
-Bạn cần sửa file:
-
-docker-compose-ca.yaml
-
-
-đổi dòng:
-
-image: hyperledger/fabric-ca:${IMAGE_TAG}
-
-
-→ thành:
-
-image: hyperledger/fabric-ca:1.5.11
-
-
-Vì Fabric-CA phải chạy phiên bản 1.5.x (ARM64 hỗ trợ đầy đủ).
-
-✅ BƯỚC 1 — SỬA docker-compose-ca.yaml
+✅ GIẢI PHÁP CHÍNH XÁC — KIỂM TRA & SỬA LẠI
+✅ 1. MỞ FILE CHÍNH XÁC:
 
 Chạy:
 
 nano ~/fabric-samples/bankchain/docker-compose-ca.yaml
 
+✅ 2. TÌM TẤT CẢ CÁC DÒNG CHỨA:
+hyperledger/fabric-ca
 
-Tìm 2 chỗ như:
+
+Bạn có thể search trong nano:
+Nhấn Ctrl + W, gõ:
+
+fabric-ca
+
+✅ 3. ĐẢM BẢO 2 DÒNG NÀY ĐÚNG 100%:
+
+Thay:
+
+❌ Sai:
 
 image: hyperledger/fabric-ca:${IMAGE_TAG}
 
 
-Sửa thành:
+✅ Đúng:
 
 image: hyperledger/fabric-ca:1.5.11
 
 
-👉 Lưu lại:
-Nhấn CTRL + O, Enter rồi CTRL + X.
+⚠️ DỰ ÁN NÀY THƯỜNG CÓ 2 SERVICE CA:
 
-✅ BƯỚC 2 — XOÁ CONTAINER CŨ (NẾU CÓ)
+ca0
+
+ca1
+
+👉 Bạn phải sửa cả hai, nếu không Docker Compose vẫn tìm 3.1.
+
+✅ 4. LƯU FILE
+
+Trong nano:
+
+Ctrl + O, Enter
+
+Ctrl + X
+
+✅ 5. XOÁ CONTAINER & IMAGE CŨ ĐỂ TRÁNH NÓ GIỮ TAG 3.1**
 docker rm -f $(docker ps -aq)
+docker rmi hyperledger/fabric-ca:3.1 || true
 
-✅ BƯỚC 3 — KHOI ĐỘNG LẠI CA
+✅ 6. CHẠY LẠI CA
 cd ~/fabric-samples/bankchain
 docker compose -f docker-compose-ca.yaml up -d
 
-✅ BƯỚC 4 — KIỂM TRA
-docker ps
-
-
-Bạn sẽ thấy:
-
-ca.banka.example.com
-
-ca.bankb.example.com
-
-✅ CA chạy thành công
-✅ Không còn “manifest unknown”
-✅ Không còn lỗi IMAGE_TAG
-
-✅ TIẾP THEO CHÚNG TA SẼ START ORDERER
-
-KHI NÀO CA chạy OK → mình sẽ dẫn bạn start Orderer + CLI → tạo channel → join peer.
-
-👉 HÃY GỬI MÌNH ẢNH KẾT QUẢ CỦA:
-
+✅ 7. KIỂM TRA KẾT QUẢ
 docker ps
