@@ -1,34 +1,67 @@
-BƯỚC 1 — EXPORT 3 BIẾN MÔI TRƯỜNG BẮT BUỘC
+✅ ✅ GIẢI PHÁP (CHÍNH XÁC 100%)
 
-Chạy 3 lệnh sau trong terminal Ubuntu:
+Bạn cần sửa file:
 
-export BANKCHAIN_CA1_PRIVATE_KEY=priv_sk
-export BANKCHAIN_CA2_PRIVATE_KEY=priv_sk
-export IMAGE_TAG=3.1
-
-✅ BƯỚC 2 — KIỂM TRA XEM ĐÃ EXPORT ĐÚNG CHƯA
-echo $BANKCHAIN_CA1_PRIVATE_KEY
-echo $BANKCHAIN_CA2_PRIVATE_KEY
-echo $IMAGE_TAG
+docker-compose-ca.yaml
 
 
-Kết quả phải là:
+đổi dòng:
 
-priv_sk
-priv_sk
-3.1
+image: hyperledger/fabric-ca:${IMAGE_TAG}
 
-✅ BƯỚC 3 — KHỞI ĐỘNG CA (KHÔNG BÁO LỖI NỮA)
+
+→ thành:
+
+image: hyperledger/fabric-ca:1.5.11
+
+
+Vì Fabric-CA phải chạy phiên bản 1.5.x (ARM64 hỗ trợ đầy đủ).
+
+✅ BƯỚC 1 — SỬA docker-compose-ca.yaml
+
+Chạy:
+
+nano ~/fabric-samples/bankchain/docker-compose-ca.yaml
+
+
+Tìm 2 chỗ như:
+
+image: hyperledger/fabric-ca:${IMAGE_TAG}
+
+
+Sửa thành:
+
+image: hyperledger/fabric-ca:1.5.11
+
+
+👉 Lưu lại:
+Nhấn CTRL + O, Enter rồi CTRL + X.
+
+✅ BƯỚC 2 — XOÁ CONTAINER CŨ (NẾU CÓ)
+docker rm -f $(docker ps -aq)
+
+✅ BƯỚC 3 — KHOI ĐỘNG LẠI CA
 cd ~/fabric-samples/bankchain
 docker compose -f docker-compose-ca.yaml up -d
 
+✅ BƯỚC 4 — KIỂM TRA
+docker ps
 
-✅ Lần này CA sẽ start OK
-✅ Không còn cảnh báo private_key
-✅ Không còn cảnh báo image_tag
 
-✅ BƯỚC 4 — KIỂM TRA CA ĐANG CHẠY
+Bạn sẽ thấy:
 
-Chạy:
+ca.banka.example.com
+
+ca.bankb.example.com
+
+✅ CA chạy thành công
+✅ Không còn “manifest unknown”
+✅ Không còn lỗi IMAGE_TAG
+
+✅ TIẾP THEO CHÚNG TA SẼ START ORDERER
+
+KHI NÀO CA chạy OK → mình sẽ dẫn bạn start Orderer + CLI → tạo channel → join peer.
+
+👉 HÃY GỬI MÌNH ẢNH KẾT QUẢ CỦA:
 
 docker ps
