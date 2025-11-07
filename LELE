@@ -157,8 +157,43 @@ networks:
 services:
 
   # ===============================
+  # COUCHDB FOR EACH PEER
+  # ===============================
+
+  couchdb0:
+    image: couchdb:3.3
+    container_name: couchdb0
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
+    networks:
+      - bankchain
+
+  couchdb1:
+    image: couchdb:3.3
+    container_name: couchdb1
+    networks:
+      - bankchain
+
+  couchdb2:
+    image: couchdb:3.3
+    container_name: couchdb2
+    networks:
+      - bankchain
+
+  couchdb3:
+    image: couchdb:3.3
+    container_name: couchdb3
+    networks:
+      - bankchain
+
+
+  # ===============================
   # ORDERER
   # ===============================
+
   orderer.example.com:
     image: hyperledger/fabric-orderer:1.5.11
     container_name: orderer.example.com
@@ -170,7 +205,7 @@ services:
 
 
   # ===============================
-  # ORG BANK A PEERS
+  # PEERS FOR BANK A
   # ===============================
 
   peer0.banka.example.com:
@@ -201,8 +236,9 @@ services:
     depends_on:
       - couchdb1
 
+
   # ===============================
-  # ORG BANK B PEERS
+  # PEERS FOR BANK B
   # ===============================
 
   peer0.bankb.example.com:
@@ -218,7 +254,6 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
     depends_on:
       - couchdb2
-
 
   peer1.bankb.example.com:
     image: hyperledger/fabric-peer:1.5.11
@@ -236,7 +271,7 @@ services:
 
 
   # ===============================
-  # CLI CONTAINER (RẤT QUAN TRỌNG)
+  # CLI CONTAINER
   # ===============================
 
   cli:
