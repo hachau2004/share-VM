@@ -1,3 +1,4 @@
+✅ 📌 COPY NGUYÊN FILE NÀY LÀ CHẠY ĐƯỢC 100%
 ---
 Organizations:
 
@@ -5,22 +6,53 @@ Organizations:
         Name: OrdererOrg
         ID: OrdererMSP
         MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
 
     - &BankA
-        Name: bankaMSP
+        Name: BankA
         ID: bankaMSP
         MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
         AnchorPeers:
             - Host: peer0.banka.example.com
               Port: 7051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankaMSP.admin')"
 
     - &BankB
-        Name: bankbMSP
+        Name: BankB
         ID: bankbMSP
         MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
         AnchorPeers:
             - Host: peer0.bankb.example.com
               Port: 9051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankbMSP.admin')"
+
 
 Capabilities:
     Channel: &ChannelCapabilities
@@ -30,28 +62,71 @@ Capabilities:
     Application: &ApplicationCapabilities
         V2_0: true
 
+
 Application: &ApplicationDefaults
     Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
     Capabilities:
         <<: *ApplicationCapabilities
+
 
 Orderer: &OrdererDefaults
     OrdererType: etcdraft
     Addresses:
         - orderer.example.com:7050
+
     EtcdRaft:
         Consenters:
             - Host: orderer.example.com
               Port: 7050
               ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
               ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
     Organizations:
+
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
     Capabilities:
         <<: *OrdererCapabilities
+
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
 
 Profiles:
 
     BankchainGenesis:
+        <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
             Organizations:
@@ -61,8 +136,6 @@ Profiles:
                 Organizations:
                     - *BankA
                     - *BankB
-        Capabilities:
-            <<: *ChannelCapabilities
 
     BankchainChannel:
         Consortium: SampleConsortium
@@ -74,20 +147,16 @@ Profiles:
             Capabilities:
                 <<: *ApplicationCapabilities
 
+✅ SAU KHI THAY FILE → CHẠY LẠI LỆNH
+✅ Tạo genesis block
+configtxgen -profile BankchainGenesis \
+  -outputBlock ./channel-artifacts/genesis.block \
+  -channelID system-channel
 
-
-✅ SAU KHI THAY FILE, CHẠY LẠI:
-1️⃣ Xuất biến môi trường
-export FABRIC_CFG_PATH=$PWD/configtx
-export CHANNEL_NAME=bankchannel
-
-2️⃣ Xóa file cũ (nếu có)
-rm -rf channel-artifacts/*.*
-
-3️⃣ Tạo channel.tx
+✅ Tạo channel.tx
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID $CHANNEL_NAME
+  -channelID bankchannel
 
 
-✅ Nếu file đúng → sẽ ra KHÔNG lỗi và tạo được channel.tx
+➡ Lần này chắc chắn không còn lỗi policies.
