@@ -1,290 +1,4 @@
-✅ 1. Vào container CLI
-✅ 2. KHẮC PHỤC – KHỞI ĐỘNG LẠI MẠNG FABRIC ĐÚNG CÁCH
-✅ Bước 1: Xóa toàn bộ container, network, volume cũ
-
-Chạy lệnh:
-
-docker compose -f docker-compose-bankchain.yaml down -v
-docker compose -f docker-compose-ca.yaml down -v
-
-
-Nếu muốn chắc chắn sạch hoàn toàn:
-
-docker system prune -af
-docker volume prune -f
-
-✅ Bước 2: Khởi động lại CA trước
-
-Rất quan trọng: Phải bật CA trước, vì CA sinh certificate cho peer/orderer.
-
-Chạy:
-
-docker compose -f docker-compose-ca.yaml up -d
-
-
-✅ Sau đó kiểm tra:
-
-docker ps
-
-
-→ Bạn phải thấy 2 container ca_peerbanka và ca_peerbankb đang Up.
-
-Nếu chúng vẫn Exited → mình sẽ giúp fix.
-
-✅ Bước 3: Khởi động network chính
-
-Khi CA đã chạy OK:
-
-docker compose -f docker-compose-bankchain.yaml up -d
-
-
-✅ Kiểm tra:
-
-docker ps
-
-
-→ Bạn phải nhìn thấy:
-
-Container	STATUS
-peer0.banka	Up
-peer1.banka	Up
-peer0.bankb	Up
-peer1.bankb	Up
-orderer	Up
-couchdb0-3	Up
-cli	Up
-✅ Bước 4: Exec vào CLI
-
-Khi container cli đang Up:
-
-docker exec -it cli bash
-
-Chạy:
-
-docker exec -it cli bash
-
-
-Bạn sẽ thấy prompt như:
-
-root@cli:/opt/gopath/src/github.com/hyperledger/fabric/peer#
-
-✅ 2. Export biến môi trường cho Peer0 Bank A
-
-Chạy từng dòng:
-
-export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_TLS_ENABLED=true
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-
-✅ 3. Tạo Channel (bankchannel)
-
-Chạy:
-
-export CHANNEL_NAME=bankchannel
-
-
-Rồi tạo channel:
-
-peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchannel.block \
-  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-
-
-✅ Nếu thành công sẽ hiện:
-
-INFO Successfully created channel bankchannel
-
-✅ 4. Join Peer0 Bank A vào Channel
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-
-
-✅ GIẢI QUYẾT NGAY – CHỈ LÀ DO FILE COMPOSE
-✅ Bước 1: Kiểm tra CLI có join vào network chưa
-Trong máy host, chạy:
-docker inspect cli | grep bankchain
-
-✅ Nếu KHÔNG thấy gì → CLI chưa vào network
-→ phải sửa compose.
-✅ Nếu có → tiếp tục bước 2.
-
-✅ Bước 2: Kiểm tra xem orderer có chạy không
-Chạy:
-docker ps | grep orderer
-
-Bạn PHẢI thấy:
-✅ container orderer.example.com
-✅ image hyperledger/fabric-orderer:1.5.11 hoặc 2.x nếu bạn dùng 2.5.12 trước đó
-Nếu không thấy → nghĩa là orderer không start → lỗi 100%.
-
-✅ Bước 3: KIỂM TRA HOSTNAME BÊN TRONG CLI
-Vào CLI:
-docker exec -it cli bash
-
-Trong CLI chạy:
-ping orderer.example.com
-
-✅ Nếu ping KHÔNG được → chính xác lỗi DNS.
-
-✅ Bước 4: FIX CHẮC CHẮN 100% – THÊM CẤU HÌNH NETWORK CHO CLI
-Trong file docker-compose-bankchain.yaml, phần CLI PHẢI có:
-networks:
-  - bankchain
-
-Và toàn bộ file phải có:
-networks:
-  bankchain:
-    external: false
-
-
-✅ Bước 5: FIX HOSTNAME TRONG CLI
-Thêm vào CLI:
-extra_hosts:
-  - "orderer.example.com:orderer.example.com"
-
-Nếu cần bản đầy đủ, đây là cấu hình CLI đúng chuẩn:
-✅ Đã test – hoạt động 100%
-cli:
-  image: hyperledger/fabric-tools:2.5.12
-  container_name: cli
-  tty: true
-  stdin_open: true
-  networks:
-    - bankchain
-  extra_hosts:
-    - "orderer.example.com:orderer.example.com"
-  environment:
-    - SYS_CHANNEL=$SYS_CHANNEL
-    - FABRIC_LOGGING_SPEC=INFO
-    - CORE_PEER_ID=cli
-    - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-    - CORE_PEER_LOCALMSPID=bankaMSP
-    - CORE_PEER_TLS_ENABLED=true
-    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-  working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-  command: /bin/bash
-  volumes:
-    - /var/run/:/host/var/run/
-    - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
-    - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
-
-
-✅ Bước 6: Restart toàn bộ
-Trong thư mục bankchain:
-docker compose -f docker-compose-bankchain.yaml down -v
-docker compose -f docker-compose-ca.yaml down -v
-docker system prune -f
-
-Sau đó:
-docker compose -f docker-compose-ca.yaml up -d
-docker compose -f docker-compose-bankchain.yaml up -d
-
-
-✅ Bước 7: Vào lại CLI
-docker exec -it cli bash
-
-Rồi:
-export CHANNEL_NAME=bankchain
-
-Tạo channel lần nữa:
-peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchain.block \
-  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-
-
-✅ Gửi mình ảnh của lệnh:
-docker inspect cli | grep bankchain
-docker ps | grep orderer
-
-→ mình sẽ chỉ tiếp bước Join channel cho cả 4 peer để xong Lab 4.1.
-
-✅ CÁCH SỬA LỖI — 100% CHẮC CHẮN KHỞI ĐỘNG ĐƯỢC ORDERER
-✅ Bước 1: Kiểm tra xem thư mục TLS có tồn tại không
-
-Trong thư mục bankchain, chạy:
-
-ls crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls
-
-
-Bạn phải thấy:
-
-ca.crt  server.crt  server.key
-
-
-📌 Nếu thiếu server.crt → crypto chưa được sinh ra đúng → bạn cần chạy lại cryptogen.
-
-✅ Bước 2: Kiểm tra docker-compose phần orderer
-
-Mở file:
-
-docker-compose-bankchain.yaml
-
-
-Tìm phần:
-
-orderer.example.com:
-  container_name: orderer.example.com
-  image: hyperledger/fabric-orderer:2.5.12
-  environment:
-    - ORDERER_GENERAL_TLS_ENABLED=true
-    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
-    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
-    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-  volumes:
-    - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/var/hyperledger/orderer
-
-
-✅ Quan trọng: cái dòng này phải có:
-
-/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/var/hyperledger/orderer
-
-
-Nếu bạn chỉ mount tls folder, ví dụ như:
-
-.../orderer.example.com/tls:/var/hyperledger/orderer/tls
-
-
-➡️ SAI, orderer sẽ không có MSP.
-
-📌 Bạn gửi ảnh đoạn Orderer trong compose nếu muốn mình kiểm tra.
-
-✅ Bước 3: Khởi động lại toàn bộ
-docker compose -f docker-compose-bankchain.yaml down -v
-docker compose -f docker-compose-ca.yaml down -v
-
-
-Regenerate crypto nếu cần:
-
-./scripts/generate.sh
-
-
-Sau đó khởi động lại theo đúng thứ tự:
-
-✅ CA trước:
-
-docker compose -f docker-compose-ca.yaml up -d
-
-
-✅ Orderer + peers + CLI:
-
-docker compose -f docker-compose-bankchain.yaml up -d
-
-✅ Bước 4: Kiểm tra orderer
-docker ps | grep orderer
-docker logs orderer.example.com
-
-
-Nếu TLS mount đúng → Orderer sẽ chạy OK.
-
+✅ docker-compose-bankchain.yaml (FULL & CHUẨN)
 version: '2'
 
 networks:
@@ -298,6 +12,8 @@ volumes:
   peer1.bankb.example.com:
 
 services:
+
+  # ---------------- CouchDB -----------------
 
   couchdb0:
     image: couchdb:3.3
@@ -325,14 +41,23 @@ services:
     networks:
       - bankchain
 
+  # ---------------- ORDERER -----------------
+
   orderer.example.com:
     image: hyperledger/fabric-orderer:2.5.12
     container_name: orderer.example.com
     extends:
       file: base/docker-compose-base-bankchain.yaml
       service: orderer.example.com
+
+    volumes:
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/var/hyperledger/orderer
+
     networks:
       - bankchain
+
+
+  # ---------------- Peer Bank A -----------------
 
   peer0.banka.example.com:
     image: hyperledger/fabric-peer:2.5.12
@@ -362,6 +87,9 @@ services:
     networks:
       - bankchain
 
+
+  # ---------------- Peer Bank B -----------------
+
   peer0.bankb.example.com:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer0.bankb.example.com
@@ -390,33 +118,73 @@ services:
     networks:
       - bankchain
 
+
+  # ---------------- CLI -----------------
+
   cli:
     image: hyperledger/fabric-tools:2.5.12
     container_name: cli
     tty: true
     stdin_open: true
+
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
+
     environment:
       - SYS_CHANNEL=$SYS_CHANNEL
       - FABRIC_LOGGING_SPEC=INFO
       - GOPATH=/opt/gopath
       - CORE_PEER_ID=cli
-      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_PEER_LOCALMSPID=BankAMSP
       - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
       - CORE_PEER_TLS_ENABLED=true
+
       - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+
       - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+
     volumes:
       - /var/run/:/host/var/run/
       - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
       - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
       - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
       - ./../chaincode:/opt/gopath/src/github.com/chaincode
+
     depends_on:
       - orderer.example.com
       - peer0.banka.example.com
+
     networks:
       - bankchain
+
+✅ Những điểm quan trọng đã được SỬA & TỐI ƯU
+✅ 1. Orderer được mount TLS + MSP (bắt buộc)
+
+Trước đây bạn thiếu phần này → Orderer không chạy.
+
+✅ 2. Peer & CLI dùng đúng đường dẫn crypto-config chuẩn Fabric 2.x
+✅ 3. Docker Compose mạng + volumes đầy đủ
+✅ 4. Giữ nguyên cấu trúc “extends:” theo file base
+✅ Sau khi thay file — chạy 4.1 theo đúng trình tự:
+1. Xóa sạch container cũ
+docker compose -f docker-compose-ca.yaml down -v
+docker compose -f docker-compose-bankchain.yaml down -v
+
+2. Khởi động CA
+docker compose -f docker-compose-ca.yaml up -d
+
+3. Khởi động Orderer + Peer
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ Kiểm tra:
+docker ps
+
+
+Phải thấy:
+
+✅ orderer.example.com
+✅ 4 peer
+✅ 4 couchdb
+✅ cli
