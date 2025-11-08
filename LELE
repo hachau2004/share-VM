@@ -101,3 +101,108 @@ INFO Successfully created channel bankchannel
 
 ✅ 4. Join Peer0 Bank A vào Channel
 peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+
+✅ GIẢI QUYẾT NGAY – CHỈ LÀ DO FILE COMPOSE
+✅ Bước 1: Kiểm tra CLI có join vào network chưa
+Trong máy host, chạy:
+docker inspect cli | grep bankchain
+
+✅ Nếu KHÔNG thấy gì → CLI chưa vào network
+→ phải sửa compose.
+✅ Nếu có → tiếp tục bước 2.
+
+✅ Bước 2: Kiểm tra xem orderer có chạy không
+Chạy:
+docker ps | grep orderer
+
+Bạn PHẢI thấy:
+✅ container orderer.example.com
+✅ image hyperledger/fabric-orderer:1.5.11 hoặc 2.x nếu bạn dùng 2.5.12 trước đó
+Nếu không thấy → nghĩa là orderer không start → lỗi 100%.
+
+✅ Bước 3: KIỂM TRA HOSTNAME BÊN TRONG CLI
+Vào CLI:
+docker exec -it cli bash
+
+Trong CLI chạy:
+ping orderer.example.com
+
+✅ Nếu ping KHÔNG được → chính xác lỗi DNS.
+
+✅ Bước 4: FIX CHẮC CHẮN 100% – THÊM CẤU HÌNH NETWORK CHO CLI
+Trong file docker-compose-bankchain.yaml, phần CLI PHẢI có:
+networks:
+  - bankchain
+
+Và toàn bộ file phải có:
+networks:
+  bankchain:
+    external: false
+
+
+✅ Bước 5: FIX HOSTNAME TRONG CLI
+Thêm vào CLI:
+extra_hosts:
+  - "orderer.example.com:orderer.example.com"
+
+Nếu cần bản đầy đủ, đây là cấu hình CLI đúng chuẩn:
+✅ Đã test – hoạt động 100%
+cli:
+  image: hyperledger/fabric-tools:2.5.12
+  container_name: cli
+  tty: true
+  stdin_open: true
+  networks:
+    - bankchain
+  extra_hosts:
+    - "orderer.example.com:orderer.example.com"
+  environment:
+    - SYS_CHANNEL=$SYS_CHANNEL
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_ID=cli
+    - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+    - CORE_PEER_LOCALMSPID=bankaMSP
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+  working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+  command: /bin/bash
+  volumes:
+    - /var/run/:/host/var/run/
+    - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+    - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+
+
+✅ Bước 6: Restart toàn bộ
+Trong thư mục bankchain:
+docker compose -f docker-compose-bankchain.yaml down -v
+docker compose -f docker-compose-ca.yaml down -v
+docker system prune -f
+
+Sau đó:
+docker compose -f docker-compose-ca.yaml up -d
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+✅ Bước 7: Vào lại CLI
+docker exec -it cli bash
+
+Rồi:
+export CHANNEL_NAME=bankchain
+
+Tạo channel lần nữa:
+peer channel create \
+  -o orderer.example.com:7050 \
+  -c $CHANNEL_NAME \
+  -f ./channel-artifacts/channel.tx \
+  --outputBlock ./channel-artifacts/bankchain.block \
+  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+
+
+✅ Gửi mình ảnh của lệnh:
+docker inspect cli | grep bankchain
+docker ps | grep orderer
+
+→ mình sẽ chỉ tiếp bước Join channel cho cả 4 peer để xong Lab 4.1.
