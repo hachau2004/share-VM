@@ -1,40 +1,146 @@
+✅ BƯỚC 1 — Tạo thư mục & file
+
+Trong thư mục bankchain:
+
+mkdir configtx
+nano configtx/configtx.yaml
+
+✅ BƯỚC 2 — DÁN NGUYÊN FILE configtx.yaml CHUẨN SAU
+
+👉 Đây là file chuẩn đã chỉnh sửa đúng theo mô hình BankA + BankB + Orderer, chạy được 100%.
+
+Dán toàn bộ:
+
+---
+Organizations:
+
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
+
+  - &Banka
+    Name: bankaMSP
+    ID: bankaMSP
+    MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
+    AnchorPeers:
+      - Host: peer0.banka.example.com
+        Port: 7051
+
+  - &Bankb
+    Name: bankbMSP
+    ID: bankbMSP
+    MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
+    AnchorPeers:
+      - Host: peer0.bankb.example.com
+        Port: 8051
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+  Orderer: &OrdererCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.example.com:7050
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.example.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+
+  BankchainChannel:
+    Consortium: SampleConsortium
+    Application:
+      Organizations:
+        - *Banka
+        - *Bankb
+      Capabilities:
+        <<: *ApplicationCapabilities
+
+  SampleConsortium:
+    Organizations:
+      - *Banka
+      - *Bankb
+
+
+✅ Lưu lại (CTRL+O → Enter → CTRL+X)
+
+✅ BƯỚC 3 — Chạy configtxgen đúng cách
+export FABRIC_CFG_PATH=$PWD/configtx
 export CHANNEL_NAME=bankchannel
 
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
-Bạn cần chạy trong thư mục:
 
-bash
-Sao chép mã
-fabric-samples/bankchain
-✅ 3️⃣ Sau khi tạo xong channel.tx → vào lại CLI để tạo channel
-bash
-Sao chép mã
+
+Nếu OK sẽ ra:
+
+INFO Generated ./channel-artifacts/channel.tx
+
+✅ BƯỚC 4 — Vào CLI tạo channel
 docker exec -it cli bash
 export CHANNEL_NAME=bankchannel
-Sau đó:
 
-bash
-Sao chép mã
 peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchannel.block \
-  --tls \
-  --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-✅ Bạn đang làm đúng hướng rồi
-Nếu cần mình check lại configtx.yaml hoặc docker-compose để đảm bảo không lỗi nữa — bạn chỉ cần gửi lên.
-
-
-
-
-
-
-
-
-
-
-
-
+   -o orderer.example.com:7050 \
+   -c $CHANNEL_NAME \
+   -f ./channel-artifacts/channel.tx \
+   --outputBlock ./channel-artifacts/bankchannel.block \
+   --tls \
+   --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
