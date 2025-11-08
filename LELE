@@ -206,3 +206,81 @@ docker inspect cli | grep bankchain
 docker ps | grep orderer
 
 → mình sẽ chỉ tiếp bước Join channel cho cả 4 peer để xong Lab 4.1.
+
+✅ CÁCH SỬA LỖI — 100% CHẮC CHẮN KHỞI ĐỘNG ĐƯỢC ORDERER
+✅ Bước 1: Kiểm tra xem thư mục TLS có tồn tại không
+
+Trong thư mục bankchain, chạy:
+
+ls crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls
+
+
+Bạn phải thấy:
+
+ca.crt  server.crt  server.key
+
+
+📌 Nếu thiếu server.crt → crypto chưa được sinh ra đúng → bạn cần chạy lại cryptogen.
+
+✅ Bước 2: Kiểm tra docker-compose phần orderer
+
+Mở file:
+
+docker-compose-bankchain.yaml
+
+
+Tìm phần:
+
+orderer.example.com:
+  container_name: orderer.example.com
+  image: hyperledger/fabric-orderer:2.5.12
+  environment:
+    - ORDERER_GENERAL_TLS_ENABLED=true
+    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+  volumes:
+    - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/var/hyperledger/orderer
+
+
+✅ Quan trọng: cái dòng này phải có:
+
+/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/var/hyperledger/orderer
+
+
+Nếu bạn chỉ mount tls folder, ví dụ như:
+
+.../orderer.example.com/tls:/var/hyperledger/orderer/tls
+
+
+➡️ SAI, orderer sẽ không có MSP.
+
+📌 Bạn gửi ảnh đoạn Orderer trong compose nếu muốn mình kiểm tra.
+
+✅ Bước 3: Khởi động lại toàn bộ
+docker compose -f docker-compose-bankchain.yaml down -v
+docker compose -f docker-compose-ca.yaml down -v
+
+
+Regenerate crypto nếu cần:
+
+./scripts/generate.sh
+
+
+Sau đó khởi động lại theo đúng thứ tự:
+
+✅ CA trước:
+
+docker compose -f docker-compose-ca.yaml up -d
+
+
+✅ Orderer + peers + CLI:
+
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ Bước 4: Kiểm tra orderer
+docker ps | grep orderer
+docker logs orderer.example.com
+
+
+Nếu TLS mount đúng → Orderer sẽ chạy OK.
