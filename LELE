@@ -1,4 +1,63 @@
 ✅ 1. Vào container CLI
+✅ 2. KHẮC PHỤC – KHỞI ĐỘNG LẠI MẠNG FABRIC ĐÚNG CÁCH
+✅ Bước 1: Xóa toàn bộ container, network, volume cũ
+
+Chạy lệnh:
+
+docker compose -f docker-compose-bankchain.yaml down -v
+docker compose -f docker-compose-ca.yaml down -v
+
+
+Nếu muốn chắc chắn sạch hoàn toàn:
+
+docker system prune -af
+docker volume prune -f
+
+✅ Bước 2: Khởi động lại CA trước
+
+Rất quan trọng: Phải bật CA trước, vì CA sinh certificate cho peer/orderer.
+
+Chạy:
+
+docker compose -f docker-compose-ca.yaml up -d
+
+
+✅ Sau đó kiểm tra:
+
+docker ps
+
+
+→ Bạn phải thấy 2 container ca_peerbanka và ca_peerbankb đang Up.
+
+Nếu chúng vẫn Exited → mình sẽ giúp fix.
+
+✅ Bước 3: Khởi động network chính
+
+Khi CA đã chạy OK:
+
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+✅ Kiểm tra:
+
+docker ps
+
+
+→ Bạn phải nhìn thấy:
+
+Container	STATUS
+peer0.banka	Up
+peer1.banka	Up
+peer0.bankb	Up
+peer1.bankb	Up
+orderer	Up
+couchdb0-3	Up
+cli	Up
+✅ Bước 4: Exec vào CLI
+
+Khi container cli đang Up:
+
+docker exec -it cli bash
 
 Chạy:
 
