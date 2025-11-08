@@ -1,310 +1,54 @@
-FILE 1 — docker-compose-bankchain.yaml (ĐÃ SỬA HOÀN TOÀN)
+✅ 1. Tắt toàn bộ container đang chạy (nếu có)
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
 
-✅ Chỉ copy & replace 100% file của bạn.
-
-version: '2'
-
-networks:
-  bankchain:
-
-volumes:
-  orderer.example.com:
-  peer0.banka.example.com:
-  peer1.banka.example.com:
-  peer0.bankb.example.com:
-  peer1.bankb.example.com:
-
-services:
-
-  couchdb0:
-    image: couchdb:3.3
-    container_name: couchdb0
-    ports:
-      - "5984:5984"
-    networks:
-      - bankchain
-
-  couchdb1:
-    image: couchdb:3.3
-    container_name: couchdb1
-    networks:
-      - bankchain
-
-  couchdb2:
-    image: couchdb:3.3
-    container_name: couchdb2
-    networks:
-      - bankchain
-
-  couchdb3:
-    image: couchdb:3.3
-    container_name: couchdb3
-    networks:
-      - bankchain
-
-  orderer.example.com:
-    image: hyperledger/fabric-orderer:2.5.12
-    container_name: orderer.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: orderer.example.com
-    networks:
-      - bankchain
-
-  peer0.banka.example.com:
-    image: hyperledger/fabric-peer:2.5.12
-    container_name: peer0.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.banka.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-    depends_on:
-      - couchdb0
-    networks:
-      - bankchain
-
-  peer1.banka.example.com:
-    image: hyperledger/fabric-peer:2.5.12
-    container_name: peer1.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.banka.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-    depends_on:
-      - couchdb1
-    networks:
-      - bankchain
-
-  peer0.bankb.example.com:
-    image: hyperledger/fabric-peer:2.5.12
-    container_name: peer0.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.bankb.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-    depends_on:
-      - couchdb2
-    networks:
-      - bankchain
-
-  peer1.bankb.example.com:
-    image: hyperledger/fabric-peer:2.5.12
-    container_name: peer1.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.bankb.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-    depends_on:
-      - couchdb3
-    networks:
-      - bankchain
-
-  cli:
-    image: hyperledger/fabric-tools:2.5.12
-    container_name: cli
-    tty: true
-    stdin_open: true
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: /bin/bash
-    environment:
-      - SYS_CHANNEL=$SYS_CHANNEL
-      - FABRIC_LOGGING_SPEC=INFO
-      - GOPATH=/opt/gopath
-      - CORE_PEER_ID=cli
-      - CORE_PEER_LOCALMSPID=bankaMSP
-      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-      - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-    volumes:
-      - /var/run/:/host/var/run/
-      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
-      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
-      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
-      - ./../chaincode:/opt/gopath/src/github.com/chaincode
-    depends_on:
-      - orderer.example.com
-      - peer0.banka.example.com
-    networks:
-      - bankchain
-
-✅ 🎯 FILE 2 — docker-compose-ca.yaml (ĐÃ SỬA HOÀN TOÀN)
-version: '2'
-
-networks:
-  bankchain:
-
-volumes:
-  orderer.example.com:
-  peer0.banka.example.com:
-  peer1.banka.example.com:
-  peer0.bankb.example.com:
-  peer1.bankb.example.com:
-
-services:
-
-  orderer.example.com:
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: orderer.example.com
-    container_name: orderer.example.com
-    networks:
-      - bankchain
-
-  peer0.banka.example.com:
-    container_name: peer0.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-
-  peer1.banka.example.com:
-    container_name: peer1.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.banka.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-
-  peer0.bankb.example.com:
-    container_name: peer0.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-
-  peer1.bankb.example.com:
-    container_name: peer1.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.bankb.example.com
-    networks:
-      - bankchain
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-
-
-  ca0:
-    image: hyperledger/fabric-ca:1.5.12
-    container_name: ca_peerbanka
-    environment:
-      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca-banka
-      - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.banka.example.com-cert.pem
-      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BANKCHAIN_CA1_PRIVATE_KEY}
-    ports:
-      - "7054:7054"
-    volumes:
-      - ./crypto-config/peerOrganizations/banka.example.com/ca:/etc/hyperledger/fabric-ca-server-config
-    networks:
-      - bankchain
-
-  ca1:
-    image: hyperledger/fabric-ca:1.5.12
-    container_name: ca_peerbankb
-    environment:
-      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca-bankb
-      - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.bankb.example.com-cert.pem
-      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BANKCHAIN_CA2_PRIVATE_KEY}
-    ports:
-      - "8054:8054"
-    volumes:
-      - ./crypto-config/peerOrganizations/bankb.example.com/ca:/etc/hyperledger/fabric-ca-server-config
-    networks:
-      - bankchain
-
-
-
-
-
-
-Filw base:
-version: '2'
-
-services:
-
-  # ============================
-  # ORDERER BASE SERVICE
-  # ============================
-  orderer.example.com:
-    image: hyperledger/fabric-orderer:2.5.12
-    environment:
-      - ORDERER_GENERAL_LOGLEVEL=INFO
-      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
-      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
-      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-    working_dir: /opt/hyperledger/orderer
-    command: orderer
-    volumes:
-      - /var/hyperledger/production:/var/hyperledger/production
-
-  # ============================
-  # PEER BASE SERVICE
-  # ============================
-  peer-base:
-    image: hyperledger/fabric-peer:2.5.12
-    environment:
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_ATTACHSTDOUT=true
-      - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
-      - CORE_PEER_FILESYSTEMPATH=/var/hyperledger/production
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: peer node start
-    volumes:
-      - /var/run/:/host/var/run/
-
-  # ============================
-  # PEER EXTENSIONS
-  # ============================
-  peer0.banka.example.com:
-    extends:
-      service: peer-base
-
-  peer1.banka.example.com:
-    extends:
-      service: peer-base
-
-  peer0.bankb.example.com:
-    extends:
-      service: peer-base
-
-  peer1.bankb.example.com:
-    extends:
-      service: peer-base
-
-✅ BƯỚC TIẾP THEO — CHẠY ĐÚNG:
+✅ 2. Chạy docker-compose cho CA trước
 docker compose -f docker-compose-ca.yaml up -d
+
+
+Kiểm tra:
+
+docker ps
+
+
+Bạn phải thấy:
+
+ca_peerbanka
+
+ca_peerbankb
+
+couchdb0–3 (nếu bạn để trong file docker-compose-ca)
+
+Nếu OK → tiếp tục.
+
+✅ 3. Chạy docker-compose chính của network
 docker compose -f docker-compose-bankchain.yaml up -d
+
+
+Kiểm tra lại:
+
+docker ps
+
+
+✅ Bây giờ bạn phải thấy:
+
+Container	Trạng thái
+orderer.example.com	UP
+peer0.banka.example.com	UP
+peer1.banka.example.com	UP
+peer0.bankb.example.com	UP
+peer1.bankb.example.com	UP
+couchdb0	UP
+couchdb1	UP
+couchdb2	UP
+couchdb3	UP
+cli	UP
+✅ Nếu kết quả giống như hình chỉ có cli chạy
+
+→ Là do docker-compose-bankchain.yaml không có image, hoặc đang bị lỗi extends, hoặc bạn chạy sai file.
+
+✅ VUI LÒNG GỬI MÌNH OUTPUT CỦA LỆNH SAU:
+docker ps -a
+
+
+Mình sẽ xem toàn bộ container hiện có và chỉ bạn sửa đúng 100%.
