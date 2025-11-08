@@ -1,86 +1,94 @@
-✅ 1️⃣ Kiểm tra xem bạn có file configtx/configtx.yaml hay chưa
-
-Chạy trên terminal:
-
-ls -R configtx
-
-
-Kết quả phải thấy:
-
-configtx/configtx.yaml
-
-
-Nếu KHÔNG có → bạn đã lưu nhầm chỗ.
-
-✅ 2️⃣ Kiểm tra biến FABRIC_CFG_PATH đang trỏ đi đâu
-
-Chạy:
-
-echo $FABRIC_CFG_PATH
-
-
-Kết quả đúng phải là:
-
-/home/hachau/fabric-samples/bankchain/configtx
-
-
-Nếu KHÔNG đúng thì chỉnh lại:
-
-export FABRIC_CFG_PATH=$PWD/configtx
-
-
-Sau đó kiểm tra lại:
-
-echo $FABRIC_CFG_PATH
-
-✅ 3️⃣ Kiểm tra file thật sự có cấu hình chưa
-
-Chạy:
-
-sed -n '1,80p' $FABRIC_CFG_PATH/configtx.yaml
-
-
-Phải hiện ra đoạn như mình gửi:
-
+✅ FILE CONFIGTX.YAML CHUẨN
+---
 Organizations:
-  - &OrdererOrg
-    Name: OrdererOrg
 
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
 
-Nếu file trống → bạn đã lưu nhầm.
+    - &BankA
+        Name: bankaMSP
+        ID: bankaMSP
+        MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
+        AnchorPeers:
+            - Host: peer0.banka.example.com
+              Port: 7051
 
-✅ 4️⃣ Chạy lại configtxgen
+    - &BankB
+        Name: bankbMSP
+        ID: bankbMSP
+        MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
+        AnchorPeers:
+            - Host: peer0.bankb.example.com
+              Port: 9051
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_0: true
+
+Application: &ApplicationDefaults
+    Organizations:
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - orderer.example.com:7050
+    EtcdRaft:
+        Consenters:
+            - Host: orderer.example.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+    Organizations:
+    Capabilities:
+        <<: *OrdererCapabilities
+
+Profiles:
+
+    BankchainGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortium: SampleConsortium
+        Capabilities:
+            <<: *ChannelCapabilities
+
+    BankchainChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *BankA
+                - *BankB
+            Capabilities:
+                <<: *ApplicationCapabilities
+
+Consortiums:
+    SampleConsortium:
+        Organizations:
+            - *BankA
+            - *BankB
+
+✅ SAU KHI THAY FILE, CHẠY LẠI:
+1️⃣ Xuất biến môi trường
+export FABRIC_CFG_PATH=$PWD/configtx
+export CHANNEL_NAME=bankchannel
+
+2️⃣ Xóa file cũ (nếu có)
+rm -rf channel-artifacts/*.*
+
+3️⃣ Tạo channel.tx
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
 
 
-Lần này chắc chắn phải chạy được ✅
-
-✅ 5️⃣ Giải thích vì sao lỗi vẫn xuất hiện
-
-Lỗi:
-
-'' has invalid keys: Consortiums
-
-
-Chỉ xuất hiện khi:
-
-✅ configtxgen không tìm được file configtx.yaml
-✅ hoặc file đọc vào đang rỗng
-✅ hoặc FABRIC_CFG_PATH không đúng
-✅ hoặc bạn chạy configtxgen từ thư mục sai
-
-Đây KHÔNG phải lỗi trong nội dung file YAML.
-
-✅ 6️⃣ Hãy gửi cho mình 3 lệnh sau (copy-paste output)
-
-Chạy và gửi toàn bộ màn hình:
-
-pwd
-echo $FABRIC_CFG_PATH
-ls -R configtx
-sed -n '1,80p' configtx/configtx.yaml
-
-
-→ Mình sẽ chỉ chính xác bạn đang sai chỗ nào trong đường dẫn.
+✅ Nếu file đúng → sẽ ra KHÔNG lỗi và tạo được channel.tx
