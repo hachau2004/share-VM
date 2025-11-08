@@ -1,120 +1,152 @@
+---
 Organizations:
-     2	
-     3	    - &OrdererOrg
-     4	        Name: OrdererOrg
-     5	        ID: OrdererMSP
-     6	        MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
-     7	        Policies:
-     8	            Readers:
-     9	                Type: Signature
-    10	                Rule: "OR('OrdererMSP.member')"
-    11	            Writers:
-    12	                Type: Signature
-    13	                Rule: "OR('OrdererMSP.member')"
-    14	            Admins:
-    15	                Type: Signature
-    16	                Rule: "OR('OrdererMSP.admin')"
-    17	
-    18	    - &BankA
-    19	        Name: BankA
-    20	        ID: bankaMSP
-    21	        MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
-    22	        AnchorPeers:
-    23	            - Host: peer0.banka.example.com
-    24	              Port: 7051
-    25	        Policies:
-    26	            Readers:
-    27	                Type: Signature
-    28	                Rule: "OR('bankaMSP.member')"
-    29	            Writers:
-    30	                Type: Signature
-    31	                Rule: "OR('bankaMSP.member')"
-    32	            Admins:
-    33	                Type: Signature
-    34	                Rule: "OR('bankaMSP.admin')"
-    35	
-    36	    - &BankB
-    37	        Name: BankB
-    38	        ID: bankbMSP
-    39	        MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
-    40	        AnchorPeers:
-    41	            - Host: peer0.bankb.example.com
-    42	              Port: 9051
-    43	        Policies:
-    44	            Readers:
-    45	                Type: Signature
-    46	                Rule: "OR('bankbMSP.member')"
-    47	            Writers:
-    48	                Type: Signature
-    49	                Rule: "OR('bankbMSP.member')"
-    50	            Admins:
-    51	                Type: Signature
-    52	                Rule: "OR('bankbMSP.admin')"
-    53	
-    54	
-    55	Capabilities:
-    56	    Channel: &ChannelCapabilities
-    57	        V2_0: true
-    58	    Orderer: &OrdererCapabilities
-    59	        V2_0: true
-    60	    Application: &ApplicationCapabilities
-    61	        V2_0: true
-    62	
-    63	
-    64	Application: &ApplicationDefaults
-    65	    Organizations:
-    66	    Policies:
-    67	        Readers:
-    68	            Type: ImplicitMeta
-    69	            Rule: "ANY Readers"
-    70	        Writers:
-    71	            Type: ImplicitMeta
-    72	            Rule: "ANY Writers"
-    73	        Admins:
-    74	            Type: ImplicitMeta
-    75	            Rule: "MAJORITY Admins"
-    76	    Capabilities:
-    77	        <<: *ApplicationCapabilities
-    78	
-    79	
-    80	Orderer: &OrdererDefaults
-    81	    OrdererType: etcdraft
-    82	    Addresses:
-    83	        - orderer.example.com:7050
-    84	
-    85	    EtcdRaft:
-    86	        Consenters:
-    87	            - Host: orderer.example.com
-    88	              Port: 7050
-    89	              ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-    90	              ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-    91	
-    92	    Organizations:
-    93	
-    94	    Policies:
-    95	        Readers:
-    96	            Type: ImplicitMeta
-    97	            Rule: "ANY Readers"
-    98	        Writers:
-    99	            Type: ImplicitMeta
-   100	            Rule: "ANY Writers"
-   101	        Admins:
-   102	            Type: ImplicitMeta
-   103	            Rule: "MAJORITY Admins"
-   104	
-   105	    Capabilities:
-   106	        <<: *OrdererCapabilities
-   107	
-   108	
-   109	Channel: &ChannelDefaults
-   110	    Policies:
-   111	        Readers:
-   112	            Type: ImplicitMeta
-   113	            Rule: "ANY Readers"
-   114	        Writers:
-   115	            Type: ImplicitMeta
-   116	            Rule: "ANY Writers"
-   117	        Admins:
-   118	            Type: ImplicitMeta
-   119	            Rule: "MAJORITY Admins"
-   120	    Capabilities:
+
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    - &BankA
+        Name: BankA
+        ID: bankaMSP
+        MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
+        AnchorPeers:
+            - Host: peer0.banka.example.com
+              Port: 7051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankaMSP.admin')"
+
+    - &BankB
+        Name: BankB
+        ID: bankbMSP
+        MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
+        AnchorPeers:
+            - Host: peer0.bankb.example.com
+              Port: 9051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankbMSP.admin')"
+
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_0: true
+
+
+
+Application: &ApplicationDefaults
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+
+
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - orderer.example.com:7050
+
+    EtcdRaft:
+        Consenters:
+            - Host: orderer.example.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
+    Organizations:
+
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+    Capabilities:
+        <<: *OrdererCapabilities
+
+
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
+
+
+Profiles:
+
+    BankchainGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *BankA
+                    - *BankB
+        Capabilities:
+            <<: *ChannelCapabilities
+
+    BankchainChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *BankA
+                - *BankB
+            Capabilities:
+                <<: *ApplicationCapabilities
