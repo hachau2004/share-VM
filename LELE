@@ -1,16 +1,3 @@
-✅ BƯỚC 1 — Tạo thư mục & file
-
-Trong thư mục bankchain:
-
-mkdir configtx
-nano configtx/configtx.yaml
-
-✅ BƯỚC 2 — DÁN NGUYÊN FILE configtx.yaml CHUẨN SAU
-
-👉 Đây là file chuẩn đã chỉnh sửa đúng theo mô hình BankA + BankB + Orderer, chạy được 100%.
-
-Dán toàn bộ:
-
 ---
 Organizations:
 
@@ -64,13 +51,16 @@ Orderer: &OrdererDefaults
   OrdererType: etcdraft
   Addresses:
     - orderer.example.com:7050
+
   EtcdRaft:
     Consenters:
       - Host: orderer.example.com
         Port: 7050
         ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
         ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
   Organizations:
+
   Policies:
     Readers:
       Type: ImplicitMeta
@@ -84,6 +74,7 @@ Orderer: &OrdererDefaults
     BlockValidation:
       Type: ImplicitMeta
       Rule: "ANY Writers"
+
   Capabilities:
     <<: *OrdererCapabilities
 
@@ -98,10 +89,16 @@ Channel: &ChannelDefaults
     Admins:
       Type: ImplicitMeta
       Rule: "MAJORITY Admins"
+
   Capabilities:
     <<: *ChannelCapabilities
 
 Profiles:
+
+  SampleConsortium:
+    Organizations:
+      - *Banka
+      - *Bankb
 
   BankchainChannel:
     Consortium: SampleConsortium
@@ -112,10 +109,6 @@ Profiles:
       Capabilities:
         <<: *ApplicationCapabilities
 
-  SampleConsortium:
-    Organizations:
-      - *Banka
-      - *Bankb
 
 
 ✅ Lưu lại (CTRL+O → Enter → CTRL+X)
