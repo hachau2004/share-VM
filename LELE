@@ -1,3 +1,4 @@
+File configtx/configtx.yaml (dán nguyên vẹn)
 ---
 Organizations:
 
@@ -20,7 +21,7 @@ Organizations:
     MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
     AnchorPeers:
       - Host: peer0.bankb.example.com
-        Port: 8051
+        Port: 9051
 
 Capabilities:
   Channel: &ChannelCapabilities
@@ -93,47 +94,59 @@ Channel: &ChannelDefaults
   Capabilities:
     <<: *ChannelCapabilities
 
-Profiles:
-
+# --> HERE: define consortiums (this was missing previously)
+Consortiums:
   SampleConsortium:
     Organizations:
       - *Banka
       - *Bankb
 
+Profiles:
+
+  OrdererGenesis:
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+    Consortiums:
+      SampleConsortium:
+        Organizations:
+          - *Banka
+          - *Bankb
+    Capabilities:
+      <<: *OrdererCapabilities
+
   BankchainChannel:
     Consortium: SampleConsortium
     Application:
+      <<: *ApplicationDefaults
       Organizations:
         - *Banka
         - *Bankb
       Capabilities:
         <<: *ApplicationCapabilities
 
+Các bước cần chạy (chạy trên máy chủ host, không chạy trong container cli)
+
+Tạo thư mục và lưu file:
+
+mkdir -p configtx
+# dán file trên vào configtx/configtx.yaml
 
 
-✅ Lưu lại (CTRL+O → Enter → CTRL+X)
+Export biến cấu hình:
 
-✅ BƯỚC 3 — Chạy configtxgen đúng cách
 export FABRIC_CFG_PATH=$PWD/configtx
 export CHANNEL_NAME=bankchannel
+
+
+Tạo channel tx:
 
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
 
 
-Nếu OK sẽ ra:
+(Nếu cần tạo genesis block mới) Tạo genesis block:
 
-INFO Generated ./channel-artifacts/channel.tx
-
-✅ BƯỚC 4 — Vào CLI tạo channel
-docker exec -it cli bash
-export CHANNEL_NAME=bankchannel
-
-peer channel create \
-   -o orderer.example.com:7050 \
-   -c $CHANNEL_NAME \
-   -f ./channel-artifacts/channel.tx \
-   --outputBlock ./channel-artifacts/bankchannel.block \
-   --tls \
-   --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+configtxgen -profile OrdererGenesis -outputBlock ./channel-artifacts/genesis.block
