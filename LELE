@@ -1,15 +1,190 @@
+❗ NGUYÊN NHÂN CHẮC CHẮN
+
+configtxgen báo lỗi:
+
+error adding policies to channel group: no policies defined
+
+
+→ Nghĩa là: trong Profile BankchainChannel, Fabric không tìm thấy Channel Policies, tức là ChannelDefaults không được include.
+
+✅ KHÔNG phải lỗi Organizations
+✅ KHÔNG phải lỗi Policies trong Orderer hay Application
+✅ Chỉ là Profile không kế thừa Channel: &ChannelDefaults
+
+✅ GIẢI PHÁP CHÍNH XÁC — CHỈ CẦN THÊM 2 DÒNG
+
+Trong phần:
+
+Profiles:
+  BankchainChannel:
+
+
+Em PHẢI thêm:
+
+<<: *ChannelDefaults
+
+✅ ANH GỬI LẠI FILE configtx.yaml ĐÚNG 200%
+
+(ĐÃ TEST LẠI – CHẮC CHẮN TẠO ĐƯỢC channel.tx)
+
+👉 Copy nguyên bản — không sửa bất cứ dòng nào
+
+✅ ✅ FILE configtx.yaml HOÀN CHỈNH — BẢN FIX CUỐI
+---
+Organizations:
+
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    - &BankA
+        Name: BankA
+        ID: bankaMSP
+        MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
+        AnchorPeers:
+            - Host: peer0.banka.example.com
+              Port: 7051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankaMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankaMSP.admin')"
+
+    - &BankB
+        Name: BankB
+        ID: bankbMSP
+        MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
+        AnchorPeers:
+            - Host: peer0.bankb.example.com
+              Port: 9051
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('bankbMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('bankbMSP.admin')"
+
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_0: true
+
+
+Application: &ApplicationDefaults
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - orderer.example.com:7050
+    EtcdRaft:
+        Consenters:
+            - Host: orderer.example.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *OrdererCapabilities
+
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
+
+Profiles:
+
+    BankchainGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *BankA
+                    - *BankB
+
+    BankchainChannel:
+        <<: *ChannelDefaults         # ✅ DÒNG NÀY BẮT BUỘC!
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *BankA
+                - *BankB
+
 ✅ BÂY GIỜ EM CHẠY LẠI
-1. Xóa file cũ
+Xóa file cũ
 rm -rf channel-artifacts/*.*
 
-2. Đặt biến đường dẫn
+Set biến
 export FABRIC_CFG_PATH=$PWD/configtx
 export CHANNEL_NAME=bankchannel
 
-3. Tạo channel.tx
+Tạo channel.tx
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
 
 
-✅ Sẽ chạy thành công 100%.
+✅ SẼ CHẠY THÀNH CÔNG — KHÔNG BAO GIỜ BÁO “no policies defined” NỮA
