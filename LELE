@@ -1,19 +1,14 @@
-✅ Cách sửa đúng duy nhất để hết lỗi
-✅ Bước 1 — Sửa trong file docker-compose-ca.yaml
+CẦN BẠN LÀM NGAY – kiểm tra chính xác lỗi nằm đâu
 
-Chạy:
+Chạy lệnh sau để tìm tất cả nơi có chữ “base/base”:
 
-nano ~/fabric-samples/bankchain/docker-compose-ca.yaml
-
-
-Tìm dòng có:
-
-file: base/base/docker-compose-base-bankchain.yaml
+grep -R "base/base" ~/fabric-samples/bankchain
 
 
-➡ Sửa lại đúng:
+Nếu có bất cứ file nào hiển thị → đó là file sai, cần sửa.
 
-file: base/docker-compose-base-bankchain.yaml
+✅ HOẶC dùng lệnh tìm đúng tất cả extends:
+grep -R "docker-compose-base-bankchain" ~/fabric-samples/bankchain
 
 
 Lưu file: Ctrl + O → Enter → Ctrl + X.
