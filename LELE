@@ -1,4 +1,3 @@
-✅ FILE CONFIGTX.YAML CHUẨN
 ---
 Organizations:
 
@@ -57,7 +56,11 @@ Profiles:
             <<: *OrdererDefaults
             Organizations:
                 - *OrdererOrg
-        Consortium: SampleConsortium
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *BankA
+                    - *BankB
         Capabilities:
             <<: *ChannelCapabilities
 
@@ -71,11 +74,7 @@ Profiles:
             Capabilities:
                 <<: *ApplicationCapabilities
 
-Consortiums:
-    SampleConsortium:
-        Organizations:
-            - *BankA
-            - *BankB
+
 
 ✅ SAU KHI THAY FILE, CHẠY LẠI:
 1️⃣ Xuất biến môi trường
