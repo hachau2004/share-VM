@@ -1,54 +1,44 @@
-✅ 1. Tắt toàn bộ container đang chạy (nếu có)
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
+✅ 1. Vào container CLI
 
-✅ 2. Chạy docker-compose cho CA trước
-docker compose -f docker-compose-ca.yaml up -d
+Chạy:
 
-
-Kiểm tra:
-
-docker ps
+docker exec -it cli bash
 
 
-Bạn phải thấy:
+Bạn sẽ thấy prompt như:
 
-ca_peerbanka
+root@cli:/opt/gopath/src/github.com/hyperledger/fabric/peer#
 
-ca_peerbankb
+✅ 2. Export biến môi trường cho Peer0 Bank A
 
-couchdb0–3 (nếu bạn để trong file docker-compose-ca)
+Chạy từng dòng:
 
-Nếu OK → tiếp tục.
+export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
-✅ 3. Chạy docker-compose chính của network
-docker compose -f docker-compose-bankchain.yaml up -d
+✅ 3. Tạo Channel (bankchannel)
 
+Chạy:
 
-Kiểm tra lại:
-
-docker ps
-
-
-✅ Bây giờ bạn phải thấy:
-
-Container	Trạng thái
-orderer.example.com	UP
-peer0.banka.example.com	UP
-peer1.banka.example.com	UP
-peer0.bankb.example.com	UP
-peer1.bankb.example.com	UP
-couchdb0	UP
-couchdb1	UP
-couchdb2	UP
-couchdb3	UP
-cli	UP
-✅ Nếu kết quả giống như hình chỉ có cli chạy
-
-→ Là do docker-compose-bankchain.yaml không có image, hoặc đang bị lỗi extends, hoặc bạn chạy sai file.
-
-✅ VUI LÒNG GỬI MÌNH OUTPUT CỦA LỆNH SAU:
-docker ps -a
+export CHANNEL_NAME=bankchannel
 
 
-Mình sẽ xem toàn bộ container hiện có và chỉ bạn sửa đúng 100%.
+Rồi tạo channel:
+
+peer channel create \
+  -o orderer.example.com:7050 \
+  -c $CHANNEL_NAME \
+  -f ./channel-artifacts/channel.tx \
+  --outputBlock ./channel-artifacts/bankchannel.block \
+  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+
+
+✅ Nếu thành công sẽ hiện:
+
+INFO Successfully created channel bankchannel
+
+✅ 4. Join Peer0 Bank A vào Channel
+peer channel join -b ./channel-artifacts/bankchannel.block
