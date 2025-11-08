@@ -1,65 +1,22 @@
-✅ Bước 1 — Vào container CLI
-docker exec -it cli bash
-
-
-Bên trong CLI sẽ hiện dạng:
-
-root@58fb70e9d806:/opt/gopath/src/github.com/hyperledger/fabric/peer#
-
-✅ Bước 2 — Set biến môi trường Channel
-export CHANNEL_NAME=bankchannel
-
-✅ Bước 3 — Tạo channel
-
-⚠️ Lưu ý: Đường dẫn phải đúng 100% theo thư mục của bạn.
-Fabric 2.x yêu cầu đúng CA file của orderer.
-
-Chạy lệnh này BÊN TRONG CLI:
-
-peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchannel.block \
-  --tls \
-  --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-
-✅ Kết quả đúng bạn sẽ thấy:
-Status: 201
-Successfully created channel bankchannel
-
-
-✅ docker-compose-bankchain.yaml — BẢN CHUẨN FULL (HOẠT ĐỘNG 100%)
-✅ Cách sửa đúng nhất (chỉ 1 phút)
-✅ Bước 1 – Xóa file channel cũ
-
-Trong thư mục fabric-samples/bankchain (bên ngoài container):
-
-rm -rf channel-artifacts/*.tx
-rm -rf channel-artifacts/*.block
-
-✅ Bước 2 – Tạo lại channel.tx với đúng channel name: bankchannel
-
-Chạy script (nếu bạn có):
-
-./scripts/generateChannelArtifacts.sh
-
-
-Nếu bạn tạo thủ công bằng configtxgen thì chạy:
-
 export CHANNEL_NAME=bankchannel
 
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
+Bạn cần chạy trong thư mục:
 
-✅ Bước 3 – Vào lại CLI và tạo channel
+bash
+Sao chép mã
+fabric-samples/bankchain
+✅ 3️⃣ Sau khi tạo xong channel.tx → vào lại CLI để tạo channel
+bash
+Sao chép mã
 docker exec -it cli bash
 export CHANNEL_NAME=bankchannel
+Sau đó:
 
-
-Chạy lại:
-
+bash
+Sao chép mã
 peer channel create \
   -o orderer.example.com:7050 \
   -c $CHANNEL_NAME \
@@ -67,8 +24,17 @@ peer channel create \
   --outputBlock ./channel-artifacts/bankchannel.block \
   --tls \
   --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+✅ Bạn đang làm đúng hướng rồi
+Nếu cần mình check lại configtx.yaml hoặc docker-compose để đảm bảo không lỗi nữa — bạn chỉ cần gửi lên.
 
-✅ Sau khi sửa đúng → bạn sẽ thấy:
 
-✅ Channel creation successful
-✅ Channel block generated successfully
+
+
+
+
+
+
+
+
+
+
