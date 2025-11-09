@@ -1,135 +1,49 @@
-✅ docker-compose-bankchain.yaml (ARM64 compatible)
-version: "2"
+✅ Cách kiểm tra dung lượng thật sự
 
-networks:
-  bankchain:
+Chạy:
 
-services:
-  couchdb0:
-    image: couchdb:3.3
-    container_name: couchdb0
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
-    networks:
-      - bankchain
+df -h
 
-  couchdb1:
-    image: couchdb:3.3
-    container_name: couchdb1
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
-    networks:
-      - bankchain
 
-  couchdb2:
-    image: couchdb:3.3
-    container_name: couchdb2
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
-    networks:
-      - bankchain
+Bạn sẽ thấy / hoặc /home = 100% full.
 
-  couchdb3:
-    image: couchdb:3.3
-    container_name: couchdb3
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=adminpw
-    networks:
-      - bankchain
+✅ 3 cách dọn dẹp nhanh nhất để chạy lại được
+✅ 1. Xóa toàn bộ image + container Docker cũ (giải phóng vài GB)
 
-  orderer.example.com:
-    image: hyperledger/fabric-orderer:2.5
-    container_name: orderer.example.com
-    environment:
-      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - FABRIC_LOGGING_SPEC=INFO
-    volumes:
-      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
-      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls:/var/hyperledger/orderer/tls
-      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-    networks:
-      - bankchain
+Chạy 3 lệnh:
 
-  peer0.banka.example.com:
-    image: hyperledger/fabric-peer:2.5
-    container_name: peer0.banka.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
-      - CORE_PEER_ID=peer0.banka.example.com
-      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-      - CORE_PEER_LOCALMSPID=bankaMSP
-      - CORE_PEER_TLS_ENABLED=true
-    volumes:
-      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
-      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
-    networks:
-      - bankchain
+docker system prune -a --volumes -f
+docker volume prune -f
+docker network prune -f
 
-  peer1.banka.example.com:
-    image: hyperledger/fabric-peer:2.5
-    container_name: peer1.banka.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
-      - CORE_PEER_ID=peer1.banka.example.com
-      - CORE_PEER_ADDRESS=peer1.banka.example.com:8051
-      - CORE_PEER_LOCALMSPID=bankaMSP
-      - CORE_PEER_TLS_ENABLED=true
-    volumes:
-      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
-      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
-    networks:
-      - bankchain
 
-  peer0.bankb.example.com:
-    image: hyperledger/fabric-peer:2.5
-    container_name: peer0.bankb.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
-      - CORE_PEER_ID=peer0.bankb.example.com
-      - CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
-      - CORE_PEER_LOCALMSPID=bankbMSP
-      - CORE_PEER_TLS_ENABLED=true
-    volumes:
-      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
-      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
-    networks:
-      - bankchain
+Thường giải phóng 3–10GB.
 
-  peer1.bankb.example.com:
-    image: hyperledger/fabric-peer:2.5
-    container_name: peer1.bankb.example.com
-    environment:
-      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
-      - CORE_PEER_ID=peer1.bankb.example.com
-      - CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
-      - CORE_PEER_LOCALMSPID=bankbMSP
-      - CORE_PEER_TLS_ENABLED=true
-    volumes:
-      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
-      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
-    networks:
-      - bankchain
+✅ 2. Xóa cache apt (giải phóng 1–2GB)
+sudo apt-get clean
+sudo apt-get autoremove -y
 
-  cli:
-    image: hyperledger/fabric-tools:2.5
-    container_name: cli
-    tty: true
-    stdin_open: true
-    networks:
-      - bankchain
+✅ 3. Xóa file trong thư mục Docker bị phình to
+sudo rm -rf /var/lib/docker/overlay2/*
 
-✅ 4. Sau khi thay file → chạy lệnh đúng cách
+
+⚠️ Cách này xóa toàn bộ data Docker, nhưng hoàn toàn an toàn nếu bạn đang reset môi trường.
+
+✅ Sau khi dọn xong → kiểm tra lại
+df -h
+
+
+Bạn cần ít nhất:
+
+✅ 10GB trống để chạy Hyperledger Fabric
+✅ Nếu dưới 6GB → vẫn lỗi tiếp
+
+✅ Khi disk đã thoáng → bạn quay lại chạy compose
 export DOCKER_DEFAULT_PLATFORM=linux/arm64
 docker compose -f docker-compose-bankchain.yaml up -d
+
+👉 Gửi lại mình output của:
+df -h
+
+
+Tôi sẽ xem dung lượng và chỉ cách tối ưu nếu còn thiếu.
