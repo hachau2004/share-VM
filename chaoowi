@@ -1,28 +1,159 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker inspect peer0.banka.example.com | grep tls -A5
-                "/home/hachau/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls:rw",
-                "bankchain_peer0.banka.example.com:/var/hyperledger/production:rw"
-            ],
-            "ContainerIDFile": "",
-            "LogConfig": {
-                "Type": "json-file",
---
-                "Source": "/home/hachau/fabric-samples/bankchain/crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls",
-                "Destination": "/etc/hyperledger/fabric/tls",
-                "Mode": "rw",
-                "RW": true,
-                "Propagation": "rprivate"
-            },
-            {
-hachau@hachau:~/fabric-samples/bankchain$ docker ps | grep couchdb0
-hachau@hachau:~/fabric-samples/bankchain$ docker logs couchdb0 --tail=200
-*************************************************************
-ERROR: CouchDB 3.0+ will no longer run in "Admin Party"
-       mode. You *MUST* specify an admin user and
-       password, either via your own .ini file mapped
-       into the container at /opt/couchdb/etc/local.ini
-       or inside /opt/couchdb/etc/local.d, or with
-       "-e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password"
-       to set it via "docker run".
-*************************************************************
-hachau@hachau:~/fabric-samples/bankchain$ 
+version: '2'
+
+networks:
+  bankchain:
+
+volumes:
+  orderer.example.com:
+  peer0.banka.example.com:
+  peer1.banka.example.com:
+  peer0.bankb.example.com:
+  peer1.bankb.example.com:
+
+services:
+
+  couchdb0:
+    image: couchdb:3.3
+    container_name: couchdb0
+    ports:
+      - "5984:5984"
+    networks:
+      - bankchain
+
+  couchdb1:
+    image: couchdb:3.3
+    container_name: couchdb1
+    networks:
+      - bankchain
+
+  couchdb2:
+    image: couchdb:3.3
+    container_name: couchdb2
+    networks:
+      - bankchain
+
+  couchdb3:
+    image: couchdb:3.3
+    container_name: couchdb3
+    networks:
+      - bankchain
+
+  # ---------------- ORDERER ----------------
+  orderer.example.com:
+    image: hyperledger/fabric-orderer:2.5.12
+    container_name: orderer.example.com
+    working_dir: /opt/hyperledger/orderer
+    command: orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_GENESISMETHOD=file
+    volumes:
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls:/var/hyperledger/orderer/tls
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - orderer.example.com:/var/hyperledger/production/orderer
+    networks:
+      - bankchain
+
+  # ---------------- PEER BANK A ----------------
+  peer0.banka.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer0.banka.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb0
+    networks:
+      - bankchain
+
+  peer1.banka.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer1.banka.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb1
+    networks:
+      - bankchain
+
+  # ---------------- PEER BANK B ----------------
+  peer0.bankb.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer0.bankb.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb2
+    networks:
+      - bankchain
+
+  peer1.bankb.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer1.bankb.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb3
+    networks:
+      - bankchain
+
+  # ---------------- CLI ----------------
+  cli:
+    image: hyperledger/fabric-tools:2.5.12
+    container_name: cli
+    tty: true
+    stdin_open: true
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    environment:
+      - GOPATH=/opt/gopath
+      - SYS_CHANNEL=system-channel
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+      - ./../chaincode:/opt/gopath/src/github.com/chaincode
+    depends_on:
+      - orderer.example.com
+      - peer0.banka.example.com
+    networks:
+      - bankchain 
 
