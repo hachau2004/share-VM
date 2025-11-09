@@ -1,30 +1,12 @@
-✅ SỬA DỨT ĐIỂM: THÊM DÒNG NÀY VÀO PROFILE BankchainChannel
-
-Thay đoạn:
-
-  BankchainChannel:
-    Consortium: SampleConsortium
-    Application:
-      <<: *ApplicationDefaults
-      Organizations:
-        - *BankA
-        - *BankB
-      Capabilities:
-        <<: *ApplicationCapabilities
-
-
-👉 Sửa thành:
-
-  BankchainChannel:
-    <<: *ChannelDefaults
-    Consortium: SampleConsortium
-    Application:
-      <<: *ApplicationDefaults
-      Organizations:
-        - *BankA
-        - *BankB
-      Capabilities:
-        <<: *ApplicationCapabilities
+hachau@hachau:~/fabric-samples/bankchain$ rm -rf channel-artifacts/*.*
+configtxgen -profile BankchainChannel \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx \
+  -channelID bankchannel
+2025-11-09 15:07:43.236 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
+2025-11-09 15:07:43.243 +07 0002 PANI [common.tools.configtxgen.localconfig] Load -> Could not find profile: BankchainChannel
+2025-11-09 15:07:43.243 +07 0003 ERRO [common.tools.configtxgen] func1 -> Could not find profile: BankchainChannel. Please make sure that FABRIC_CFG_PATH or -configPath is set to a path which contains configtx.yaml with the specified profile
+hachau@hachau:~/fabric-samples/bankchain$
+     
 
 
 ✅ Chỉ cần thêm dòng <<: *ChannelDefaults vào BankchainChannel
