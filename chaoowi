@@ -21,7 +21,10 @@ Trong CLI:
 
 peer channel join -b ./channel-artifacts/bankchannel.block
 
-
+export CHANNEL_NAME=bankchannel
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
+Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp: lookup peer0.banka.example.com on 127.0.0.11:53: no such host"
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer#
 Nếu đúng sẽ hiện:
 
 Successfully submitted proposal to join channel
