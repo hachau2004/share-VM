@@ -1,8 +1,131 @@
-hachau@hachau:~/fabric-samples/bankchain$ configtxgen -profile BankchainChannel \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID bankchannel
-2025-11-09 15:12:48.823 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
-2025-11-09 15:12:48.825 +07 0002 INFO [common.tools.configtxgen.localconfig] Load -> Loaded configuration: /home/hachau/fabric-samples/bankchain/configtx/configtx.yaml
-2025-11-09 15:12:48.825 +07 0003 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Generating new channel configtx
-2025-11-09 15:12:48.831 +07 0004 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Writing new channel tx
-hachau@hachau:~/fabric-samples/bankchain$
+✅ PHẦN 4.1 – KHỞI TẠO CHANNEL (tiếp tục)
+✅ 1. Vào container CLI
+docker exec -it cli bash
+
+✅ 2. Thiết lập các biến môi trường trong CLI
+export CHANNEL_NAME=bankchannel
+export CORE_PEER_LOCALMSPID=bankaMSP
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+
+✅ 3. Tạo channel trên orderer (THỰC HIỆN TRONG CLI)
+peer channel create \
+  -o orderer.example.com:7050 \
+  -c $CHANNEL_NAME \
+  -f ./channel-artifacts/channel.tx \
+  --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block \
+  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+
+
+Kết quả phải có:
+
+✅ "STATUS: 200"
+✅ file bankchannel.block được tạo trong CLI
+
+✅ PHẦN 4.2 – JOIN PEER A (BANK A) VÀO KÊNH
+✅ 4. Peer0 BankA join channel
+
+(đang trong CLI → giữ nguyên biến environment từ bước trước)
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+Nếu OK → hiện Successfully submitted proposal to join channel.
+
+✅ 5. Peer1 BankA join channel
+
+Thiết lập biến:
+
+export CORE_PEER_ADDRESS=peer1.banka.example.com:8051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/ca.crt
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ PHẦN 4.3 – JOIN PEER B (BANK B) VÀO KÊNH
+✅ 6. Peer0 BankB join channel
+
+Thiết lập biến:
+
+export CORE_PEER_LOCALMSPID=bankbMSP
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
+export CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ 7. Peer1 BankB join channel
+
+Thiết lập biến:
+
+export CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/ca.crt
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ PHẦN 4.4 – UPDATE ANCHOR PEERS
+✅ 8. Bank A cập nhật Anchor Peer
+
+Ra ngoài CLI terminal (không phải trong CLI):
+
+cd ~/fabric-samples/bankchain
+configtxgen -profile BankchainChannel \
+  -outputAnchorPeersUpdate ./channel-artifacts/BankAAnchor.tx \
+  -channelID $CHANNEL_NAME \
+  -asOrg BankA
+
+
+Vào lại CLI:
+
+docker exec -it cli bash
+
+export CHANNEL_NAME=bankchannel
+export CORE_PEER_LOCALMSPID=bankaMSP
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+
+
+Update:
+
+peer channel update \
+  -o orderer.example.com:7050 \
+  -c bankchannel \
+  -f ./channel-artifacts/BankAAnchor.tx \
+  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+
+✅ 9. Bank B cập nhật Anchor Peer
+
+Ra ngoài CLI để tạo file:
+
+configtxgen -profile BankchainChannel \
+  -outputAnchorPeersUpdate ./channel-artifacts/BankBAnchor.tx \
+  -channelID $CHANNEL_NAME \
+  -asOrg BankB
+
+
+Vào lại CLI:
+
+export CORE_PEER_LOCALMSPID=bankbMSP
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
+export CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
+
+
+Update:
+
+peer channel update \
+  -o orderer.example.com:7050 \
+  -c bankchannel \
+  -f ./channel-artifacts/BankBAnchor.tx \
+  --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+
