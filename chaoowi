@@ -74,41 +74,36 @@ export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
 export CHANNEL_NAME=bankchannel
-
-✅ Bước 2 — Test DNS xem peer có phản hồi không
-
-Trong CLI:
-
-getent hosts peer0.banka.example.com
-
-
-✅ Nếu trả về IP → OK
-❌ Nếu KHÔNG trả về gì → mình sẽ kiểm tra lại compose cho bạn.
-
-✅ Bước 3 — Join peer vào channel
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-✅ Nếu vẫn lỗi → chạy lệnh DEBUG này và gửi kết quả cho mình
-
-Trong CLI:
-
-env | grep CORE_PEER
-
-
-Ngoài host:
-
-docker inspect peer0.banka.example.com | grep 7051 -n
-
-
-→ Mình sẽ sửa dứt điểm.
-
-✅ Network OK
-✅ Genesis OK
-✅ Channel.tx OK
-✅ CLI chạy OK
-
-👉 Chỉ còn môi trường CLI chưa trỏ đúng vào peer, sửa là chạy được ngay.
-
-Gửi mình kết quả của:
-
-getent hosts peer0.banka.example.com
+hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml down
+WARN[0000] The "SYS_CHANNEL" variable is not set. Defaulting to a blank string. 
+WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 11/11
+ ✔ Container peer1.bankb.example.com  Removed                              0.0s 
+ ✔ Container cli                      Removed                             10.2s 
+ ✔ Container peer0.bankb.example.com  Removed                              0.0s 
+ ✔ Container peer1.banka.example.com  Removed                              0.0s 
+ ✔ Container couchdb3                 Removed                              0.0s 
+ ✔ Container couchdb1                 Removed                              0.0s 
+ ✔ Container couchdb2                 Removed                              0.0s 
+ ✔ Container orderer.example.com      R...                                 0.1s 
+ ✔ Container peer0.banka.example.com  Removed                              0.0s 
+ ✔ Container couchdb0                 Removed                              0.0s 
+ ✔ Network bankchain_bankchain        Rem...                               0.1s 
+hachau@hachau:~/fabric-samples/bankchain$ docker rm -f cli
+Error response from daemon: No such container: cli
+hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
+WARN[0000] The "SYS_CHANNEL" variable is not set. Defaulting to a blank string. 
+WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 11/11
+ ✔ Network bankchain_bankchain        Cre...                               0.0s 
+ ✔ Container couchdb3                 Started                              0.3s 
+ ✔ Container couchdb0                 Started                              0.4s 
+ ✔ Container couchdb1                 Started                              0.4s 
+ ✔ Container orderer.example.com      S...                                 0.3s 
+ ✔ Container couchdb2                 Started                              0.4s 
+ ✔ Container peer1.bankb.example.com  Started                              0.5s 
+ ✔ Container peer0.banka.example.com  Started                              0.6s 
+ ✔ Container peer0.bankb.example.com  Started                              0.7s 
+ ✔ Container peer1.banka.example.com  Started                              0.7s 
+ ✔ Container cli                      Started                              0.7s 
+hachau@hachau:~/fabric-samples/bankchain$ 
