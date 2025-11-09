@@ -1,72 +1,243 @@
-✅ Cách xử lý để giải phóng Docker & không bị treo nữa
-✅ Bước 1: Dừng toàn bộ Docker ngay lập tức
+version: '2'
 
+services:
+
+  peer-base:
+    image: hyperledger/fabric-peer:2.2
+    restart: always
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+
+      - FABRIC_LOGGING_SPEC=INFO
+
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      - CORE_PEER_FILESYSTEMPATH=/var/hyperledger/production
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+
+      # Gossip
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_ENDPOINT=${CORE_PEER_ADDRESS}
+
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+
+    volumes:
+      - /var/run/:/host/var/run/
+
+
+Tuyệt vời ✅
+Vậy bây giờ tôi sẽ build cho bạn full project ARM64 chuẩn, dùng chaincode tại:
+✅ /home/hachau/fabric-samples/chaincode
+
+✅ PHẦN 1 — Gửi bạn file docker-compose-bankchain.yaml hoàn chỉnh (ARM64 + CouchDB)
+📌 Copy toàn bộ nội dung sau và replace file hiện tại của bạn:
+
+✅ FILE: docker-compose-bankchain.yaml
+services:
+
+  couchdb0:
+    image: arm64v8/couchdb:3.3
+    container_name: couchdb0
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - "5984:5984"
+    networks:
+      - bankchain
+
+  couchdb1:
+    image: arm64v8/couchdb:3.3
+    container_name: couchdb1
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    networks:
+      - bankchain
+
+  couchdb2:
+    image: arm64v8/couchdb:3.3
+    container_name: couchdb2
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    networks:
+      - bankchain
+
+  couchdb3:
+    image: arm64v8/couchdb:3.3
+    container_name: couchdb3
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    networks:
+      - bankchain
+
+  orderer.example.com:
+    image: hyperledger/fabric-orderer:2.2
+    container_name: orderer.example.com
+    working_dir: /opt/hyperledger/orderer
+    command: orderer
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=INFO
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+    volumes:
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls:/var/hyperledger/orderer/tls
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - orderer.example.com:/var/hyperledger/production/orderer
+    networks:
+      - bankchain
+
+  peer0.banka.example.com:
+    image: hyperledger/fabric-peer:2.2
+    container_name: peer0.banka.example.com
+    extends:
+      file: base/docker-compose-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.banka.example.com
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb0
+    networks:
+      - bankchain
+
+  peer1.banka.example.com:
+    image: hyperledger/fabric-peer:2.2
+    container_name: peer1.banka.example.com
+    extends:
+      file: base/docker-compose-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.banka.example.com
+      - CORE_PEER_ADDRESS=peer1.banka.example.com:8051
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb1
+    networks:
+      - bankchain
+
+  peer0.bankb.example.com:
+    image: hyperledger/fabric-peer:2.2
+    container_name: peer0.bankb.example.com
+    extends:
+      file: base/docker-compose-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.bankb.example.com
+      - CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
+      - CORE_PEER_LOCALMSPID=bankbMSP
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb2
+    networks:
+      - bankchain
+
+  peer1.bankb.example.com:
+    image: hyperledger/fabric-peer:2.2
+    container_name: peer1.bankb.example.com
+    extends:
+      file: base/docker-compose-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.bankb.example.com
+      - CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
+      - CORE_PEER_LOCALMSPID=bankbMSP
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb3
+    networks:
+      - bankchain
+
+  cli:
+    image: hyperledger/fabric-tools:2.2
+    container_name: cli
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    environment:
+      - GOPATH=/opt/gopath
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+    volumes:
+      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+      - /home/hachau/fabric-samples/chaincode:/opt/gopath/src/github.com/chaincode
+    networks:
+      - bankchain
+
+networks:
+  bankchain:
+
+volumes:
+  orderer.example.com:
+  peer0.banka.example.com:
+  peer1.banka.example.com:
+  peer0.bankb.example.com:
+  peer1.bankb.example.com:
+
+
+✅ PHẦN 2 — Script join channel
+Tôi sẽ gửi tiếp khi bạn chạy xong compose.
+
+✅ GIỜ LÀM GÌ?
 Chạy:
-
-sudo systemctl stop docker
-
-
-Chờ 5–10 giây cho CPU hạ.
-
-✅ Bước 2: Xóa cache image CouchDB bị lỗi
-sudo rm -rf /var/lib/docker
-
-
-⚠️ CẢNH BÁO: điều này xóa toàn bộ images/containers/network → sạch 100%
-(Đây là cách duy nhất nếu Docker bị freeze do image manifest lỗi)
-
-Nếu bạn không muốn full reset, dùng lệnh nhẹ hơn:
-
-sudo rm -rf /var/lib/docker/image
-
-✅ Bước 3: Khởi động lại Docker
-sudo systemctl start docker
-
-
-Kiểm tra:
-
-docker ps
-
-✅ Bước 4: Mở lại file docker-compose và đảm bảo KHÔNG CÓ bất kỳ dòng nào dùng couchdb:3.x
-
-Bạn phải đổi toàn bộ thành:
-
-image: couchdb:3.1.2
-
-
-Kiểm tra lại bằng:
-
-grep -R "couchdb" docker-compose-bankchain.yaml
-
-
-Output phải là:
-
-✅ couchdb:3.1.2
-❌ Tuyệt đối không được có 3.2 hay 3.3
-
-✅ Bước 5: Test tải image CouchDB ARM64 trước khi chạy compose
-
-Chạy:
-
-docker pull couchdb:3.1.2
-
-
-Nếu pull OK → ARM64 supported → an toàn.
-
-Nếu pull bị đứng → vẫn còn bản cũ → bạn chưa delete hết cache Docker.
-
-✅ Bước 6: Bật compose lại
 docker compose -f docker-compose-bankchain.yaml up -d
 
-✅ Nếu vẫn còn đứng, gửi tôi 2 thứ:
-✅ 1. Kết quả lệnh:
-docker version
+❗Nếu lần này CLI còn khiến máy đứng, nghĩa là Docker Desktop bị lỗi, tôi sẽ chuyển bạn sang chế độ deploy không dùng CLI container.
 
+✅ GỬI LOG SAU:
+Chạy:
+docker ps
+docker logs couchdb0 --tail=20
+docker logs peer0.banka.example.com --tail=50
 
-(để biết engine ARM64 hay x86_64)
-
-✅ 2. Kết quả lệnh:
-uname -m
-
-
-(để xác nhận kiến trúc CPU)
+Gửi tôi 3 log đó 👉 tôi kiểm tra tiếp và gửi script join-channel, deploy chaincode.
