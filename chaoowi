@@ -1,3 +1,7 @@
+✅ ✅ docker-compose-bankchain.yaml — BẢN ĐÃ SỬA FULL ỔN ĐỊNH
+
+Copy toàn bộ file dưới đây và thay thế file của bạn:
+
 version: '2'
 
 networks:
@@ -38,6 +42,7 @@ services:
     networks:
       - bankchain
 
+  # ---------------- ORDERER ----------------
   orderer.example.com:
     image: hyperledger/fabric-orderer:2.5.12
     container_name: orderer.example.com
@@ -58,18 +63,21 @@ services:
       - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls:/var/hyperledger/orderer/tls
       - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - orderer.example.com:/var/hyperledger/production/orderer
     networks:
       - bankchain
 
+  # ---------------- PEER BANK A ----------------
   peer0.banka.example.com:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer0.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.banka.example.com
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.banka.example.com:/var/hyperledger/production
     depends_on:
       - couchdb0
     networks:
@@ -78,26 +86,29 @@ services:
   peer1.banka.example.com:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer1.banka.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.banka.example.com
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.banka.example.com:/var/hyperledger/production
     depends_on:
       - couchdb1
     networks:
       - bankchain
 
+  # ---------------- PEER BANK B ----------------
   peer0.bankb.example.com:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer0.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer0.bankb.example.com
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.bankb.example.com:/var/hyperledger/production
     depends_on:
       - couchdb2
     networks:
@@ -106,17 +117,19 @@ services:
   peer1.bankb.example.com:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer1.bankb.example.com
-    extends:
-      file: base/docker-compose-base-bankchain.yaml
-      service: peer1.bankb.example.com
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.bankb.example.com:/var/hyperledger/production
     depends_on:
       - couchdb3
     networks:
       - bankchain
 
+  # ---------------- CLI ----------------
   cli:
     image: hyperledger/fabric-tools:2.5.12
     container_name: cli
@@ -125,9 +138,9 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     environment:
-      - SYS_CHANNEL=$SYS_CHANNEL
-      - FABRIC_LOGGING_SPEC=INFO
       - GOPATH=/opt/gopath
+      - SYS_CHANNEL=system-channel
+      - FABRIC_LOGGING_SPEC=INFO
       - CORE_PEER_ID=cli
       - CORE_PEER_LOCALMSPID=bankaMSP
       - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
@@ -147,3 +160,20 @@ services:
       - peer0.banka.example.com
     networks:
       - bankchain
+
+✅ Bây giờ bạn KHỞI ĐỘNG LẠI toàn bộ:
+docker compose -f docker-compose-bankchain.yaml down -v
+docker compose -f docker-compose-bankchain.yaml up -d
+docker ps
+
+
+Kiểm tra:
+
+✅ peer0.banka.example.com phải RUNNING
+✅ cli phải RUNNING
+✅ orderer phải RUNNING
+
+✅ Khi đã lên OK → vào CLI:
+docker exec -it cli bash
+export CHANNEL_NAME=bankchannel
+peer channel create ...
