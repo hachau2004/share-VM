@@ -1,22 +1,35 @@
-hachau@hachau:~/fabric-samples/bankchain$ rm -rf channel-artifacts/*.*
+✅ GIẢI PHÁP CHẮC CHẮN SỬA ĐƯỢC
+
+Chạy 3 lệnh này — để ép cấu hình đúng chỗ:
+
+cd ~/fabric-samples/bankchain
+export FABRIC_CFG_PATH=$PWD/configtx
+echo $FABRIC_CFG_PATH
+
+
+Kết quả phải in ra:
+
+/home/hachau/fabric-samples/bankchain/configtx
+
+
+Sau đó chạy lại:
+
 configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID bankchannel
-2025-11-09 15:07:43.236 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
-2025-11-09 15:07:43.243 +07 0002 PANI [common.tools.configtxgen.localconfig] Load -> Could not find profile: BankchainChannel
-2025-11-09 15:07:43.243 +07 0003 ERRO [common.tools.configtxgen] func1 -> Could not find profile: BankchainChannel. Please make sure that FABRIC_CFG_PATH or -configPath is set to a path which contains configtx.yaml with the specified profile
-hachau@hachau:~/fabric-samples/bankchain$
-     
+
+✅ Kiểm tra cuối cùng: đúng file configtx chưa?
+head -n 20 $FABRIC_CFG_PATH/configtx.yaml
 
 
-✅ Chỉ cần thêm dòng <<: *ChannelDefaults vào BankchainChannel
-✅ Đây là lỗi kinh điển khi tự tạo cấu hình Fabric.
+Phải thấy:
 
-✅ Sau khi sửa, chạy lại:
-rm -rf channel-artifacts/*.*
-configtxgen -profile BankchainChannel \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID bankchannel
+Profiles:
+  BankchainGenesis:
+  BankchainChannel:
 
+🔥 Nếu anh gửi em output của:
 
-→ Chắc chắn chạy thành công 100%.
+✅ echo $FABRIC_CFG_PATH
+✅ ls -l $FABRIC_CFG_PATH
+✅ grep -n "BankchainChannel" $FABRIC_CFG_PATH/configtx.yaml
