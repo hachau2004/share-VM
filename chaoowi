@@ -1,50 +1,53 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker network ls
-NETWORK ID     NAME                  DRIVER    SCOPE
-20500cf7062c   bankchain_bankchain   bridge    local
-746730ce795a   bridge                bridge    local
-281805f527aa   host                  host      local
-59d84dd449b8   none                  null      local
-hachau@hachau:~/fabric-samples/bankchain$ docker inspect peer0.banka.example.com | grep bankchain
-            "NetworkMode": "bankchain_bankchain",
-                "com.docker.compose.project": "bankchain",
-                "com.docker.compose.project.config_files": "/home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml",
-                "com.docker.compose.project.working_dir": "/home/hachau/fabric-samples/bankchain",
-                "bankchain_bankchain": {
-hachau@hachau:~/fabric-samples/bankchain$  
+✅ Bước 1 — Export lại biến môi trường đúng
+
+🔵 VÀO TRONG CLI:
+
+docker exec -it cli bash
 
 
+Rồi chạy:
 
-✅ Bước 3: Join channel
+export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+
+export CHANNEL_NAME=bankchannel
+
+✅ Bước 2 — Test DNS xem peer có phản hồi không
 
 Trong CLI:
 
+getent hosts peer0.banka.example.com
+
+
+✅ Nếu trả về IP → OK
+❌ Nếu KHÔNG trả về gì → mình sẽ kiểm tra lại compose cho bạn.
+
+✅ Bước 3 — Join peer vào channel
 peer channel join -b ./channel-artifacts/bankchannel.block
 
-export CHANNEL_NAME=bankchannel
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
-Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp: lookup peer0.banka.example.com on 127.0.0.11:53: no such host"
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer#
-Nếu đúng sẽ hiện:
+✅ Nếu vẫn lỗi → chạy lệnh DEBUG này và gửi kết quả cho mình
 
-Successfully submitted proposal to join channel
+Trong CLI:
 
-✅ Bước 4: Set môi trường cho peer1.banka (nếu muốn join)
-export CORE_PEER_ADDRESS=peer1.banka.example.com:8051
+env | grep CORE_PEER
 
-peer channel join -b ./channel-artifacts/bankchannel.block
 
-✅ Bước 5: Set môi trường cho peer0.bankb rồi join
-export CORE_PEER_LOCALMSPID="bankbMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
-export CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
+Ngoài host:
 
-peer channel join -b ./channel-artifacts/bankchannel.block
+docker inspect peer0.banka.example.com | grep 7051 -n
 
-✅ Bước 6: Join tiếp peer1.bankb
-export CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
 
-peer channel join -b ./channel-artifacts/bankchannel.block
+→ Mình sẽ sửa dứt điểm.
 
-✅ Gửi mình Screenshot khi bạn chạy:
-peer channel join -b ./channel-artifacts/bankchannel.block
+✅ Network OK
+✅ Genesis OK
+✅ Channel.tx OK
+✅ CLI chạy OK
+
+👉 Chỉ còn môi trường CLI chưa trỏ đúng vào peer, sửa là chạy được ngay.
+
+Gửi mình kết quả của:
+
+getent hosts peer0.banka.example.com
