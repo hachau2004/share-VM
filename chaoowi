@@ -1,45 +1,95 @@
- ✅ CÁCH SỬA — XÓA THƯ MỤC genesis.block + TẠO LẠI FILE
-1️⃣ Xóa toàn bộ nội dung cũ
-sudo rm -rf channel-artifacts/*
+BƯỚC 1 — Vào trong container CLI
+
+Chạy:
+
+docker exec -it cli bash
 
 
-2️⃣ Tạo lại genesis.block đúng dạng FILE
-export FABRIC_CFG_PATH=$PWD/configtx
+Nếu vào được sẽ thấy dòng kiểu như:
 
-configtxgen -profile BankchainGenesis \
-  -channelID system-channel \
-  -outputBlock ./channel-artifacts/genesis.block
+root@cli:/opt/gopath/src/github.com/hyperledger/fabric/peer#
 
-> Generating genesis block
-2025-11-09 15:29:35.296 +07 000a ERRO [common.tools.configtxgen] doOutputBlock -> Warning: 'Consortiums' should be nil since system channel is no longer supported in Fabric v3.x
-2025-11-09 15:29:35.297 +07 000b INFO [common.tools.configtxgen] doOutputBlock -> Writing genesis block
+✅ BƯỚC 2 — Xuất tên channel
 
+Trong CLI:
 
-Sau lệnh này, kiểm tra lại:
-ls -l channel-artifacts
-
-Kết quả phải như:
--rw-r--r-- 1 hachau hachau 15K genesis.block
-
-Không được là thư mục nữa.
-
-3️⃣ Tạo lại channel.tx
 export CHANNEL_NAME=bankchannel
 
-configtxgen -profile BankchainChannel \
-  -channelID $CHANNEL_NAME \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx
+✅ BƯỚC 3 — Tạo channel block
+
+Trong CLI chạy:
+
+peer channel create \
+  -o orderer.example.com:7050 \
+  -c $CHANNEL_NAME \
+  -f ./channel-artifacts/channel.tx \
+  --outputBlock ./channel-artifacts/bankchannel.block \
+  --tls \
+  --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 
-4️⃣ Xóa container + chạy lại compose
-docker rm -f $(docker ps -aq)
-docker compose -f docker-compose-bankchain.yaml up -d
+✅ Kết quả đúng sẽ có dòng:
+
+Channel creation successful
+
+✅ BƯỚC 4 — Peer0 BankA JOIN CHANNEL
+
+Trong CLI:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
 
 
-✅ Khi orderer start ok → CLI, peer cũng sẽ chạy.
+✅ Nếu đúng sẽ thấy:
 
-✅ Giờ anh chạy đúng 4 lệnh dưới đây rồi gửi em ảnh kết quả:
-sudo rm -rf channel-artifacts/*
-export FABRIC_CFG_PATH=$PWD/configtx
-configtxgen -profile BankchainGenesis -channelID system-channel -outputBlock ./channel-artifacts/genesis.block
-ls -l channel-artifacts
+Successfully submitted proposal to join channel
+
+✅ BƯỚC 5 — CHO PEER1 BANK A JOIN CHANNEL
+
+Vẫn trong CLI, nhưng đổi ENV sang peer1:
+
+export CORE_PEER_ADDRESS=peer1.banka.example.com:8051
+export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/server.crt
+export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/server.key
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ BƯỚC 6 — CHO PEER0 BANK B JOIN CHANNEL
+
+Vẫn trong CLI nhưng chuyển ENV sang org B:
+
+export CORE_PEER_LOCALMSPID=bankbMSP
+export CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
+export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/server.crt
+export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/server.key
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ BƯỚC 7 — PEER1 BANK B JOIN
+export CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
+export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/server.crt
+export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/server.key
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
+
+
+Join:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ BƯỚC 8 — Kiểm tra tất cả peer đã join
+peer channel list
+
+
+Ở mỗi peer phải thấy:
+
+bankchannel
