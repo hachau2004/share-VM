@@ -1,70 +1,40 @@
-✅ Bước 1: Vào lại CLI
+hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
-Trên máy host:
-
-docker exec -it cli bash
-
-✅ Bước 2: Set biến môi trường cho peer0.banka (vì CLI đang đại diện cho BankA)
-
-Trong CLI:
-
-✅ KIỂM TRA NGAY TRONG CLI
-
-Chạy:
-
-env | grep CORE_PEER
-
-
-Bạn sẽ thấy CORE_PEER_ADDRESS vẫn để trống hoặc sai.
-
-✅ SỬA ĐÚNG NGAY BÂY GIỜ
-
-Copy – paste y nguyên trong CLI:
-
-✅ 1. Cấu hình cho peer0.banka.example.com
-export CORE_PEER_LOCALMSPID="bankaMSP"
+export CHANNEL_NAME=bankchannel
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
+Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp: lookup peer0.banka.example.com on 127.0.0.11:53: no such host"
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
 export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
 export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# ping -c 3 peer0.banka.example.com
+bash: ping: command not found
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# docker inspect cli | grep bankchain
+bash: docker: command not found
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# docker network connect bankchain cli
+bash: docker: command not found
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# exit
+exit
+hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep bankchain
+                "/home/hachau/fabric-samples/bankchain/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto:rw",
+                "/home/hachau/fabric-samples/bankchain/channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts:rw",
+                "/home/hachau/fabric-samples/bankchain/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts:rw",
+            "NetworkMode": "bankchain_bankchain",
+                "Source": "/home/hachau/fabric-samples/bankchain/crypto-config",
+                "Source": "/home/hachau/fabric-samples/bankchain/channel-artifacts",
+                "Source": "/home/hachau/fabric-samples/bankchain/scripts",
+                "com.docker.compose.project": "bankchain",
+                "com.docker.compose.project.config_files": "/home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml",
+                "com.docker.compose.project.working_dir": "/home/hachau/fabric-samples/bankchain",
+                "bankchain_bankchain": {
+hachau@hachau:~/fabric-samples/bankchain$ docker network connect bankchain cli
+Error response from daemon: network bankchain not found
+hachau@hachau:~/fabric-samples/bankchain$ 
 
-✅ 2. Test xem CLI có nhìn thấy peer không
-ping -c 3 peer0.banka.example.com
-
-
-✅ Nếu ping báo IP → OK
-❌ Nếu báo "no such host" → network sai → CLI không nằm trong cùng mạng docker (rất hay gặp).
-
-✅ 3. Join channel lại
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-✅ NẾU VẪN “no such host” ⇒ NGUYÊN NHÂN CHẮC CHẮN
-
-CLI không join vào network bankchain
-
-→ Kiểm tra bằng:
-
-docker inspect cli | grep bankchain
-
-
-Nếu không có dòng "bankchain" → CLI container KHÔNG nằm trong network.
-
-→ Fix bằng:
-
-docker network connect bankchain cli
-
-✅ Sau đó ping lại:
-ping -c 3 peer0.banka.example.com
-
-✅ Gửi mình 2 kết quả để chẩn đoán chính xác:
-
-1️⃣ Kết quả lệnh:
-
-env | grep CORE_PEER
-
-
-2️⃣ Kết quả:
-
-ping -c 3 peer0.banka.example.com
 
 
 ✅ Bước 3: Join channel
