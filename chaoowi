@@ -1,39 +1,16 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-
-export CHANNEL_NAME=bankchannel
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
-Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp: lookup peer0.banka.example.com on 127.0.0.11:53: no such host"
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# ping -c 3 peer0.banka.example.com
-bash: ping: command not found
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# docker inspect cli | grep bankchain
-bash: docker: command not found
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# docker network connect bankchain cli
-bash: docker: command not found
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# exit
-exit
-hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep bankchain
-                "/home/hachau/fabric-samples/bankchain/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto:rw",
-                "/home/hachau/fabric-samples/bankchain/channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts:rw",
-                "/home/hachau/fabric-samples/bankchain/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts:rw",
+hachau@hachau:~/fabric-samples/bankchain$ docker network ls
+NETWORK ID     NAME                  DRIVER    SCOPE
+20500cf7062c   bankchain_bankchain   bridge    local
+746730ce795a   bridge                bridge    local
+281805f527aa   host                  host      local
+59d84dd449b8   none                  null      local
+hachau@hachau:~/fabric-samples/bankchain$ docker inspect peer0.banka.example.com | grep bankchain
             "NetworkMode": "bankchain_bankchain",
-                "Source": "/home/hachau/fabric-samples/bankchain/crypto-config",
-                "Source": "/home/hachau/fabric-samples/bankchain/channel-artifacts",
-                "Source": "/home/hachau/fabric-samples/bankchain/scripts",
                 "com.docker.compose.project": "bankchain",
                 "com.docker.compose.project.config_files": "/home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml",
                 "com.docker.compose.project.working_dir": "/home/hachau/fabric-samples/bankchain",
                 "bankchain_bankchain": {
-hachau@hachau:~/fabric-samples/bankchain$ docker network connect bankchain cli
-Error response from daemon: network bankchain not found
-hachau@hachau:~/fabric-samples/bankchain$ 
+hachau@hachau:~/fabric-samples/bankchain$  
 
 
 
