@@ -17,7 +17,9 @@ getent hosts peer0.banka.example.com
 
 
 ✅ Nếu thấy dạng:
-
+hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
+root@78db66c70e8b:/opt/gopath/src/github.com/hyperledger/fabric/peer# getent hosts peer0.banka.example.com
+root@78db66c70e8b:/opt/gopath/src/github.com/hyperledger/fabric/peer# 
 172.22.0.5   peer0.banka.example.com
 
 
