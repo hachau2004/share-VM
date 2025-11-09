@@ -1,111 +1,188 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
-WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
-[+] Running 2/4
- ! couchdb1         Interrupted                                            4.3s 
- ⠹ couchdb0 Pulling                                                        4.3s 
- ! couchdb3         Interrupted                                            4.3s 
- ⠹ couchdb2 Pulling                                                        4.3s 
-no matching manifest for linux/arm64/v8 in the manifest list entries
-hachau@hachau:~/fabric-samples/bankchain$ 
+version: '2'
+
+networks:
+  bankchain:
+
+volumes:
+  orderer.example.com:
+  peer0.banka.example.com:
+  peer1.banka.example.com:
+  peer0.bankb.example.com:
+  peer1.bankb.example.com:
+
+services:
+
+  # ============ COUCHDB ===============
+  couchdb0:
+    image: couchdb:3.2
+    container_name: couchdb0
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin123
+    ports:
+      - "5984:5984"
+    networks:
+      - bankchain
+
+  couchdb1:
+    image: couchdb:3.2
+    container_name: couchdb1
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin123
+    networks:
+      - bankchain
+
+  couchdb2:
+    image: couchdb:3.2
+    container_name: couchdb2
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin123
+    networks:
+      - bankchain
+
+  couchdb3:
+    image: couchdb:3.2
+    container_name: couchdb3
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin123
+    networks:
+      - bankchain
+
+  # ---------------- ORDERER ----------------
+  orderer.example.com:
+    image: hyperledger/fabric-orderer:2.5.12
+    container_name: orderer.example.com
+    working_dir: /opt/hyperledger/orderer
+    command: orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_GENESISMETHOD=file
+    volumes:
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls:/var/hyperledger/orderer/tls
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - orderer.example.com:/var/hyperledger/production/orderer
+    networks:
+      - bankchain
+
+  # ---------------- PEER BANK A ----------------
+  peer0.banka.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer0.banka.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=http://admin:admin123@couchdb0:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb0
+    networks:
+      - bankchain
+
+  peer1.banka.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer1.banka.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=http://admin:admin123@couchdb1:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.banka.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb1
+    networks:
+      - bankchain
+
+  # ---------------- PEER BANK B ----------------
+  peer0.bankb.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer0.bankb.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=http://admin:admin123@couchdb2:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb2
+    networks:
+      - bankchain
+
+  peer1.bankb.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer1.bankb.example.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=http://admin:admin123@couchdb3:5984
+    volumes:
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.bankb.example.com:/var/hyperledger/production
+    depends_on:
+      - couchdb3
+    networks:
+      - bankchain
+
+  # ---------------- CLI ----------------
+  cli:
+    image: hyperledger/fabric-tools:2.5.12
+    container_name: cli
+    tty: true
+    stdin_open: true
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+      - ./../chaincode:/opt/gopath/src/github.com/chaincode
+    depends_on:
+      - peer0.banka.example.com
+    networks:
+      - bankchain
 
 
-✅ BƯỚC 1 — DỪNG TOÀN BỘ MẠNG HOÀN TOÀN
 
-Chạy:
+✅ BƯỚC TIẾP THEO (RẤT QUAN TRỌNG)
+
+Sau khi sửa file, bạn chạy:
 
 docker rm -f $(docker ps -aq)
 docker volume prune -f
 docker network prune -f
-
-
-→ Điều này rất quan trọng vì trước đó mạng bị lỗi DNS + CouchDB 3.3 crash làm peer không start được.
-
-✅ BƯỚC 2 — KHỞI ĐỘNG LẠI
 docker compose -f docker-compose-bankchain.yaml up -d
 
 
-Sau đó kiểm tra:
+Sau đó gửi tôi:
 
-docker ps
+✅ screenshot docker ps
+✅ screenshot log peer0.banka:
 
-
-Kết quả đúng phải thấy:
-
-✅ couchdb0, couchdb1, couchdb2, couchdb3
-✅ peer0.banka, peer1.banka
-✅ peer0.bankb, peer1.bankb
-✅ orderer.example.com
-✅ cli
-
-Nếu peer0.banka.example.com đang RUNNING → OK
-Nếu Exit 1 → vẫn lỗi.
-
-✅ BƯỚC 3 — KIỂM TRA LOG CỦA PEER 0 BANK A
-docker logs peer0.banka.example.com --tail=100
+docker logs peer0.banka.example.com --tail=30
 
 
-Bạn phải thấy:
-
-✅ "Listening on 0.0.0.0:7051"
-✅ "Starting peer with MSP bankaMSP"
-✅ KHÔNG còn lỗi "unable to connect to CouchDB"
-
-✅ BƯỚC 4 — VÀO CLI
-docker exec -it cli bash
-
-
-Trong CLI:
-
-export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-export CHANNEL_NAME=bankchannel
-
-
-Test DNS:
-
-getent hosts peer0.banka.example.com
-
-
-Bạn phải thấy:
-
-172.18.0.x peer0.banka.example.com
-
-
-Nếu ra dòng trống → peer chưa chạy hoặc mạng lỗi.
-
-✅ BƯỚC 5 — JOIN CHANNEL (Lần này sẽ chạy được)
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-
-Kết quả đúng:
-
-Successfully submitted proposal to join channel
-
-✅ BƯỚC 6 — CẤU HÌNH PEER1 BANK A
-export CORE_PEER_ADDRESS=peer1.banka.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/ca.crt
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-✅ BƯỚC 7 — CẤU HÌNH BANK B
-export CORE_PEER_LOCALMSPID="bankbMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
-export CORE_PEER_ADDRESS=peer0.bankb.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
-
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-
-Làm tương tự cho peer1.bankb.
-
-✅ BƯỚC 8 — KIỂM TRA CHANNEL
-
-Sau khi join xong tất cả:
-
-peer channel list
-
-
-Bạn phải thấy:
-
-bankchannel
+✅ Tôi đảm bảo sau khi đổi CouchDB 3.3 → 3.2, peer sẽ chạy được.
+⚠️ Không sửa cái này thì bạn debug 1 tháng cũng không chạy.
