@@ -1,21 +1,60 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep -A5 NetworkSettings
-        "NetworkSettings": {
-            "Bridge": "",
-            "SandboxID": "b1d4c9f9b668e8fc299a890e239d39825c370e2630f5407bc8cb573c6eb57b66",
-            "SandboxKey": "/var/run/docker/netns/b1d4c9f9b668",
-            "Ports": {},
-            "HairpinMode": false,
-hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep bankchain
-                "/home/hachau/fabric-samples/bankchain/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto:rw",
-                "/home/hachau/fabric-samples/bankchain/channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts:rw",
-                "/home/hachau/fabric-samples/bankchain/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts:rw",
-            "NetworkMode": "bankchain_bankchain",
-                "Source": "/home/hachau/fabric-samples/bankchain/crypto-config",
-                "Source": "/home/hachau/fabric-samples/bankchain/channel-artifacts",
-                "Source": "/home/hachau/fabric-samples/bankchain/scripts",
-                "com.docker.compose.project": "bankchain",
-                "com.docker.compose.project.config_files": "/home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml",
-                "com.docker.compose.project.working_dir": "/home/hachau/fabric-samples/bankchain",
-                "bankchain_bankchain": {
-hachau@hachau:~/fabric-samples/bankchain$ 
+✅ BƯỚC TIẾP THEO — KIỂM TRA TRẠNG THÁI PEER0.BANKA
 
+Chạy:
+
+docker ps | grep peer0.banka
+
+
+Và:
+
+docker logs peer0.banka.example.com --tail=50
+
+
+👉 Gửi mình log này!
+
+✅ BƯỚC 2 — TEST DNS TỪ CHÍNH CONTAINER PEER (không phải CLI)
+
+Kiểm tra DNS từ peer:
+
+docker exec -it peer0.banka.example.com sh -c "getent hosts peer0.banka.example.com"
+
+
+Nếu trong peer container vẫn không resolve được → lỗi Docker DNS.
+
+✅ BƯỚC 3 — TEST DNS TỪ CLI THEO CÁCH KHÁC
+
+Trong CLI thử:
+
+nslookup peer0.banka.example.com
+
+
+Nếu báo command not found, thử:
+
+apt update && apt install -y dnsutils
+nslookup peer0.banka.example.com
+
+✅ GIẢI THÍCH LÝ DO getent hosts TRẢ VỀ RỖNG
+
+getent hosts trả rỗng khi:
+
+Peer container chưa đăng ký tên trong Docker DNS
+
+Peer container khởi động lỗi
+
+Docker network chưa đồng bộ DNS (lúc mới chạy)
+
+Docker compose override extra_hosts (không có trong file của bạn)
+
+✅ BƯỚC CUỐI — XÁC NHẬN LẠI HOSTNAME TRONG docker-compose
+
+Bạn chạy:
+
+docker inspect peer0.banka.example.com | grep Hostname
+docker inspect peer0.banka.example.com | grep -A3 Networks
+
+
+Gửi mình kết quả, để kiểm tra:
+
+✅ Hostname đúng chưa
+✅ Container có đúng network chưa
+✅ DNS alias có đúng không
