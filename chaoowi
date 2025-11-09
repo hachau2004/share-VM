@@ -10,6 +10,11 @@ configtxgen -profile BankchainGenesis \
   -channelID system-channel \
   -outputBlock ./channel-artifacts/genesis.block
 
+> Generating genesis block
+2025-11-09 15:29:35.296 +07 000a ERRO [common.tools.configtxgen] doOutputBlock -> Warning: 'Consortiums' should be nil since system channel is no longer supported in Fabric v3.x
+2025-11-09 15:29:35.297 +07 000b INFO [common.tools.configtxgen] doOutputBlock -> Writing genesis block
+
+
 Sau lệnh này, kiểm tra lại:
 ls -l channel-artifacts
 
