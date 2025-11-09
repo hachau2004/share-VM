@@ -1,18 +1,11 @@
-✅ CÁCH SỬA DỨT ĐIỂM — CHỈ 1 LẦN DUY NHẤT
-Bước 1 — Ghi đè file configtx.yaml bằng bản đúng em đã chuẩn hóa
-
-Copy nội dung configtx.yaml hoàn chỉnh dưới đây, dán 100% vào file:
-
-~/fabric-samples/bankchain/configtx/configtx.yaml
-
-✅ ĐÂY LÀ FILE CONFIGTX.YAML ĐÚNG (FULL, CHUẨN FABRIC V2.5)
-
-✅ File này chắc chắn chạy configtxgen OK
-✅ Đầy đủ policies
-✅ Đầy đủ Organization + Profiles
-✅ Không lỗi "no policies defined"
-
-✅ 📌 DÁN TOÀN BỘ FILE NÀY:
+hachau@hachau:~/fabric-samples/bankchain$ configtxgen -profile BankchainChannel \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx \
+  -channelID bankchannel
+2025-11-09 14:57:55.875 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
+2025-11-09 14:57:55.877 +07 0002 INFO [common.tools.configtxgen.localconfig] Load -> Loaded configuration: /home/hachau/fabric-samples/bankchain/configtx/configtx.yaml
+2025-11-09 14:57:55.877 +07 0003 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Generating new channel configtx
+2025-11-09 14:57:55.877 +07 0004 FATA [common.tools.configtxgen] main -> Error on outputChannelCreateTx: could not generate default config template: error parsing configuration: error adding policies to channel group: no policies defined
+hachau@hachau:~/fabric-samples/bankchain$ sed -n '1,200p' $FABRIC_CFG_PATH/configtx.yaml
 ---
 Organizations:
 
@@ -157,18 +150,5 @@ Profiles:
       Capabilities:
         <<: *ApplicationCapabilities
 
-✅ Bước 2 — Chạy lại lệnh
-export FABRIC_CFG_PATH=$PWD/configtx
 
-configtxgen -profile BankchainChannel \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID bankchannel
-
-
-✅ Lệnh này sẽ chạy 100% thành công.
-
-✅ Bước 3 — Nếu vẫn lỗi gửi em:**
-sed -n '1,200p' $FABRIC_CFG_PATH/configtx.yaml
-
-
-Em đảm bảo sửa xong hoàn toàn. Chỉ cần anh dán đúng file.
+hachau@hachau:~/fabric-samples/bankchain$
