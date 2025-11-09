@@ -12,29 +12,42 @@ volumes:
 
 services:
 
+  # ---------------- COUCHDB ----------------
   couchdb0:
-    image: couchdb:3.3
+    image: couchdb:3.2
     container_name: couchdb0
     ports:
       - "5984:5984"
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
     networks:
       - bankchain
 
   couchdb1:
-    image: couchdb:3.3
+    image: couchdb:3.2
     container_name: couchdb1
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
     networks:
       - bankchain
 
   couchdb2:
-    image: couchdb:3.3
+    image: couchdb:3.2
     container_name: couchdb2
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
     networks:
       - bankchain
 
   couchdb3:
-    image: couchdb:3.3
+    image: couchdb:3.2
     container_name: couchdb3
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
     networks:
       - bankchain
 
@@ -68,8 +81,25 @@ services:
     image: hyperledger/fabric-peer:2.5.12
     container_name: peer0.banka.example.com
     environment:
+      # CouchDB
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+
+      # Peer identity
+      - CORE_PEER_ID=peer0.banka.example.com
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.banka.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.banka.example.com:7051
+
+      # TLS
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      - CORE_PEER_LOCALMSPID=bankaMSP
     volumes:
       - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
@@ -85,6 +115,20 @@ services:
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+
+      - CORE_PEER_ID=peer1.banka.example.com
+      - CORE_PEER_ADDRESS=peer1.banka.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.banka.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.banka.example.com:7051
+
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      - CORE_PEER_LOCALMSPID=bankaMSP
     volumes:
       - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
@@ -101,6 +145,20 @@ services:
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+
+      - CORE_PEER_ID=peer0.bankb.example.com
+      - CORE_PEER_ADDRESS=peer0.bankb.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.bankb.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.bankb.example.com:7051
+
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      - CORE_PEER_LOCALMSPID=bankbMSP
     volumes:
       - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
@@ -116,6 +174,20 @@ services:
     environment:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+
+      - CORE_PEER_ID=peer1.bankb.example.com
+      - CORE_PEER_ADDRESS=peer1.bankb.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.bankb.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.bankb.example.com:7051
+
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      - CORE_PEER_LOCALMSPID=bankbMSP
     volumes:
       - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
@@ -155,5 +227,110 @@ services:
       - orderer.example.com
       - peer0.banka.example.com
     networks:
-      - bankchain 
+      - bankchain
 
+
+
+
+
+
+✅ BƯỚC 1 — DỪNG TOÀN BỘ MẠNG HOÀN TOÀN
+
+Chạy:
+
+docker rm -f $(docker ps -aq)
+docker volume prune -f
+docker network prune -f
+
+
+→ Điều này rất quan trọng vì trước đó mạng bị lỗi DNS + CouchDB 3.3 crash làm peer không start được.
+
+✅ BƯỚC 2 — KHỞI ĐỘNG LẠI
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+Sau đó kiểm tra:
+
+docker ps
+
+
+Kết quả đúng phải thấy:
+
+✅ couchdb0, couchdb1, couchdb2, couchdb3
+✅ peer0.banka, peer1.banka
+✅ peer0.bankb, peer1.bankb
+✅ orderer.example.com
+✅ cli
+
+Nếu peer0.banka.example.com đang RUNNING → OK
+Nếu Exit 1 → vẫn lỗi.
+
+✅ BƯỚC 3 — KIỂM TRA LOG CỦA PEER 0 BANK A
+docker logs peer0.banka.example.com --tail=100
+
+
+Bạn phải thấy:
+
+✅ "Listening on 0.0.0.0:7051"
+✅ "Starting peer with MSP bankaMSP"
+✅ KHÔNG còn lỗi "unable to connect to CouchDB"
+
+✅ BƯỚC 4 — VÀO CLI
+docker exec -it cli bash
+
+
+Trong CLI:
+
+export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+export CHANNEL_NAME=bankchannel
+
+
+Test DNS:
+
+getent hosts peer0.banka.example.com
+
+
+Bạn phải thấy:
+
+172.18.0.x peer0.banka.example.com
+
+
+Nếu ra dòng trống → peer chưa chạy hoặc mạng lỗi.
+
+✅ BƯỚC 5 — JOIN CHANNEL (Lần này sẽ chạy được)
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+Kết quả đúng:
+
+Successfully submitted proposal to join channel
+
+✅ BƯỚC 6 — CẤU HÌNH PEER1 BANK A
+export CORE_PEER_ADDRESS=peer1.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/ca.crt
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ BƯỚC 7 — CẤU HÌNH BANK B
+export CORE_PEER_LOCALMSPID="bankbMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
+export CORE_PEER_ADDRESS=peer0.bankb.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+Làm tương tự cho peer1.bankb.
+
+✅ BƯỚC 8 — KIỂM TRA CHANNEL
+
+Sau khi join xong tất cả:
+
+peer channel list
+
+
+Bạn phải thấy:
+
+bankchannel
