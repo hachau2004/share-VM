@@ -1,19 +1,5 @@
-✅ BƯỚC 1 — KIỂM TRA PEER CÓ ĐANG CHẠY KHÔNG
-
-Chạy lệnh:
-
-docker ps | grep peer0.banka
-
-
-Nếu KHÔNG thấy container → peer bị crash.
-
-✅ BƯỚC 2 — XEM LỖI CHI TIẾT CỦA PEER
+✅ BƯỚC 3 — KIỂM TRA MOUNT TLS
 
 Chạy:
 
-docker logs peer0.banka.example.com --tail=200
-
-
-❗ Lần trước tôi đã thấy lỗi cực rõ:
-
-TLS enabled but peer cannot load /etc/hyperledger/fabric/tls/server.key: no such file
+docker inspect peer0.banka.example.com | grep tls -A5
