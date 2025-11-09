@@ -1,66 +1,40 @@
-hachau@hachau:~/fabric-samples/bankchain$ ls -l channel-artifacts
-total 8
--rw-r----- 1 hachau hachau  342 Nov  9 15:12 channel.tx
-drwxr-xr-x 2 root   root   4096 Nov  9 15:16 genesis.block
+ ✅ CÁCH SỬA — XÓA THƯ MỤC genesis.block + TẠO LẠI FILE
+1️⃣ Xóa toàn bộ nội dung cũ
+sudo rm -rf channel-artifacts/*
 
 
-Nhưng thư mục của anh không có file đó → Docker báo lỗi:
-
-mount ... genesis.block: not a directory / not exist
-
-
-Vì orderer không start → toàn bộ network không chạy → CLI cũng không chạy.
-
-✅ ✅ BƯỚC 1 — KIỂM TRA FILE genesis.block CÓ TỒN TẠI KHÔNG
-
-Chạy:
-
-ls -l channel-artifacts
-
-
-Nếu chỉ có mỗi channel.tx → nghĩa là anh chưa tạo genesis.block.
-
-✅ ✅ BƯỚC 2 — TẠO LẠI GENESIS.BLOCK
-
-Chạy lệnh sau ngoài CLI (ở host – chính terminal anh đang dùng):
-
-Tạo lại genesis block (system channel)
+2️⃣ Tạo lại genesis.block đúng dạng FILE
 export FABRIC_CFG_PATH=$PWD/configtx
 
 configtxgen -profile BankchainGenesis \
   -channelID system-channel \
   -outputBlock ./channel-artifacts/genesis.block
 
+Sau lệnh này, kiểm tra lại:
+ls -l channel-artifacts
 
-Nếu thành công → nó sẽ tạo file:
+Kết quả phải như:
+-rw-r--r-- 1 hachau hachau 15K genesis.block
 
-channel-artifacts/genesis.block
+Không được là thư mục nữa.
 
-✅ ✅ BƯỚC 3 — TẠO LẠI CHANNEL TX (đã làm rồi nhưng làm lại cho chắc)
+3️⃣ Tạo lại channel.tx
 export CHANNEL_NAME=bankchannel
 
 configtxgen -profile BankchainChannel \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID $CHANNEL_NAME
+  -channelID $CHANNEL_NAME \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx
 
-✅ ✅ BƯỚC 4 — KHỞI ĐỘNG LẠI DOCKER
 
-Trước khi khởi động lại, xóa các container cũ:
-
+4️⃣ Xóa container + chạy lại compose
 docker rm -f $(docker ps -aq)
-
-
-Sau đó:
-
 docker compose -f docker-compose-bankchain.yaml up -d
 
-✅ ✅ BƯỚC 5 — KIỂM TRA ORDERER ĐÃ CHẠY
-docker ps
 
+✅ Khi orderer start ok → CLI, peer cũng sẽ chạy.
 
-Phải thấy:
-
-✅ orderer.example.com (Up)
-✅ couchdb0–3
-✅ peer0/1 banka & bankb
-✅ cli
+✅ Giờ anh chạy đúng 4 lệnh dưới đây rồi gửi em ảnh kết quả:
+sudo rm -rf channel-artifacts/*
+export FABRIC_CFG_PATH=$PWD/configtx
+configtxgen -profile BankchainGenesis -channelID system-channel -outputBlock ./channel-artifacts/genesis.block
+ls -l channel-artifacts
