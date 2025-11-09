@@ -8,12 +8,64 @@ docker exec -it cli bash
 
 Trong CLI:
 
+✅ KIỂM TRA NGAY TRONG CLI
+
+Chạy:
+
+env | grep CORE_PEER
+
+
+Bạn sẽ thấy CORE_PEER_ADDRESS vẫn để trống hoặc sai.
+
+✅ SỬA ĐÚNG NGAY BÂY GIỜ
+
+Copy – paste y nguyên trong CLI:
+
+✅ 1. Cấu hình cho peer0.banka.example.com
 export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
 export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
-export CHANNEL_NAME=bankchannel
+✅ 2. Test xem CLI có nhìn thấy peer không
+ping -c 3 peer0.banka.example.com
+
+
+✅ Nếu ping báo IP → OK
+❌ Nếu báo "no such host" → network sai → CLI không nằm trong cùng mạng docker (rất hay gặp).
+
+✅ 3. Join channel lại
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ NẾU VẪN “no such host” ⇒ NGUYÊN NHÂN CHẮC CHẮN
+
+CLI không join vào network bankchain
+
+→ Kiểm tra bằng:
+
+docker inspect cli | grep bankchain
+
+
+Nếu không có dòng "bankchain" → CLI container KHÔNG nằm trong network.
+
+→ Fix bằng:
+
+docker network connect bankchain cli
+
+✅ Sau đó ping lại:
+ping -c 3 peer0.banka.example.com
+
+✅ Gửi mình 2 kết quả để chẩn đoán chính xác:
+
+1️⃣ Kết quả lệnh:
+
+env | grep CORE_PEER
+
+
+2️⃣ Kết quả:
+
+ping -c 3 peer0.banka.example.com
+
 
 ✅ Bước 3: Join channel
 
