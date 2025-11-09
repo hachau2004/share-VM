@@ -1,12 +1,61 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
+✅ GIẢI PHÁP DỨT ĐIỂM — KHỞI TẠO LẠI CLI ĐÚNG CÁCH
+✅ Bước 1: Tắt toàn bộ container
+docker compose -f docker-compose-bankchain.yaml down
+
+✅ Bước 2: Xóa CLI container hoàn toàn
+docker rm -f cli
+
+✅ Bước 3: Bật lại toàn bộ hệ thống
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+📌 Lúc này CLI sẽ được gắn đúng vào network bankchain_bankchain và DNS sẽ hoạt động.
+
+✅ Bước 4: Kiểm tra CLI đã thấy peer chưa
+docker exec -it cli bash
+getent hosts peer0.banka.example.com
+
+
+✅ Nếu thấy dạng:
+
+172.22.0.5   peer0.banka.example.com
+
+
+→ OK — CLI đã nhìn thấy peer.
+
+❌ Nếu vẫn không thấy → mình xem lại docker-compose cho bạn.
+
+✅ Bước 5: Export lại biến môi trường và join peer
+
+Trong CLI:
+
+export CORE_PEER_LOCALMSPID="bankaMSP"
 export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
 export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
 export CHANNEL_NAME=bankchannel
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# getent hosts peer0.banka.example.com
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# 
+
+
+Rồi:
+
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+✅ TÓM LẠI LỖI
+
+CLI KHÔNG PHẢI Ở ĐÚNG NETWORK → KHÔNG RESOLVE DNS → KHÔNG TÌM THẤY peer0.banka.example.com → join channel thất bại.
+
+⚡ Bạn hãy chạy 3 lệnh này rồi gửi mình kết quả của getent hosts.peer0.banka.example.com:
+
+docker compose -f docker-compose-bankchain.yaml down
+docker rm -f cli
+docker compose -f docker-compose-bankchain.yaml up -d
+
+
+rồi:
+
+docker exec -it cli bash
+getent hosts peer0.banka.example.com 
 
 
 
