@@ -1,1 +1,6 @@
 sed -n '1,200p' $FABRIC_CFG_PATH/configtx.yaml
+✅ Lấy phần ORGANIZATIONS (dòng 200 đến 380)
+sed -n '200,380p' $FABRIC_CFG_PATH/configtx.yaml
+
+✅ Lấy phần CHANNEL / APPLICATION / ORDERER DEFAULTS (dòng 380 đến 520)
+sed -n '380,520p' $FABRIC_CFG_PATH/configtx.yaml
