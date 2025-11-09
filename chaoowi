@@ -1,60 +1,64 @@
-✅ BƯỚC TIẾP THEO — KIỂM TRA TRẠNG THÁI PEER0.BANKA
-
-Chạy:
-
-docker ps | grep peer0.banka
-
-
-Và:
-
-docker logs peer0.banka.example.com --tail=50
-
-
-👉 Gửi mình log này!
-
-✅ BƯỚC 2 — TEST DNS TỪ CHÍNH CONTAINER PEER (không phải CLI)
-
-Kiểm tra DNS từ peer:
-
-docker exec -it peer0.banka.example.com sh -c "getent hosts peer0.banka.example.com"
-
-
-Nếu trong peer container vẫn không resolve được → lỗi Docker DNS.
-
-✅ BƯỚC 3 — TEST DNS TỪ CLI THEO CÁCH KHÁC
-
-Trong CLI thử:
-
-nslookup peer0.banka.example.com
-
-
-Nếu báo command not found, thử:
-
-apt update && apt install -y dnsutils
-nslookup peer0.banka.example.com
-
-✅ GIẢI THÍCH LÝ DO getent hosts TRẢ VỀ RỖNG
-
-getent hosts trả rỗng khi:
-
-Peer container chưa đăng ký tên trong Docker DNS
-
-Peer container khởi động lỗi
-
-Docker network chưa đồng bộ DNS (lúc mới chạy)
-
-Docker compose override extra_hosts (không có trong file của bạn)
-
-✅ BƯỚC CUỐI — XÁC NHẬN LẠI HOSTNAME TRONG docker-compose
-
-Bạn chạy:
-
+hachau@hachau:~/fabric-samples/bankchain$ docker ps | grep peer0.banka
+hachau@hachau:~/fabric-samples/bankchain$ docker logs peer0.banka.example.com --tail=50
+  limits:
+    concurrency:
+      deliverservice: 2500
+      endorserservice: 2500
+      gatewayservice: 500
+  listenaddress: 0.0.0.0:7051
+  localmspid: SampleOrg
+  localmsptype: bccsp
+  maxrecvmsgsize: 104857600
+  maxsendmsgsize: 104857600
+  mspconfigpath: msp
+  networkid: dev
+  profile:
+    enabled: false
+    listenaddress: 0.0.0.0:6060
+  tls:
+    cert:
+      file: /etc/hyperledger/fabric/tls/server.crt
+    clientauthrequired: false
+    clientrootcas:
+      files:
+      - tls/ca.crt
+    enabled: "true"
+    key:
+      file: /etc/hyperledger/fabric/tls/server.key
+    rootcert:
+      file: /etc/hyperledger/fabric/tls/ca.crt
+vm:
+  docker:
+    attachstdout: "true"
+    hostconfig:
+      logconfig:
+        config:
+          max-file: "5"
+          max-size: 50m
+        type: json-file
+      memory: 2147483648
+      networkmode: host
+    tls:
+      ca:
+        file: docker/ca.crt
+      cert:
+        file: docker/tls.crt
+      enabled: false
+      key:
+        file: docker/tls.key
+  endpoint: unix:///host/var/run/docker.sock
+2025-11-09 09:10:52.627 UTC 0003 INFO [peer] getLocalAddress -> Auto-detected peer address: 172.18.0.8:7051
+2025-11-09 09:10:52.627 UTC 0004 INFO [peer] getLocalAddress -> Host is 0.0.0.0 , falling back to auto-detected address: 172.18.0.8:7051
+2025-11-09 09:10:52.628 UTC 0005 FATA [nodeCmd] serve -> Error loading secure config for peer (error loading TLS key (open /etc/hyperledger/fabric/tls/server.key: no such file or directory))
+hachau@hachau:~/fabric-samples/bankchain$ docker exec -it peer0.banka.example.com sh -c "getent hosts peer0.banka.example.com"
+Error response from daemon: container c7701f599973fe9d8797f23998c16d4419f2cf7cad45c80881afc513f7fadee3 is not running
+hachau@hachau:~/fabric-samples/bankchain$ 
 docker inspect peer0.banka.example.com | grep Hostname
 docker inspect peer0.banka.example.com | grep -A3 Networks
-
-
-Gửi mình kết quả, để kiểm tra:
-
-✅ Hostname đúng chưa
-✅ Container có đúng network chưa
-✅ DNS alias có đúng không
+        "HostnamePath": "/var/lib/docker/containers/c7701f599973fe9d8797f23998c16d4419f2cf7cad45c80881afc513f7fadee3/hostname",
+            "Hostname": "c7701f599973",
+            "Networks": {
+                "bankchain_bankchain": {
+                    "IPAMConfig": null,
+                    "Links": null,
+hachau@hachau:~/fabric-samples/bankchain$ 
