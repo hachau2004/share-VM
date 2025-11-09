@@ -1,77 +1,72 @@
-✅ FIX CHÍNH XÁC 100%: Dùng couchdb:3.1.2
+✅ Cách xử lý để giải phóng Docker & không bị treo nữa
+✅ Bước 1: Dừng toàn bộ Docker ngay lập tức
 
-Chỉ cần đổi 4 dòng:
+Chạy:
 
-Thay:
-
-image: couchdb:3.2
+sudo systemctl stop docker
 
 
-👉 thành:
+Chờ 5–10 giây cho CPU hạ.
+
+✅ Bước 2: Xóa cache image CouchDB bị lỗi
+sudo rm -rf /var/lib/docker
+
+
+⚠️ CẢNH BÁO: điều này xóa toàn bộ images/containers/network → sạch 100%
+(Đây là cách duy nhất nếu Docker bị freeze do image manifest lỗi)
+
+Nếu bạn không muốn full reset, dùng lệnh nhẹ hơn:
+
+sudo rm -rf /var/lib/docker/image
+
+✅ Bước 3: Khởi động lại Docker
+sudo systemctl start docker
+
+
+Kiểm tra:
+
+docker ps
+
+✅ Bước 4: Mở lại file docker-compose và đảm bảo KHÔNG CÓ bất kỳ dòng nào dùng couchdb:3.x
+
+Bạn phải đổi toàn bộ thành:
 
 image: couchdb:3.1.2
 
-✅ Tôi gửi bạn đoạn đã sửa hoàn chỉnh cho CouchDB
 
-Copy nguyên phần này vào file:
+Kiểm tra lại bằng:
 
-  couchdb0:
-    image: couchdb:3.1.2
-    container_name: couchdb0
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin123
-    ports:
-      - "5984:5984"
-    networks:
-      - bankchain
+grep -R "couchdb" docker-compose-bankchain.yaml
 
-  couchdb1:
-    image: couchdb:3.1.2
-    container_name: couchdb1
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin123
-    networks:
-      - bankchain
 
-  couchdb2:
-    image: couchdb:3.1.2
-    container_name: couchdb2
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin123
-    networks:
-      - bankchain
+Output phải là:
 
-  couchdb3:
-    image: couchdb:3.1.2
-    container_name: couchdb3
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin123
-    networks:
-      - bankchain
+✅ couchdb:3.1.2
+❌ Tuyệt đối không được có 3.2 hay 3.3
 
-✅ CLEAN lại môi trường Docker (bạn sai lệnh lúc nãy)
+✅ Bước 5: Test tải image CouchDB ARM64 trước khi chạy compose
 
-Chạy đúng bộ lệnh này:
+Chạy:
 
-docker compose -f docker-compose-bankchain.yaml down -v
-docker rm -f $(docker ps -aq) 2>/dev/null
-docker volume prune -f
-docker network prune -f
+docker pull couchdb:3.1.2
 
-✅ Khởi động lại
+
+Nếu pull OK → ARM64 supported → an toàn.
+
+Nếu pull bị đứng → vẫn còn bản cũ → bạn chưa delete hết cache Docker.
+
+✅ Bước 6: Bật compose lại
 docker compose -f docker-compose-bankchain.yaml up -d
 
-✅ Gửi tôi 2 thứ sau khi chạy:
-docker ps
+✅ Nếu vẫn còn đứng, gửi tôi 2 thứ:
+✅ 1. Kết quả lệnh:
+docker version
 
 
-và
+(để biết engine ARM64 hay x86_64)
 
-docker logs couchdb0 --tail=50
+✅ 2. Kết quả lệnh:
+uname -m
 
 
-💯 Tôi đảm bảo CouchDB 3.1.2 sẽ chạy bình thường trên ARM64, peer sẽ start thành công.
+(để xác nhận kiến trúc CPU)
