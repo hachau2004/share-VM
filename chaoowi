@@ -1,203 +1,60 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker ps | grep peer0.banka
-hachau@hachau:~/fabric-samples/bankchain$ docker logs peer0.banka.example.com --tail=200
-  gateway:
-    broadcasttimeout: 30s
-    dialtimeout: 2m
-    enabled: true
-    endorsementtimeout: 30s
-  gossip:
-    aliveexpirationtimeout: 25s
-    alivetimeinterval: 5s
-    bootstrap: 127.0.0.1:7051
-    conntimeout: 2s
-    dialtimeout: 3s
-    digestwaittime: 1s
-    election:
-      leaderalivethreshold: 10s
-      leaderelectionduration: 5s
-      membershipsampleinterval: 1s
-      startupgraceperiod: 15s
-    maxblockcounttostore: 10
-    maxconnectionattempts: 120
-    maxpropagationburstlatency: 10ms
-    maxpropagationburstsize: 10
-    membershiptrackerinterval: 5s
-    msgexpirationfactor: 20
-    orgleader: true
-    propagateiterations: 1
-    propagatepeernum: 3
-    publishcertperiod: 10s
-    publishstateinfointerval: 4s
-    pullinterval: 4s
-    pullpeernum: 3
-    pvtdata:
-      btlpullmargin: 10
-      implicitcollectiondisseminationpolicy:
-        maxpeercount: 1
-        requiredpeercount: 0
-      pullretrythreshold: 60s
-      pushacktimeout: 3s
-      reconcilebatchsize: 10
-      reconcilesleepinterval: 1m
-      reconciliationenabled: true
-      skippullinginvalidtransactionsduringcommit: false
-      transientstoremaxblockretention: 1000
-    reconnectinterval: 25s
-    recvbuffsize: 20
-    requeststateinfointerval: 4s
-    requestwaittime: 1500ms
-    responsewaittime: 2s
-    sendbuffsize: 200
-    skipblockverification: false
-    state:
-      batchsize: 10
-      blockbuffersize: 20
-      checkinterval: 10s
-      enabled: false
-      maxretries: 3
-      responsetimeout: 3s
-    useleaderelection: false
-  handlers:
-    authfilters:
-    - name: DefaultAuth
-    - name: ExpirationCheck
-    decorators:
-    - name: DefaultDecorator
-    endorsers:
-      escc:
-        name: DefaultEndorsement
-    validators:
-      vscc:
-        name: DefaultValidation
-  id: jdoe
-  keepalive:
-    client:
-      interval: 60s
-      timeout: 20s
-    deliveryclient:
-      interval: 60s
-      timeout: 20s
-    interval: 7200s
-    mininterval: 60s
-    timeout: 20s
-  limits:
-    concurrency:
-      deliverservice: 2500
-      endorserservice: 2500
-      gatewayservice: 500
-  listenaddress: 0.0.0.0:7051
-  localmspid: SampleOrg
-  localmsptype: bccsp
-  maxrecvmsgsize: 104857600
-  maxsendmsgsize: 104857600
-  mspconfigpath: msp
-  networkid: dev
-  profile:
-    enabled: false
-    listenaddress: 0.0.0.0:6060
-  tls:
-    cert:
-      file: tls/server.crt
-    clientauthrequired: false
-    clientrootcas:
-      files:
-      - tls/ca.crt
-    enabled: false
-    key:
-      file: tls/server.key
-    rootcert:
-      file: tls/ca.crt
-vm:
-  docker:
-    attachstdout: false
-    hostconfig:
-      logconfig:
-        config:
-          max-file: "5"
-          max-size: 50m
-        type: json-file
-      memory: 2147483648
-      networkmode: host
-    tls:
-      ca:
-        file: docker/ca.crt
-      cert:
-        file: docker/tls.crt
-      enabled: false
-      key:
-        file: docker/tls.key
-  endpoint: unix:///var/run/docker.sock
-2025-11-09 09:24:00.033 UTC 0003 INFO [peer] getLocalAddress -> Auto-detected peer address: 172.18.0.3:7051
-2025-11-09 09:24:00.033 UTC 0004 INFO [peer] getLocalAddress -> Host is 0.0.0.0 , falling back to auto-detected address: 172.18.0.3:7051
-2025-11-09 09:24:00.034 UTC 0005 INFO [nodeCmd] initGrpcSemaphores -> concurrency limit for endorser service is 2500
-2025-11-09 09:24:00.034 UTC 0006 INFO [nodeCmd] initGrpcSemaphores -> concurrency limit for deliver service is 2500
-2025-11-09 09:24:00.034 UTC 0007 INFO [nodeCmd] initGrpcSemaphores -> concurrency limit for gateway service is 500
-2025-11-09 09:24:00.077 UTC 0008 INFO [certmonitor] trackCertExpiration -> The enrollment certificate will expire on 2035-11-05 14:57:00 +0000 UTC
-2025-11-09 09:24:00.078 UTC 0009 INFO [ledgermgmt] NewLedgerMgr -> Initializing LedgerMgr
-2025-11-09 09:24:00.124 UTC 000a INFO [leveldbhelper] openDBAndCheckFormat -> DB is empty Setting db format as 2.0
-2025-11-09 09:24:00.126 UTC 000b INFO [blkstorage] NewProvider -> Creating new file ledger directory at /var/hyperledger/production/ledgersData/chains/chains
-2025-11-09 09:24:00.141 UTC 000c INFO [leveldbhelper] openDBAndCheckFormat -> DB is empty Setting db format as 2.5
-2025-11-09 09:24:00.152 UTC 000d INFO [leveldbhelper] openDBAndCheckFormat -> DB is empty Setting db format as 2.0
-2025-11-09 09:24:00.170 UTC 000e WARN [couchdb] handleRequest -> Attempt 1 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 125ms
-2025-11-09 09:24:00.297 UTC 000f WARN [couchdb] handleRequest -> Attempt 2 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 250ms
-2025-11-09 09:24:00.548 UTC 0010 WARN [couchdb] handleRequest -> Attempt 3 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 500ms
-2025-11-09 09:24:01.050 UTC 0011 WARN [couchdb] handleRequest -> Attempt 4 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 1s
-2025-11-09 09:24:02.051 UTC 0012 WARN [couchdb] handleRequest -> Attempt 5 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 2s
-2025-11-09 09:24:04.052 UTC 0013 WARN [couchdb] handleRequest -> Attempt 6 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 4s
-2025-11-09 09:24:08.054 UTC 0014 WARN [couchdb] handleRequest -> Attempt 7 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 8s
-2025-11-09 09:24:16.056 UTC 0015 WARN [couchdb] handleRequest -> Attempt 8 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 16s
-2025-11-09 09:24:32.057 UTC 0016 WARN [couchdb] handleRequest -> Attempt 9 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 32s
-2025-11-09 09:25:04.060 UTC 0017 WARN [couchdb] handleRequest -> Attempt 10 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retrying couchdb request in 1m4s
-2025-11-09 09:26:08.064 UTC 0018 WARN [couchdb] handleRequest -> Attempt 11 of 11 returned error: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving. Retries exhausted
-panic: Error in instantiating ledger provider: Get "http://couchdb0:5984/": dial tcp: lookup couchdb0 on 127.0.0.11:53: server misbehaving
-	http error calling couchdb
-	github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb.(*couchInstance).handleRequest
-		/core/ledger/kvledger/txmgmt/statedb/statecouchdb/couchdb.go:1714
-	github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb.(*couchInstance).verifyCouchConfig
-		/core/ledger/kvledger/txmgmt/statedb/statecouchdb/couchdb.go:353
-	github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb.createCouchInstance
-		/core/ledger/kvledger/txmgmt/statedb/statecouchdb/couchdbutil.go:88
-	github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb.NewVersionedDBProvider
-		/core/ledger/kvledger/txmgmt/statedb/statecouchdb/statecouchdb.go:56
-	github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/privacyenabledstate.NewDBProvider
-		/core/ledger/kvledger/txmgmt/privacyenabledstate/db.go:66
-	github.com/hyperledger/fabric/core/ledger/kvledger.(*Provider).initStateDBProvider
-		/core/ledger/kvledger/kv_ledger_provider.go:234
-	github.com/hyperledger/fabric/core/ledger/kvledger.NewProvider
-		/core/ledger/kvledger/kv_ledger_provider.go:118
-	github.com/hyperledger/fabric/core/ledger/ledgermgmt.NewLedgerMgr
-		/core/ledger/ledgermgmt/ledger_mgmt.go:71
-	github.com/hyperledger/fabric/internal/peer/node.serve
-		/internal/peer/node/start.go:445
-	github.com/hyperledger/fabric/internal/peer/node.init.func6
-		/internal/peer/node/start.go:130
-	github.com/spf13/cobra.(*Command).execute
-		/vendor/github.com/spf13/cobra/command.go:872
-	github.com/spf13/cobra.(*Command).ExecuteC
-		/vendor/github.com/spf13/cobra/command.go:990
-	github.com/spf13/cobra.(*Command).Execute
-		/vendor/github.com/spf13/cobra/command.go:918
-	main.main
-		/cmd/peer/main.go:56
-	runtime.main
-		/usr/local/go/src/runtime/proc.go:272
-	runtime.goexit
-		/usr/local/go/src/runtime/asm_arm64.s:1223
-	unable to connect to CouchDB, check the hostname and port
+version: '2'
 
-goroutine 1 [running]:
-github.com/hyperledger/fabric/core/ledger/ledgermgmt.NewLedgerMgr(0x400004d778)
-	/core/ledger/ledgermgmt/ledger_mgmt.go:85 +0x50c
-github.com/hyperledger/fabric/internal/peer/node.serve({0x0?, 0xbfc14f7900000000?, 0x400004dbe8?})
-	/internal/peer/node/start.go:445 +0x1d90
-github.com/hyperledger/fabric/internal/peer/node.init.func6(0x2afb600?, {0x2b88060?, 0x4?, 0x1dc819f?})
-	/internal/peer/node/start.go:130 +0x60
-github.com/spf13/cobra.(*Command).execute(0x2afb600, {0x2b88060, 0x0, 0x0})
-	/vendor/github.com/spf13/cobra/command.go:872 +0x56c
-github.com/spf13/cobra.(*Command).ExecuteC(0x2af9f80)
-	/vendor/github.com/spf13/cobra/command.go:990 +0x318
-github.com/spf13/cobra.(*Command).Execute(...)
-	/vendor/github.com/spf13/cobra/command.go:918
-main.main()
-	/cmd/peer/main.go:56 +0x300
-hachau@hachau:~/fabric-samples/bankchain$ 
+services:
+
+  # ============================
+  # ORDERER BASE SERVICE
+  # ============================
+  orderer.example.com:
+    image: hyperledger/fabric-orderer:2.5.12
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/hyperledger/orderer
+    command: orderer
+    volumes:
+      - /var/hyperledger/production:/var/hyperledger/production
+
+  # ============================
+  # PEER BASE SERVICE
+  # ============================
+  peer-base:
+    image: hyperledger/fabric-peer:2.5.12
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_FILESYSTEMPATH=/var/hyperledger/production
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+      - /var/run/:/host/var/run/
+
+  # ============================
+  # PEER EXTENSIONS
+  # ============================
+  peer0.banka.example.com:
+    extends:
+      service: peer-base
+
+  peer1.banka.example.com:
+    extends:
+      service: peer-base
+
+  peer0.bankb.example.com:
+    extends:
+      service: peer-base
+
+  peer1.bankb.example.com:
+    extends:
+      service: peer-base
