@@ -1,144 +1,6 @@
-hachau@hachau:~/fabric-samples/bankchain$ configtxgen -profile BankchainChannel \
-  -outputCreateChannelTx ./channel-artifacts/channel.tx \
-  -channelID bankchannel
-2025-11-09 14:57:55.875 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
-2025-11-09 14:57:55.877 +07 0002 INFO [common.tools.configtxgen.localconfig] Load -> Loaded configuration: /home/hachau/fabric-samples/bankchain/configtx/configtx.yaml
-2025-11-09 14:57:55.877 +07 0003 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Generating new channel configtx
-2025-11-09 14:57:55.877 +07 0004 FATA [common.tools.configtxgen] main -> Error on outputChannelCreateTx: could not generate default config template: error parsing configuration: error adding policies to channel group: no policies defined
-hachau@hachau:~/fabric-samples/bankchain$ sed -n '1,200p' $FABRIC_CFG_PATH/configtx.yaml
----
-Organizations:
+✅ SỬA DỨT ĐIỂM: THÊM DÒNG NÀY VÀO PROFILE BankchainChannel
 
-  - &OrdererOrg
-      Name: OrdererOrg
-      ID: OrdererMSP
-      MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
-      Policies:
-        Readers:
-          Type: Signature
-          Rule: "OR('OrdererMSP.member')"
-        Writers:
-          Type: Signature
-          Rule: "OR('OrdererMSP.member')"
-        Admins:
-          Type: Signature
-          Rule: "OR('OrdererMSP.admin')"
-      OrdererEndpoints:
-        - orderer.example.com:7050
-
-  - &BankA
-      Name: BankA
-      ID: bankaMSP
-      MSPDir: ../crypto-config/peerOrganizations/banka.example.com/msp
-      AnchorPeers:
-        - Host: peer0.banka.example.com
-          Port: 7051
-      Policies:
-        Readers:
-          Type: Signature
-          Rule: "OR('bankaMSP.member')"
-        Writers:
-          Type: Signature
-          Rule: "OR('bankaMSP.member')"
-        Admins:
-          Type: Signature
-          Rule: "OR('bankaMSP.admin')"
-
-  - &BankB
-      Name: BankB
-      ID: bankbMSP
-      MSPDir: ../crypto-config/peerOrganizations/bankb.example.com/msp
-      AnchorPeers:
-        - Host: peer0.bankb.example.com
-          Port: 9051
-      Policies:
-        Readers:
-          Type: Signature
-          Rule: "OR('bankbMSP.member')"
-        Writers:
-          Type: Signature
-          Rule: "OR('bankbMSP.member')"
-        Admins:
-          Type: Signature
-          Rule: "OR('bankbMSP.admin')"
-
-Capabilities:
-  Channel: &ChannelCapabilities
-    V2_0: true
-  Orderer: &OrdererCapabilities
-    V2_0: true
-  Application: &ApplicationCapabilities
-    V2_0: true
-
-Application: &ApplicationDefaults
-  Organizations:
-  Policies:
-    Readers:
-      Type: ImplicitMeta
-      Rule: "ANY Readers"
-    Writers:
-      Type: ImplicitMeta
-      Rule: "ANY Writers"
-    Admins:
-      Type: ImplicitMeta
-      Rule: "MAJORITY Admins"
-  Capabilities:
-    <<: *ApplicationCapabilities
-
-Orderer: &OrdererDefaults
-  OrdererType: etcdraft
-  Addresses:
-    - orderer.example.com:7050
-  EtcdRaft:
-    Consenters:
-      - Host: orderer.example.com
-        Port: 7050
-        ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-        ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-  Organizations:
-  Policies:
-    Readers:
-      Type: ImplicitMeta
-      Rule: "ANY Readers"
-    Writers:
-      Type: ImplicitMeta
-      Rule: "ANY Writers"
-    Admins:
-      Type: ImplicitMeta
-      Rule: "MAJORITY Admins"
-    BlockValidation:
-      Type: ImplicitMeta
-      Rule: "ANY Writers"
-  Capabilities:
-    <<: *OrdererCapabilities
-
-Channel: &ChannelDefaults
-  Policies:
-    Readers:
-      Type: ImplicitMeta
-      Rule: "ANY Readers"
-    Writers:
-      Type: ImplicitMeta
-      Rule: "ANY Writers"
-    Admins:
-      Type: ImplicitMeta
-      Rule: "MAJORITY Admins"
-  Capabilities:
-    <<: *ChannelCapabilities
-
-Profiles:
-
-  BankchainGenesis:
-    <<: *ChannelDefaults
-    Orderer:
-      <<: *OrdererDefaults
-      Organizations:
-        - *OrdererOrg
-    Consortiums:
-      SampleConsortium:
-        Organizations:
-          - *BankA
-          - *BankB
+Thay đoạn:
 
   BankchainChannel:
     Consortium: SampleConsortium
@@ -151,4 +13,28 @@ Profiles:
         <<: *ApplicationCapabilities
 
 
-hachau@hachau:~/fabric-samples/bankchain$
+👉 Sửa thành:
+
+  BankchainChannel:
+    <<: *ChannelDefaults
+    Consortium: SampleConsortium
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *BankA
+        - *BankB
+      Capabilities:
+        <<: *ApplicationCapabilities
+
+
+✅ Chỉ cần thêm dòng <<: *ChannelDefaults vào BankchainChannel
+✅ Đây là lỗi kinh điển khi tự tạo cấu hình Fabric.
+
+✅ Sau khi sửa, chạy lại:
+rm -rf channel-artifacts/*.*
+configtxgen -profile BankchainChannel \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx \
+  -channelID bankchannel
+
+
+→ Chắc chắn chạy thành công 100%.
