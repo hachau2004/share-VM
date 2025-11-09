@@ -1,14 +1,67 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
-WARN[0000] The "SYS_CHANNEL" variable is not set. Defaulting to a blank string. 
-WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
-[+] Running 4/5
- ✔ Container couchdb3             Started                                  0.3s 
- ✔ Container couchdb1             Started                                  0.3s 
- ⠸ Container orderer.example.com  Start...                                 0.3s 
- ✔ Container couchdb0             Started                                  0.3s 
- ✔ Container couchdb2             Started                                  0.3s 
-Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting "/home/hachau/fabric-samples/bankchain/channel-artifacts/genesis.block" to rootfs at "/var/hyperledger/orderer/orderer.genesis.block": mount src=/home/hachau/fabric-samples/bankchain/channel-artifacts/genesis.block, dst=/var/hyperledger/orderer/orderer.genesis.block, dstFd=/proc/thread-self/fd/43, flags=MS_BIND|MS_REC: not a directory: unknown: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type
-hachau@hachau:~/fabric-samples/bankchain$ docker ps
-CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
-hachau@hachau:~/fabric-samples/bankchain$
+✅ GIẢI THÍCH NGẮN GỌN LỖI
 
+Orderer cần mount file:
+
+./channel-artifacts/genesis.block
+
+
+Nhưng thư mục của anh không có file đó → Docker báo lỗi:
+
+mount ... genesis.block: not a directory / not exist
+
+
+Vì orderer không start → toàn bộ network không chạy → CLI cũng không chạy.
+
+✅ ✅ BƯỚC 1 — KIỂM TRA FILE genesis.block CÓ TỒN TẠI KHÔNG
+
+Chạy:
+
+ls -l channel-artifacts
+
+
+Nếu chỉ có mỗi channel.tx → nghĩa là anh chưa tạo genesis.block.
+
+✅ ✅ BƯỚC 2 — TẠO LẠI GENESIS.BLOCK
+
+Chạy lệnh sau ngoài CLI (ở host – chính terminal anh đang dùng):
+
+Tạo lại genesis block (system channel)
+export FABRIC_CFG_PATH=$PWD/configtx
+
+configtxgen -profile BankchainGenesis \
+  -channelID system-channel \
+  -outputBlock ./channel-artifacts/genesis.block
+
+
+Nếu thành công → nó sẽ tạo file:
+
+channel-artifacts/genesis.block
+
+✅ ✅ BƯỚC 3 — TẠO LẠI CHANNEL TX (đã làm rồi nhưng làm lại cho chắc)
+export CHANNEL_NAME=bankchannel
+
+configtxgen -profile BankchainChannel \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx \
+  -channelID $CHANNEL_NAME
+
+✅ ✅ BƯỚC 4 — KHỞI ĐỘNG LẠI DOCKER
+
+Trước khi khởi động lại, xóa các container cũ:
+
+docker rm -f $(docker ps -aq)
+
+
+Sau đó:
+
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ ✅ BƯỚC 5 — KIỂM TRA ORDERER ĐÃ CHẠY
+docker ps
+
+
+Phải thấy:
+
+✅ orderer.example.com (Up)
+✅ couchdb0–3
+✅ peer0/1 banka & bankb
+✅ cli
