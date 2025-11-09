@@ -1,115 +1,48 @@
-BƯỚC 1 — Vào trong container CLI
+✅ Bước 1: Vào lại CLI
 
-Chạy:
+Trên máy host:
 
 docker exec -it cli bash
 
-
-Nếu vào được sẽ thấy dòng kiểu như:
-
-root@cli:/opt/gopath/src/github.com/hyperledger/fabric/peer#
-
-✅ BƯỚC 2 — Xuất tên channel
+✅ Bước 2: Set biến môi trường cho peer0.banka (vì CLI đang đại diện cho BankA)
 
 Trong CLI:
+
+export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
 
 export CHANNEL_NAME=bankchannel
 
-✅ BƯỚC 3 — Tạo channel block
-
-Trong CLI chạy:
-
-peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchannel.block \
-  --tls \
-  --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-
-
-hachau@hachau:~/fabric-samples/bankchain$ docker ps
-CONTAINER ID   IMAGE                               COMMAND       CREATED         STATUS         PORTS      NAMES
-ca7633c40326   hyperledger/fabric-tools:2.5.12     "/bin/bash"   7 minutes ago   Up 7 minutes              cli
-0b594737c88b   hyperledger/fabric-orderer:2.5.12   "orderer"     7 minutes ago   Up 7 minutes   7050/tcp   orderer.example.com
-hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
-WARN[0000] The "SYS_CHANNEL" variable is not set. Defaulting to a blank string. 
-WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
-[+] Running 10/10
- ✔ Container orderer.example.com      R...                                 0.0s 
- ✔ Container cli                      Running                              0.0s 
- ✔ Container couchdb3                 Started                              0.3s 
- ✔ Container couchdb1                 Started                              0.3s 
- ✔ Container couchdb0                 Started                              0.3s 
- ✔ Container couchdb2                 Started                              0.3s 
- ✔ Container peer0.bankb.example.com  Started                              0.3s 
- ✔ Container peer1.banka.example.com  Started                              0.4s 
- ✔ Container peer0.banka.example.com  Started                              0.4s 
- ✔ Container peer1.bankb.example.com  Started                              0.5s 
-hachau@hachau:~/fabric-samples/bankchain$ 
- 
-✅ Kết quả đúng sẽ có dòng:
-
-Channel creation successful
-
-✅ BƯỚC 4 — Peer0 BankA JOIN CHANNEL
+✅ Bước 3: Join channel
 
 Trong CLI:
 
 peer channel join -b ./channel-artifacts/bankchannel.block
 
 
-✅ Nếu đúng sẽ thấy:
+Nếu đúng sẽ hiện:
 
 Successfully submitted proposal to join channel
 
-✅ BƯỚC 5 — CHO PEER1 BANK A JOIN CHANNEL
-
-Vẫn trong CLI, nhưng đổi ENV sang peer1:
-
+✅ Bước 4: Set môi trường cho peer1.banka (nếu muốn join)
 export CORE_PEER_ADDRESS=peer1.banka.example.com:8051
-export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/server.crt
-export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/server.key
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-
-
-Join:
 
 peer channel join -b ./channel-artifacts/bankchannel.block
 
-✅ BƯỚC 6 — CHO PEER0 BANK B JOIN CHANNEL
-
-Vẫn trong CLI nhưng chuyển ENV sang org B:
-
-export CORE_PEER_LOCALMSPID=bankbMSP
+✅ Bước 5: Set môi trường cho peer0.bankb rồi join
+export CORE_PEER_LOCALMSPID="bankbMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
 export CORE_PEER_ADDRESS=peer0.bankb.example.com:9051
-export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/server.crt
-export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/server.key
 export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
-
-
-Join:
 
 peer channel join -b ./channel-artifacts/bankchannel.block
 
-✅ BƯỚC 7 — PEER1 BANK B JOIN
+✅ Bước 6: Join tiếp peer1.bankb
 export CORE_PEER_ADDRESS=peer1.bankb.example.com:10051
-export CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/server.crt
-export CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/server.key
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bankb.example.com/users/Admin@bankb.example.com/msp
-
-
-Join:
 
 peer channel join -b ./channel-artifacts/bankchannel.block
 
-✅ BƯỚC 8 — Kiểm tra tất cả peer đã join
-peer channel list
-
-
-Ở mỗi peer phải thấy:
-
-bankchannel
+✅ Gửi mình Screenshot khi bạn chạy:
+peer channel join -b ./channel-artifacts/bankchannel.block
