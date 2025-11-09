@@ -1,12 +1,103 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
-root@201e2b5ff413:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+✅ 1. Kiểm tra xem peer0.banka có RUNNING thật không
 
-export CHANNEL_NAME=bankchannel
-root@201e2b5ff413:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
-Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp 172.18.0.3:7051: connect: connection refused"
-root@201e2b5ff413:/opt/gopath/src/github.com/hyperledger/fabric/peer# 
+Chạy bên ngoài CLI:
+
+docker ps | grep peer0.banka
 
 
+Nếu KHÔNG thấy → peer đang lỗi → sang bước 2.
+
+Nếu thấy RUNNING → báo tôi ngay.
+
+✅ 2. Xem log của peer0.banka.example.com
+
+Đây là bước QUAN TRỌNG NHẤT:
+
+docker logs peer0.banka.example.com --tail=200
+
+
+Gửi nguyên log 20–30 dòng cuối cho tôi.
+
+Tôi sẽ đọc lỗi và sửa đúng chỗ.
+
+✅ 3. Xác minh TLS file có tồn tại không
+
+Trong host:
+
+ls -l crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls
+
+
+Bạn phải thấy 3 file:
+
+✅ server.crt
+✅ server.key
+✅ ca.crt
+
+Nếu thiếu file nào → bạn đã generate crypto-config sai → phải regenerate.
+
+✅ 4. Kiểm tra mount volume trong docker-compose
+
+Mở file docker-compose-bankchain.yaml
+Trong service peer0.banka.example.com
+PHẢI CÓ:
+
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+Nhưng trong file bạn gửi lúc trước… KHÔNG CÓ VOLUME NÀY!
+
+→ Peer không mount TLS → lỗi "server.key not found" → peer crash.
+
+⚠️ Đây là lỗi chính xác khiến bạn join channel fail.
+
+✅ 5. Fix docker-compose cho peer0.banka
+
+Thêm đầy đủ vào:
+
+  peer0.banka.example.com:
+    image: hyperledger/fabric-peer:2.5.12
+    container_name: peer0.banka.example.com
+    environment:
+      - CORE_PEER_ID=peer0.banka.example.com
+      - CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_LOCALMSPID=bankaMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    volumes:
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+      - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+Làm tương tự cho:
+
+✅ peer1.banka
+✅ peer0.bankb
+✅ peer1.bankb
+
+✅ 6. Restart toàn bộ
+docker compose -f docker-compose-bankchain.yaml down
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ 7. Kiểm tra peer đã online chưa
+docker ps | grep peer0.banka
+
+
+Nếu RUNNING ổn → join lại:
+
+docker exec -it cli bash
+peer channel join -b ./channel-artifacts/bankchannel.block
+
+
+✅ Lúc này sẽ JOIN THÀNH CÔNG 100%
+
+✅ GIỜ BẠN LÀM BƯỚC 1 + 2 TRƯỚC
+
+⭐ Gửi mình log của peer0.banka example.com:
+
+docker logs peer0.banka.example.com --tail=200
