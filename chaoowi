@@ -28,30 +28,26 @@ peer channel create \
   --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 
-hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CHANNEL_NAME=bankchannel
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel create \
-  -o orderer.example.com:7050 \
-  -c $CHANNEL_NAME \
-  -f ./channel-artifacts/channel.tx \
-  --outputBlock ./channel-artifacts/bankchannel.block \
-  --tls \
-  --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
-2025-11-09 08:33:37.619 UTC 0001 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:37.637 UTC 0002 INFO [cli.common] readBlock -> Expect block, but got status: &{NOT_FOUND}
-2025-11-09 08:33:37.641 UTC 0003 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:37.843 UTC 0004 INFO [cli.common] readBlock -> Expect block, but got status: &{SERVICE_UNAVAILABLE}
-2025-11-09 08:33:37.846 UTC 0005 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:38.047 UTC 0006 INFO [cli.common] readBlock -> Expect block, but got status: &{SERVICE_UNAVAILABLE}
-2025-11-09 08:33:38.052 UTC 0007 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:38.253 UTC 0008 INFO [cli.common] readBlock -> Expect block, but got status: &{SERVICE_UNAVAILABLE}
-2025-11-09 08:33:38.257 UTC 0009 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:38.459 UTC 000a INFO [cli.common] readBlock -> Expect block, but got status: &{SERVICE_UNAVAILABLE}
-2025-11-09 08:33:38.465 UTC 000b INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-2025-11-09 08:33:38.667 UTC 000c INFO [cli.common] readBlock -> Received block: 0
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# peer channel join -b ./channel-artifacts/bankchannel.block
-Error: error getting endorser client for channel: endorser client failed to connect to peer0.banka.example.com:7051: failed to create new connection: connection error: desc = "transport: error while dialing: dial tcp: lookup peer0.banka.example.com on 127.0.0.11:53: no such host"
-root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# 
+hachau@hachau:~/fabric-samples/bankchain$ docker ps
+CONTAINER ID   IMAGE                               COMMAND       CREATED         STATUS         PORTS      NAMES
+ca7633c40326   hyperledger/fabric-tools:2.5.12     "/bin/bash"   7 minutes ago   Up 7 minutes              cli
+0b594737c88b   hyperledger/fabric-orderer:2.5.12   "orderer"     7 minutes ago   Up 7 minutes   7050/tcp   orderer.example.com
+hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
+WARN[0000] The "SYS_CHANNEL" variable is not set. Defaulting to a blank string. 
+WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 10/10
+ ✔ Container orderer.example.com      R...                                 0.0s 
+ ✔ Container cli                      Running                              0.0s 
+ ✔ Container couchdb3                 Started                              0.3s 
+ ✔ Container couchdb1                 Started                              0.3s 
+ ✔ Container couchdb0                 Started                              0.3s 
+ ✔ Container couchdb2                 Started                              0.3s 
+ ✔ Container peer0.bankb.example.com  Started                              0.3s 
+ ✔ Container peer1.banka.example.com  Started                              0.4s 
+ ✔ Container peer0.banka.example.com  Started                              0.4s 
+ ✔ Container peer1.bankb.example.com  Started                              0.5s 
+hachau@hachau:~/fabric-samples/bankchain$ 
+ 
 ✅ Kết quả đúng sẽ có dòng:
 
 Channel creation successful
