@@ -1,35 +1,8 @@
-✅ GIẢI PHÁP CHẮC CHẮN SỬA ĐƯỢC
-
-Chạy 3 lệnh này — để ép cấu hình đúng chỗ:
-
-cd ~/fabric-samples/bankchain
-export FABRIC_CFG_PATH=$PWD/configtx
-echo $FABRIC_CFG_PATH
-
-
-Kết quả phải in ra:
-
-/home/hachau/fabric-samples/bankchain/configtx
-
-
-Sau đó chạy lại:
-
-configtxgen -profile BankchainChannel \
+hachau@hachau:~/fabric-samples/bankchain$ configtxgen -profile BankchainChannel \
   -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID bankchannel
-
-✅ Kiểm tra cuối cùng: đúng file configtx chưa?
-head -n 20 $FABRIC_CFG_PATH/configtx.yaml
-
-
-Phải thấy:
-
-Profiles:
-  BankchainGenesis:
-  BankchainChannel:
-
-🔥 Nếu anh gửi em output của:
-
-✅ echo $FABRIC_CFG_PATH
-✅ ls -l $FABRIC_CFG_PATH
-✅ grep -n "BankchainChannel" $FABRIC_CFG_PATH/configtx.yaml
+2025-11-09 15:12:48.823 +07 0001 INFO [common.tools.configtxgen] main -> Loading configuration
+2025-11-09 15:12:48.825 +07 0002 INFO [common.tools.configtxgen.localconfig] Load -> Loaded configuration: /home/hachau/fabric-samples/bankchain/configtx/configtx.yaml
+2025-11-09 15:12:48.825 +07 0003 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Generating new channel configtx
+2025-11-09 15:12:48.831 +07 0004 INFO [common.tools.configtxgen] doOutputChannelCreateTx -> Writing new channel tx
+hachau@hachau:~/fabric-samples/bankchain$
