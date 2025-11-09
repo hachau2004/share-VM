@@ -1,59 +1,21 @@
-✅ BƯỚC 1 — Kiểm tra CLI có đúng network hay chưa
+hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep -A5 NetworkSettings
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "b1d4c9f9b668e8fc299a890e239d39825c370e2630f5407bc8cb573c6eb57b66",
+            "SandboxKey": "/var/run/docker/netns/b1d4c9f9b668",
+            "Ports": {},
+            "HairpinMode": false,
+hachau@hachau:~/fabric-samples/bankchain$ docker inspect cli | grep bankchain
+                "/home/hachau/fabric-samples/bankchain/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto:rw",
+                "/home/hachau/fabric-samples/bankchain/channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts:rw",
+                "/home/hachau/fabric-samples/bankchain/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts:rw",
+            "NetworkMode": "bankchain_bankchain",
+                "Source": "/home/hachau/fabric-samples/bankchain/crypto-config",
+                "Source": "/home/hachau/fabric-samples/bankchain/channel-artifacts",
+                "Source": "/home/hachau/fabric-samples/bankchain/scripts",
+                "com.docker.compose.project": "bankchain",
+                "com.docker.compose.project.config_files": "/home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml",
+                "com.docker.compose.project.working_dir": "/home/hachau/fabric-samples/bankchain",
+                "bankchain_bankchain": {
+hachau@hachau:~/fabric-samples/bankchain$ 
 
-Ra ngoài CLI, chạy:
-
-docker inspect cli | grep -A5 NetworkSettings
-
-
-Gửi mình kết quả.
-
-✅ BƯỚC 2 — KẾT LUẬN: CLI ĐANG LỆCH NETWORK
-
-Để chắc chắn, chạy tiếp:
-
-docker inspect cli | grep bankchain
-
-
-Nếu KHÔNG thấy dòng này:
-
-"bankchain_bankchain": {
-
-
-👉 CLI không nằm trong network → không thể ping peer.
-
-✅ BƯỚC 3 — FIX NGAY: Thêm CLI vào network đúng
-
-Chạy:
-
-docker network connect bankchain_bankchain cli
-
-
-Nếu không lỗi → OK.
-
-✅ BƯỚC 4 — Vào lại CLI test DNS
-docker exec -it cli bash
-getent hosts peer0.banka.example.com
-
-
-✅ Nếu ra IP → join channel được
-❌ Nếu vẫn trống → mình xử lý tiếp.
-
-✅ BƯỚC 5 — Khi DNS hoạt động → join channel
-
-Trong CLI:
-
-export CORE_PEER_LOCALMSPID="bankaMSP"
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
-export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
-export CHANNEL_NAME=bankchannel
-
-peer channel join -b ./channel-artifacts/bankchannel.block
-
-
-✅ GIỜ BẠN CHẠY CHO MÌNH:
-
-docker inspect cli | grep bankchain
-
-
-→ Dán kết quả lên đây để mình xử lý chính xác.
