@@ -1,64 +1,108 @@
-hachau@hachau:~/fabric-samples/bankchain$ docker ps | grep peer0.banka
-hachau@hachau:~/fabric-samples/bankchain$ docker logs peer0.banka.example.com --tail=50
-  limits:
-    concurrency:
-      deliverservice: 2500
-      endorserservice: 2500
-      gatewayservice: 500
-  listenaddress: 0.0.0.0:7051
-  localmspid: SampleOrg
-  localmsptype: bccsp
-  maxrecvmsgsize: 104857600
-  maxsendmsgsize: 104857600
-  mspconfigpath: msp
-  networkid: dev
-  profile:
-    enabled: false
-    listenaddress: 0.0.0.0:6060
-  tls:
-    cert:
-      file: /etc/hyperledger/fabric/tls/server.crt
-    clientauthrequired: false
-    clientrootcas:
-      files:
-      - tls/ca.crt
-    enabled: "true"
-    key:
-      file: /etc/hyperledger/fabric/tls/server.key
-    rootcert:
-      file: /etc/hyperledger/fabric/tls/ca.crt
-vm:
-  docker:
-    attachstdout: "true"
-    hostconfig:
-      logconfig:
-        config:
-          max-file: "5"
-          max-size: 50m
-        type: json-file
-      memory: 2147483648
-      networkmode: host
-    tls:
-      ca:
-        file: docker/ca.crt
-      cert:
-        file: docker/tls.crt
-      enabled: false
-      key:
-        file: docker/tls.key
-  endpoint: unix:///host/var/run/docker.sock
-2025-11-09 09:10:52.627 UTC 0003 INFO [peer] getLocalAddress -> Auto-detected peer address: 172.18.0.8:7051
-2025-11-09 09:10:52.627 UTC 0004 INFO [peer] getLocalAddress -> Host is 0.0.0.0 , falling back to auto-detected address: 172.18.0.8:7051
-2025-11-09 09:10:52.628 UTC 0005 FATA [nodeCmd] serve -> Error loading secure config for peer (error loading TLS key (open /etc/hyperledger/fabric/tls/server.key: no such file or directory))
-hachau@hachau:~/fabric-samples/bankchain$ docker exec -it peer0.banka.example.com sh -c "getent hosts peer0.banka.example.com"
-Error response from daemon: container c7701f599973fe9d8797f23998c16d4419f2cf7cad45c80881afc513f7fadee3 is not running
-hachau@hachau:~/fabric-samples/bankchain$ 
-docker inspect peer0.banka.example.com | grep Hostname
-docker inspect peer0.banka.example.com | grep -A3 Networks
-        "HostnamePath": "/var/lib/docker/containers/c7701f599973fe9d8797f23998c16d4419f2cf7cad45c80881afc513f7fadee3/hostname",
-            "Hostname": "c7701f599973",
-            "Networks": {
-                "bankchain_bankchain": {
-                    "IPAMConfig": null,
-                    "Links": null,
-hachau@hachau:~/fabric-samples/bankchain$ 
+✅ Bạn chỉ cần mở file này:
+
+fabric-samples/bankchain/docker-compose-bankchain.yaml
+
+
+và sửa đúng 4 chỗ volumes của peer như mình chỉ bên dưới.
+
+✅ 1) TÌM 4 SERVICE PEER TRONG FILE
+
+Bạn kéo xuống file sẽ thấy 4 block giống như:
+
+peer0.banka.example.com:
+peer1.banka.example.com:
+peer0.bankb.example.com:
+peer1.bankb.example.com:
+
+
+Trong mỗi block đó sẽ có phần:
+
+volumes:
+  - ../crypto-config/peerOrganizations/...   (SAI)
+
+
+📌 Bạn phải sửa lại thành:
+
+volumes:
+  - ./crypto-config/peerOrganizations/...   (ĐÚNG)
+
+
+Chỉ thay ../ thành ./
+Không cần sửa gì khác.
+
+✅ 2) MÌNH CHỈ ĐÚNG NƠI PHẢI SỬA — COPY Y NGUYÊN
+✅ Sửa peer0.banka.example.com
+
+TÌM đoạn:
+
+peer0.banka.example.com:
+  ...
+  volumes:
+    - ../crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+THAY BẰNG:
+
+  volumes:
+    - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls:/etc/hyperledger/fabric/tls
+    - peer0.banka.example.com:/var/hyperledger/production
+
+✅ Sửa peer1.banka.example.com
+
+TÌM:
+
+  volumes:
+    - ../crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+THAY BẰNG:
+
+  volumes:
+    - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/banka.example.com/peers/peer1.banka.example.com/tls:/etc/hyperledger/fabric/tls
+    - peer1.banka.example.com:/var/hyperledger/production
+
+✅ Sửa peer0.bankb.example.com
+
+TÌM:
+
+  volumes:
+    - ../crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+THAY BẰNG:
+
+  volumes:
+    - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer0.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+    - peer0.bankb.example.com:/var/hyperledger/production
+
+✅ Sửa peer1.bankb.example.com
+
+TÌM:
+
+  volumes:
+    - ../crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+
+
+THAY BẰNG:
+
+  volumes:
+    - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/bankb.example.com/peers/peer1.bankb.example.com/tls:/etc/hyperledger/fabric/tls
+    - peer1.bankb.example.com:/var/hyperledger/production
+
+✅ 3) KHỞI ĐỘNG LẠI
+docker compose -f docker-compose-bankchain.yaml down -v
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ 4) KIỂM TRA PEER ĐÃ CHẠY CHƯA
+docker ps | grep peer0.banka
+
+
+Nếu chạy → CLI join channel OK.
