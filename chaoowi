@@ -1,3 +1,14 @@
+hachau@hachau:~/fabric-samples/bankchain$ docker compose -f docker-compose-bankchain.yaml up -d
+WARN[0000] /home/hachau/fabric-samples/bankchain/docker-compose-bankchain.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 2/4
+ ! couchdb1         Interrupted                                            4.3s 
+ ⠹ couchdb0 Pulling                                                        4.3s 
+ ! couchdb3         Interrupted                                            4.3s 
+ ⠹ couchdb2 Pulling                                                        4.3s 
+no matching manifest for linux/arm64/v8 in the manifest list entries
+hachau@hachau:~/fabric-samples/bankchain$ 
+
+
 ✅ BƯỚC 1 — DỪNG TOÀN BỘ MẠNG HOÀN TOÀN
 
 Chạy:
