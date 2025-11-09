@@ -1,8 +1,7 @@
-✅ GIẢI THÍCH NGẮN GỌN LỖI
-
-Orderer cần mount file:
-
-./channel-artifacts/genesis.block
+hachau@hachau:~/fabric-samples/bankchain$ ls -l channel-artifacts
+total 8
+-rw-r----- 1 hachau hachau  342 Nov  9 15:12 channel.tx
+drwxr-xr-x 2 root   root   4096 Nov  9 15:16 genesis.block
 
 
 Nhưng thư mục của anh không có file đó → Docker báo lỗi:
