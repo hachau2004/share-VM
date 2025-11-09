@@ -1,38 +1,48 @@
-Nếu bạn muốn tiếp tục ngay bây giờ trên host ARM (mình khuyên làm theo B), làm theo các bước dưới đây theo thứ tự và báo mình kết quả (dán output):
+✅ Cách sửa Nhanh (bắt buộc làm bước này)
+1️⃣ Xóa container cũ bị kẹt
 
-Cài qemu + đăng ký:
+Chạy:
 
-sudo apt update
-sudo apt install -y qemu-user-static binfmt-support
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
-
-Tạo swap 8GB (nếu thiếu RAM):
-
-sudo fallocate -l 8G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-free -h
+docker rm -f orderer.example.com
 
 
-(đảm bảo free -h hiển thị swap mới)
+Nếu lỗi vẫn còn container Hidden thì liệt kê ALL:
 
-Trong docker-compose-bankchain.yaml thêm dòng platform: linux/amd64 cho service peer0... peer1... orderer... cli (tạm thời) — hoặc export default platform:
-
-export DOCKER_DEFAULT_PLATFORM=linux/amd64
+docker ps -a | grep orderer
 
 
-Khởi động lại docker và chạy:
+Rồi xoá hết:
 
-sudo systemctl restart docker
+docker rm -f <ID>
+
+✅ 2️⃣ Xóa toàn bộ container, network, volume (nếu bạn muốn sạch hoàn toàn)
+
+⚠️ Nếu bạn không có gì quan trọng, chạy:
+
+docker stop $(docker ps -aq)
+docker rm -f $(docker ps -aq)
+docker network prune -f
+docker volume prune -f
+
+✅ 3️⃣ Chạy lại compose với platform ARM64
+
+Trước khi chạy compose, bạn phải export platform:
+
+export DOCKER_DEFAULT_PLATFORM=linux/arm64
+
+
+Rồi:
+
+docker compose -f docker-compose-bankchain.yaml up -d
+
+✅ Nếu bạn vẫn bị freeze lúc chạy CLI
+
+Bạn gửi lại mình docker-compose-bankchain.yaml và mình sẽ tạo full version ARM64 tối ưu RAM cho bạn.
+
+✅ Bạn hãy chạy 3 dòng này ngay và chụp hình lại:
+docker rm -f orderer.example.com
+docker ps -a
 docker compose -f docker-compose-bankchain.yaml up -d
 
 
-Kiểm tra trạng thái và logs, gửi cho mình:
-
-docker ps -a
-docker logs couchdb0 --tail=50
-docker logs peer0.banka.example.com --tail=100
-docker logs cli --tail=50
-docker stats --no-stream
+Mình sẽ debug tiếp cho bạn.
