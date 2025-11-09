@@ -1,3 +1,15 @@
+hachau@hachau:~/fabric-samples/bankchain$ docker exec -it cli bash
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# export CORE_PEER_LOCALMSPID="bankaMSP"
+export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/users/Admin@banka.example.com/msp
+export CORE_PEER_ADDRESS=peer0.banka.example.com:7051
+export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/banka.example.com/peers/peer0.banka.example.com/tls/ca.crt
+
+export CHANNEL_NAME=bankchannel
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# getent hosts peer0.banka.example.com
+root@ca7633c40326:/opt/gopath/src/github.com/hyperledger/fabric/peer# 
+
+
+
 ✅ Bước 1 — Export lại biến môi trường đúng
 
 🔵 VÀO TRONG CLI:
