@@ -1,39 +1,52 @@
-1. Chạy export để load key vào ENV (tạm thời)
-
-Lưu ý: các export này tạm thời, chỉ tồn tại trong phiên terminal hiện tại.
-
-Chạy từng dòng:
-
-export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export ISSUER_SECRET="$(jq -r .ISSUER_SECRET ~/stellar-dev/usdx-keys.json)"
-export BANKA_PUBLIC="$(jq -r .BANKA_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
-export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export BANKB_SECRET="$(jq -r .BANKB_SECRET ~/stellar-dev/usdx-keys.json)"
-
-
-💡 Nếu terminal không báo lỗi gì là OK.
-
-❗️Kiểm tra lại thử bằng:
-echo $ISSUER_PUBLIC
-echo $BANKA_PUBLIC
-echo $BANKB_PUBLIC
-
-
-→ Tất cả phải hiện ra key đúng như trong file usdx-keys.json.
-
-✅ 2. Kiểm tra balance Issuer / BankA / BankB
+1) Xem 10 payment gần nhất của BankA
 
 Chạy:
 
-curl -s "http://localhost:8000/accounts/${ISSUER_PUBLIC}" | jq '.balances'
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=10" | jq '.'
 
 
-Tiếp:
+👉 Kết quả đúng sẽ thấy 1 payment:
 
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
+type: "payment"
+
+amount: "10000"
+
+asset_code: "USDX"
+
+from: ISSUER
+
+to: BANKA
+
+🟢 2) Xem chi tiết 1 transaction cụ thể (cần tx_hash)
+
+Bạn cần lấy transaction hash từ kết quả payments.
+
+📌 Trong kết quả payment có phần transaction_hash, ví dụ:
+
+"transaction_hash": "abcdef1234567890..."
 
 
-Cuối cùng:
+Copy transaction_hash đó, rồi chạy:
 
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
+curl -s "http://localhost:8000/transactions/<tx_hash>" | jq '.'
+
+
+Ví dụ:
+
+curl -s "http://localhost:8000/transactions/abcdef1234567890" | jq '.'
+
+✔ Bạn cần làm gì bây giờ?
+
+Chạy:
+
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=10" | jq '.'
+
+
+Copy transaction_hash trong output.
+
+Dán vào lệnh sau:
+
+curl -s "http://localhost:8000/transactions/<tx_hash>" | jq '.'
+
+
+Gửi mình screenshot kết quả.
