@@ -1,52 +1,132 @@
-1) Xem 10 payment gần nhất của BankA
+BƯỚC 6 — Chuyển USDX từ BankA → BankB
+6.1 — Tạo file transfer_banka_to_bankb.js
 
 Chạy:
 
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=10" | jq '.'
+cd ~/stellar-dev/scripts
+nano transfer_banka_to_bankb.js
 
 
-👉 Kết quả đúng sẽ thấy 1 payment:
+➡ Bây giờ dán NGUYÊN TOÀN BỘ đoạn code này vào (đây là bản đã kiểm tra & chuẩn):
 
-type: "payment"
+const S = require('stellar-sdk');
+const fetch = global.fetch || require('node-fetch');
 
-amount: "10000"
+const HORIZON = process.env.HORIZON || 'http://localhost:8000';
 
-asset_code: "USDX"
+// compatibility: find Server/Horizon constructor
+let ServerClass = S.Server || (S.Horizon && S.Horizon.Server) || S.Horizon;
+if (!ServerClass) {
+  console.error('Cannot find Server/Horizon constructor in stellar-sdk exports. Installed version:', Object.keys(S).join(','));
+  process.exit(2);
+}
 
-from: ISSUER
+// Try to instantiate with allowHttp if supported, otherwise fallback
+let server;
+try {
+  server = new ServerClass(HORIZON, { allowHttp: true });
+} catch (err) {
+  try {
+    server = new ServerClass(HORIZON);
+  } catch (e) {
+    console.error('Failed to construct Horizon server client:', err.message || err);
+    process.exit(3);
+  }
+}
 
-to: BANKA
+(async () => {
+  try {
+    const FROM_SECRET = process.env.BANKA_SECRET;
+    const TO_PUBLIC = process.env.BANKB_PUBLIC || process.argv[2];
+    const ISSUER_PUBLIC = process.env.ISSUER_PUBLIC;
+    const AMOUNT = process.argv[2] && process.argv[2].match(/^\d/) ? process.argv[2] : (process.argv[3] || '100');
 
-🟢 2) Xem chi tiết 1 transaction cụ thể (cần tx_hash)
+    if (!FROM_SECRET) { console.error('Set BANKA_SECRET env'); process.exit(1); }
+    if (!TO_PUBLIC) { console.error('Set BANKB_PUBLIC env or pass as first arg'); process.exit(1); }
+    if (!ISSUER_PUBLIC) { console.error('Set ISSUER_PUBLIC env'); process.exit(1); }
 
-Bạn cần lấy transaction hash từ kết quả payments.
+    const fromKP = S.Keypair.fromSecret(FROM_SECRET);
+    const acct = await server.loadAccount(fromKP.publicKey());
+    const asset = new S.Asset('USDX', ISSUER_PUBLIC);
+    const baseFee = await server.fetchBaseFee();
 
-📌 Trong kết quả payment có phần transaction_hash, ví dụ:
+    const tx = new S.TransactionBuilder(acct, { fee: String(baseFee), networkPassphrase: S.Networks.TESTNET })
+      .addOperation(S.Operation.payment({ destination: TO_PUBLIC, asset, amount: String(AMOUNT) }))
+      .setTimeout(30)
+      .build();
 
-"transaction_hash": "abcdef1234567890..."
+    tx.sign(fromKP);
+    const res = await server.submitTransaction(tx);
+    console.log('Payment submitted, tx hash:', res.hash);
+    process.exit(0);
+  } catch (e) {
+    if (e.response && e.response.data) {
+      console.error('Horizon error:', JSON.stringify(e.response.data, null, 2));
+    } else {
+      console.error('Error:', e.message || e);
+    }
+    process.exit(1);
+  }
+})();
 
 
-Copy transaction_hash đó, rồi chạy:
+Lưu file:
 
-curl -s "http://localhost:8000/transactions/<tx_hash>" | jq '.'
+Ctrl + O → Enter
 
+Ctrl + X
 
-Ví dụ:
-
-curl -s "http://localhost:8000/transactions/abcdef1234567890" | jq '.'
-
-✔ Bạn cần làm gì bây giờ?
+✅ 6.2 — Set ENV để script dùng đúng key
 
 Chạy:
 
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=10" | jq '.'
+export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export ISSUER_SECRET="$(jq -r .ISSUER_SECRET ~/stellar-dev/usdx-keys.json)"
+export BANKA_PUBLIC="$(jq -r .BANKA_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
+export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export BANKB_SECRET="$(jq -r .BANKB_SECRET ~/stellar-dev/usdx-keys.json)"
+export HORIZON="http://localhost:8000"
 
 
-Copy transaction_hash trong output.
+Kiểm tra:
 
-Dán vào lệnh sau:
+echo $BANKA_SECRET
+echo $BANKB_PUBLIC
+echo $ISSUER_PUBLIC
 
-curl -s "http://localhost:8000/transactions/<tx_hash>" | jq '.'
+✅ 6.3 — Chạy chuyển 500 USDX từ BankA → BankB
+
+Chạy:
+
+node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
 
 
-Gửi mình screenshot kết quả.
+Kết quả đúng sẽ là:
+
+Payment submitted, tx hash: XXXXXXXXXXXXXXXXXXXXX
+
+
+=> Lệnh đã CHUYỂN 500 USDX thành công.
+
+✅ 6.4 — Kiểm tra balances
+BankA:
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
+
+BankB:
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
+
+
+Kỳ vọng:
+
+BankA tổng USDX giảm 500
+
+BankB tổng USDX tăng 500
+
+🎉 XONG BƯỚC 6
+
+Bây giờ bạn gửi mình:
+
+Kết quả khi chạy:
+
+node scripts/transfer_banka_to_bankb.js 500
