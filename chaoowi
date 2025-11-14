@@ -1,4 +1,5 @@
 ✔️ Cách sửa rất đơn giản
+cat ~/stellar-dev/usdx-keys.json
 
 Mở file .env:
 
