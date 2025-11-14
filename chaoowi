@@ -1,49 +1,315 @@
-✅ Cách kiểm tra dung lượng thật sự
+Bước 0 — Chuẩn bị môi trường
+
+Hệ điều hành: Ubuntu / Debian recommended. Cài Docker, Node, npm.
+Ví dụ (copy/paste):
+
+sudo apt update
+sudo apt install -y curl git apt-transport-https ca-certificates gnupg
+# Docker
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+sudo usermod -aG docker $USER
+# Node/npm
+sudo apt install -y nodejs npm
+node -v; npm -v
+
+
+— Sau usermod: mở shell mới hoặc logout/login.
+
+Bước 1 — Khởi động Stellar quickstart (Horizon + Core) bằng Docker
+
+Kéo image & chạy:
+
+docker pull docker.io/stellar/quickstart:latest
+docker run -d --name stellar-quickstart -p 8000:8000 -p 11626:11626 docker.io/stellar/quickstart:latest
+
+
+Kiểm tra:
+
+docker ps --filter "name=stellar-quickstart" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker logs stellar-quickstart --tail 200
+curl http://localhost:8000/ledgers | jq '.'
+
+
+— Mong thấy JSON ledger trả về (Horizon hoạt động).
+
+Mẹo: nếu quickstart in ra Network root secret (MASTER SEED), lưu lại nếu friendbot không hoạt động.
+
+Bước 2 — Tạo Issuer, BankA, BankB và issue asset USDX
+
+File mẫu script: ~/stellar-dev/scripts/create_usdx_network.js (đã có nội dung trong file). Thực hiện:
+
+Tạo thư mục & cài deps:
+
+mkdir -p ~/stellar-dev/scripts
+cd ~/stellar-dev
+npm init -y
+npm install stellar-sdk dotenv node-fetch@2
+
+
+Tạo / chạy script (nếu bạn đã có file trong repo, chỉ chạy):
+
+node scripts/create_usdx_network.js
+
+
+Script sẽ tạo 3 keypairs, gọi friendbot (http://localhost:8000/friendbot
+) để fund, set trustlines BankA/BankB, issuer gửi 10000 USDX → BankA.
+
+Kết quả ghi vào ~/stellar-dev/usdx-keys.json
+
+Nếu muốn chuyển ngay:
+
+node scripts/create_usdx_network.js transfer 500
+
+
+Kiểm tra balances:
+
+export ISSUER_PUBLIC=$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)
+export BANKA_PUBLIC=$(jq -r .BANKA_PUBLIC ~/stellar-dev/usdx-keys.json)
+export BANKB_PUBLIC=$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)
+
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
+
+
+Mẹo xử lý lỗi: nếu friendbot không reachable, truyền ADMIN_SECRET (root secret in logs quickstart) vào ENV trước khi chạy script để script dùng admin tạo account.
+
+Bước 3 — Cấu hình stellar.toml (phục vụ bằng static server)
+
+Tạo file static:
+
+mkdir -p ~/stellar-dev/static/.well-known
+cat > ~/stellar-dev/static/.well-known/stellar.toml <<'TOML'
+NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
+DOCUMENTATION="Local demo single-domain (Chapter 5 style)"
+FEDERATION_SERVER="http://localhost:3001/federation"
+TRANSFER_SERVER="http://localhost:3020/transfer"
+AUTH_SERVER="http://localhost:3001/auth"
+KYC_SERVER="http://localhost:3010/kyc"
+ACCOUNTS=["$ISSUER_PUBLIC"]
+TOML
+
+
+Dùng express để serve:
+
+cd ~/stellar-dev/static
+npm init -y
+npm install express
+node server.js & disown
+
+
+Test:
+
+curl -sS http://localhost:8080/.well-known/stellar.toml
+
+Bước 4 — Federation (port 3001)
+
+Tạo server federation (file ~/stellar-dev/federation/server.js) — resolve name*localhost → public key (mã sẵn trong usdx-keys.json).
+
+Cài & chạy:
+
+cd ~/stellar-dev/federation
+npm init -y
+npm install express
+node server.js & disown
+
+
+Test resolve:
+
+curl "http://localhost:3001/federation?q=banka*localhost&type=name"
+curl -s "http://localhost:3001/federation?q=bankb*localhost" | jq .
+
+Bước 5 — Compliance / KYC mock (port 3010)
+
+Tạo server KYC (in-memory) — ~/stellar-dev/compliance/server.js.
+
+Cài & chạy:
+
+cd ~/stellar-dev/compliance
+npm init -y
+npm install express body-parser
+node server.js & disown
+
+
+Test:
+
+curl -s -X POST http://localhost:3010/kyc -H 'content-type:application/json' -d '{"id":"cust1","name":"Nguyen Van A"}' | jq .
+curl -s http://localhost:3010/kyc/cust1 | jq .
+
+
+— Policy đơn giản: name chứa "bad" ⇒ reject.
+
+Bước 6 — Bridge (port 3020) — tạo & submit Stellar tx
+
+~/stellar-dev/bridge/server.js có code sign tx bằng BANKA_SECRET, optional KYC check, submit lên Horizon.
+
+Cài & chạy:
+
+cd ~/stellar-dev/bridge
+npm init -y
+npm install express body-parser stellar-sdk node-fetch@2
+node server.js & disown
+
+
+Test transfer (sau khi KYC approved):
+
+# ensure KYC record exists
+curl -s -X POST http://localhost:3010/kyc -H 'content-type:application/json' -d '{"id":"cust1","name":"Nguyen Van A"}' | jq .
+# call bridge
+TO=$BANKB_PUBLIC
+curl -s -X POST http://localhost:3020/transfer -H 'content-type:application/json' \
+  -d "{\"to\":\"$TO\",\"amount\":\"5\",\"kycId\":\"cust1\",\"callbackUrl\":\"http://localhost:3030/webhook\"}" | jq .
+
+
+— Nếu success: JSON { "status":"ok", "tx":"<hash>" }.
+
+Xác thực giao dịch trên Horizon:
+
+curl -s "http://localhost:8000/transactions/<TX_HASH>/operations" | jq .
+
+Bước 7 — Callbacks / Webhooks (port 3030)
+
+~/stellar-dev/callbacks/server.js lưu events vào memory và expose /events.
+
+Cài & chạy:
+
+cd ~/stellar-dev/callbacks
+npm init -y
+npm install express body-parser
+node server.js & disown
+
+
+Test xem event có tới chưa:
+
+curl -s http://localhost:3030/events | jq .
+
+Bước 8 — Portal Backend (port 3040)
+
+~/stellar-dev/portal-backend/server.js — mock login, proxy federation, forward KYC & transfer tới services.
+
+Cài & chạy:
+
+cd ~/stellar-dev/portal-backend
+npm init -y
+npm install express body-parser node-fetch@2
+node server.js & disown
+
+
+Test:
+
+curl -s -X POST http://localhost:3040/api/login -H 'content-type:application/json' -d '{"username":"banka"}' | jq .
+curl -s "http://localhost:3040/api/resolve?q=bankb*localhost" | jq .
+curl -s "http://localhost:3040/api/balances?account=${BANKA_PUBLIC}" | jq .
+
+Bước 9 — Frontend React (port 3000)
+
+Tạo app (nếu chưa có):
+
+cd ~/stellar-dev
+npx create-react-app portal-frontend
+cd portal-frontend
+# thêm "proxy": "http://localhost:3040" vào package.json (script đã cung cấp)
+npm install
+
+
+Thay src/App.js và src/App.css bằng nội dung trong file (mình đã copy nội dung trong doc).
 
 Chạy:
 
-df -h
+npm start
 
 
-Bạn sẽ thấy / hoặc /home = 100% full.
+Mở trình duyệt: http://localhost:3000 — login bằng banka hoặc bankb (mock).
 
-✅ 3 cách dọn dẹp nhanh nhất để chạy lại được
-✅ 1. Xóa toàn bộ image + container Docker cũ (giải phóng vài GB)
+Bước 10 — Chạy demo end-to-end
 
-Chạy 3 lệnh:
+Kiểm tra mọi dịch vụ đang chạy (các port mặc định):
 
-docker system prune -a --volumes -f
-docker volume prune -f
-docker network prune -f
-
-
-Thường giải phóng 3–10GB.
-
-✅ 2. Xóa cache apt (giải phóng 1–2GB)
-sudo apt-get clean
-sudo apt-get autoremove -y
-
-✅ 3. Xóa file trong thư mục Docker bị phình to
-sudo rm -rf /var/lib/docker/overlay2/*
+8080 static (stellar.toml)
+3001 federation
+3010 compliance (KYC)
+3020 bridge
+3030 callbacks
+3040 portal-backend
+3000 frontend
+8000 Horizon
 
 
-⚠️ Cách này xóa toàn bộ data Docker, nhưng hoàn toàn an toàn nếu bạn đang reset môi trường.
+Bạn có thể dùng ss -lntu hoặc lsof -i -P -n | grep LISTEN để kiểm tra.
 
-✅ Sau khi dọn xong → kiểm tra lại
-df -h
+Approve KYC:
 
-
-Bạn cần ít nhất:
-
-✅ 10GB trống để chạy Hyperledger Fabric
-✅ Nếu dưới 6GB → vẫn lỗi tiếp
-
-✅ Khi disk đã thoáng → bạn quay lại chạy compose
-export DOCKER_DEFAULT_PLATFORM=linux/arm64
-docker compose -f docker-compose-bankchain.yaml up -d
-
-👉 Gửi lại mình output của:
-df -h
+curl -s -X POST http://localhost:3010/kyc -H 'content-type:application/json' -d '{"id":"cust1","name":"Nguyen Van A"}' | jq .
 
 
-Tôi sẽ xem dung lượng và chỉ cách tối ưu nếu còn thiếu.
+Từ UI (frontend) — login banka, resolve bankb*localhost, gửi amount (vd 10) và optional kycId:cust1. Hoặc dùng API:
+
+BANKB=$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)
+curl -s -X POST http://localhost:3040/api/transfer -H 'content-type:application/json' \
+  -d "{\"to\":\"$BANKB\",\"amount\":\"10\",\"kycId\":\"cust1\",\"callbackUrl\":\"http://localhost:3030/webhook\"}" | jq .
+
+
+Kiểm tra callbacks/events:
+
+curl -s http://localhost:3030/events | jq .
+
+
+Kiểm tra balances trên Horizon:
+
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
+
+Kiểm tra & debugging — checklist nhanh
+
+Friendbot unreachable → cung cấp ADMIN_SECRET (từ docker logs quickstart) cho script create accounts.
+
+Nếu server.submitTransaction lỗi: xem lỗi chi tiết (err.response.data) — thường lỗi trustline / asset not authorized / insufficient balance.
+
+Nếu frontend không resolve bankb*localhost: kiểm tra federation chạy (port 3001) và proxy backend (3040) có truy cập đúng.
+
+Nếu callback không nhận event: kiểm tra callbackUrl gửi từ bridge có đúng http://localhost:3030/webhook và callbacks service đang chạy.
+
+Nếu Horizon trả transaction contains operations that would change trust etc: kiểm tra tx đã ký đúng key (BankA secret) và asset issuer đúng.
+
+Các lệnh hữu ích tóm tắt
+
+Xem docker logs quickstart (lấy ADMIN_SECRET nếu in ra):
+
+docker logs stellar-quickstart --tail 200
+
+
+Xem accounts / balances:
+
+curl -s "http://localhost:8000/accounts/<PUBLIC_KEY>" | jq '.balances'
+
+
+Xem payments cho account:
+
+curl -s "http://localhost:8000/accounts/<PUBLIC_KEY>/payments?order=desc&limit=10" | jq .
+
+
+Xem events webhook:
+
+curl -s http://localhost:3030/events | jq .
+
+Những cải tiến & extension bạn có thể thử (sau khi bản demo chạy ổn)
+
+Lưu KYC vào DB (Postgres) thay vì in-memory.
+
+Thêm Horizon streaming (horizon payments stream) vào callbacks để cập nhật realtime thay vì callback từ bridge.
+
+Thêm audit log và webhook retry.
+
+Mô phỏng AML rule phức tạp (ví dụ: limit threshold, country checks, sanctions list).
+
+Nếu bạn muốn, mình có thể:
+
+Sinh checklist bash script để khởi tất cả services (systemd / pm2 / docker compose style).
+
+Viết file docker-compose.yml để khởi Horizon + services (yêu cầu mình tạo nội dung compose).
+
+Hoặc giúp bạn debug lỗi cụ thể — dán lỗi log ở đây, mình chỉ ra nguyên nhân và cách sửa.
+
+Bạn muốn mình làm tiếp theo phương án nào?
