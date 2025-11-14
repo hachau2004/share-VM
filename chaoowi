@@ -1,5 +1,29 @@
 ✅ BƯỚC 1 — GỠ SẠCH nodejs & npm (apt)
+2) Bật thêm SWAP ngay để tránh treo
 
+Swap giúp Ubuntu không bị chết khi RAM bị đầy.
+
+Chạy:
+
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+
+Thêm vào /etc/fstab:
+
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+
+Kiểm tra:
+
+free -h
+
+
+Bạn sẽ thấy swap = 4GB.
+
+👉 Điều này giúp không bao giờ bị treo khi chạy Docker + Node.
 Chạy từng lệnh:
 
 sudo apt remove -y nodejs npm
