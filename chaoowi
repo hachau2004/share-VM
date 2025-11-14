@@ -1,43 +1,20 @@
-GIỜ DÙNG HASH ĐÚNG ĐỂ KIỂM TRA GIAO DỊCH
-
-Chạy đúng lệnh này:
+Copy nguyên lệnh này, dán vào terminal:
 
 curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
 
 
-Nhớ copy-paste nguyên dòng trên.
-ĐỪNG chia dòng.
-ĐỪNG để ký tự lạ “وز”.
+⚠️ KHÔNG được xuống dòng
+⚠️ KHÔNG có dấu cách giữa “transactions” và “/fe44b0a11…”
 
-📌 TIẾP THEO CHẠY 2 LỆNH KIỂM TRA BALANCE
+❗ NHẮC LẠI HASH ĐÚNG CỦA BẠN:
+fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b
+
+📌 Sau đó chạy tiếp 3 lệnh kiểm tra balances:
 BankA:
 curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
 
 BankB:
 curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
 
-
-👉 Kết quả đúng:
-
-BankA: USDX = 10000 − 500 = 9500
-
-BankB: USDX = 500
-
-📌 KIỂM TRA PAYMENTS CỦA BANKB
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq .
-
-
-Bạn sẽ thấy 1 payment từ BankA → BankB.
-
-🎯 TÓM LẠI BẠN CẦM CHẠY 3 LỆNH SAU:
-1️⃣ Kiểm tra operations:
-curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
-
-2️⃣ Balance BankA:
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
-
-3️⃣ Balance BankB:
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
-
-4️⃣ Payments cho BankB:
+Payments BankB:
 curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq .
