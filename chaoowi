@@ -1,169 +1,75 @@
-hachau@hachau:~/stellar-dev/scripts$ curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=5" | jq .
-{
-  "_links": {
-    "self": {
-      "href": "http://localhost:8000/accounts//payments?cursor=&limit=5&order=desc"
-    },
-    "next": {
-      "href": "http://localhost:8000/accounts//payments?cursor=64424513542&limit=5&order=desc"
-    },
-    "prev": {
-      "href": "http://localhost:8000/accounts//payments?cursor=64424513546&limit=5&order=asc"
-    }
-  },
-  "_embedded": {
-    "records": [
-      {
-        "_links": {
-          "self": {
-            "href": "http://localhost:8000/operations/64424513546"
-          },
-          "transaction": {
-            "href": "http://localhost:8000/transactions/57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f"
-          },
-          "effects": {
-            "href": "http://localhost:8000/operations/64424513546/effects"
-          },
-          "succeeds": {
-            "href": "http://localhost:8000/effects?order=desc&cursor=64424513546"
-          },
-          "precedes": {
-            "href": "http://localhost:8000/effects?order=asc&cursor=64424513546"
-          }
-        },
-        "id": "64424513546",
-        "paging_token": "64424513546",
-        "transaction_successful": true,
-        "source_account": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "type": "create_account",
-        "type_i": 0,
-        "created_at": "2025-11-14T13:11:36Z",
-        "transaction_hash": "57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f",
-        "starting_balance": "101.0000000",
-        "funder": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "account": "GCJX756ELHTBKLEFWHNZJ24C4XKENCDIHCJXUVZF5G7ZMOWAHVTFDJLO"
-      },
-      {
-        "_links": {
-          "self": {
-            "href": "http://localhost:8000/operations/64424513545"
-          },
-          "transaction": {
-            "href": "http://localhost:8000/transactions/57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f"
-          },
-          "effects": {
-            "href": "http://localhost:8000/operations/64424513545/effects"
-          },
-          "succeeds": {
-            "href": "http://localhost:8000/effects?order=desc&cursor=64424513545"
-          },
-          "precedes": {
-            "href": "http://localhost:8000/effects?order=asc&cursor=64424513545"
-          }
-        },
-        "id": "64424513545",
-        "paging_token": "64424513545",
-        "transaction_successful": true,
-        "source_account": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "type": "create_account",
-        "type_i": 0,
-        "created_at": "2025-11-14T13:11:36Z",
-        "transaction_hash": "57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f",
-        "starting_balance": "101.0000000",
-        "funder": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "account": "GCWU2LRWVYXOETBZWUKJWICONPNUFKON4OR2FR7GCPKG4JO7AES5Y724"
-      },
-      {
-        "_links": {
-          "self": {
-            "href": "http://localhost:8000/operations/64424513544"
-          },
-          "transaction": {
-            "href": "http://localhost:8000/transactions/57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f"
-          },
-          "effects": {
-            "href": "http://localhost:8000/operations/64424513544/effects"
-          },
-          "succeeds": {
-            "href": "http://localhost:8000/effects?order=desc&cursor=64424513544"
-          },
-          "precedes": {
-            "href": "http://localhost:8000/effects?order=asc&cursor=64424513544"
-          }
-        },
-        "id": "64424513544",
-        "paging_token": "64424513544",
-        "transaction_successful": true,
-        "source_account": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "type": "create_account",
-        "type_i": 0,
-        "created_at": "2025-11-14T13:11:36Z",
-        "transaction_hash": "57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f",
-        "starting_balance": "101.0000000",
-        "funder": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "account": "GDGIC4XR3Q5EISVK62QLV2V3TDCHFHK7DXZFAHQY4NM47TRD3KUSG45T"
-      },
-      {
-        "_links": {
-          "self": {
-            "href": "http://localhost:8000/operations/64424513543"
-          },
-          "transaction": {
-            "href": "http://localhost:8000/transactions/57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f"
-          },
-          "effects": {
-            "href": "http://localhost:8000/operations/64424513543/effects"
-          },
-          "succeeds": {
-            "href": "http://localhost:8000/effects?order=desc&cursor=64424513543"
-          },
-          "precedes": {
-            "href": "http://localhost:8000/effects?order=asc&cursor=64424513543"
-          }
-        },
-        "id": "64424513543",
-        "paging_token": "64424513543",
-        "transaction_successful": true,
-        "source_account": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "type": "create_account",
-        "type_i": 0,
-        "created_at": "2025-11-14T13:11:36Z",
-        "transaction_hash": "57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f",
-        "starting_balance": "101.0000000",
-        "funder": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "account": "GBWJSEOCG2UTTPCPQXL2EJCOF4Z73JO2ZASMQNDL67NXMEA2ZDVEYGU2"
-      },
-      {
-        "_links": {
-          "self": {
-            "href": "http://localhost:8000/operations/64424513542"
-          },
-          "transaction": {
-            "href": "http://localhost:8000/transactions/57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f"
-          },
-          "effects": {
-            "href": "http://localhost:8000/operations/64424513542/effects"
-          },
-          "succeeds": {
-            "href": "http://localhost:8000/effects?order=desc&cursor=64424513542"
-          },
-          "precedes": {
-            "href": "http://localhost:8000/effects?order=asc&cursor=64424513542"
-          }
-        },
-        "id": "64424513542",
-        "paging_token": "64424513542",
-        "transaction_successful": true,
-        "source_account": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "type": "create_account",
-        "type_i": 0,
-        "created_at": "2025-11-14T13:11:36Z",
-        "transaction_hash": "57c3ee911b5abe201eaec824f5172c802e54e971bae321a81edc9f82775f885f",
-        "starting_balance": "101.0000000",
-        "funder": "GBZXN7PIRZGNMHGA7MUUUF4GWPY5AYPV6LY4UV2GL6VJGIQRXFDNMADI",
-        "account": "GACTCRYMWSRB2G2T3IVKSNZVD6YAAPSZVGYMAWWXO4G6N6ZW6R36TQAJ"
-      }
-    ]
-  }
-}
+✅ BƯỚC 1 — Kiểm tra lại secret trong ENV
 
+Chạy:
+
+echo $BANKA_PUBLIC
+echo $BANKA_SECRET
+
+
+📌 Gửi mình output để xác nhận.
+
+✅ BƯỚC 2 — Tạo giao dịch thử 1 XLM (native)
+
+Tạo file test:
+
+nano ~/stellar-dev/scripts/test_payment_native.js
+
+
+Dán đúng đoạn code:
+
+const S = require("stellar-sdk");
+
+const HORIZON = "http://localhost:8000";
+const server = new S.Server(HORIZON, { allowHttp: true });
+
+(async () => {
+  const FROM = process.env.BANKA_SECRET;
+  const TO = process.env.BANKB_PUBLIC;
+
+  if (!FROM || !TO) {
+    console.error("Missing env vars");
+    process.exit(1);
+  }
+
+  const kp = S.Keypair.fromSecret(FROM);
+  const account = await server.loadAccount(kp.publicKey());
+
+  const tx = new S.TransactionBuilder(account, {
+    fee: S.BASE_FEE,
+    networkPassphrase: S.Networks.TESTNET,
+  })
+    .addOperation(
+      S.Operation.payment({
+        destination: TO,
+        asset: S.Asset.native(),
+        amount: "1",
+      })
+    )
+    .setTimeout(30)
+    .build();
+
+  tx.sign(kp);
+
+  try {
+    const res = await server.submitTransaction(tx);
+    console.log("TX HASH:", res.hash);
+  } catch (err) {
+    console.log("ERROR:");
+    console.log(JSON.stringify(err?.response?.data || err, null, 2));
+  }
+})();
+
+
+Lưu file → chạy:
+
+node ~/stellar-dev/scripts/test_payment_native.js
+
+🟢 Kết quả mong đợi
+Nếu chữ ký đúng → sẽ nhận hash giao dịch thật.
+
+Và chạy:
+
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/transactions?order=desc&limit=5" | jq .
+
+
+→ Sẽ thấy giao dịch mới có source_account = BANKA_PUBLIC.
