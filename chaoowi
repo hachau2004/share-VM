@@ -2,6 +2,30 @@ Bước 0 — Chuẩn bị môi trường
 
 Hệ điều hành: Ubuntu / Debian recommended. Cài Docker, Node, npm.
 Ví dụ (copy/paste):
+Xóa curl khỏi hệ thống
+
+Chạy lệnh:
+
+sudo apt remove curl -y
+
+
+Nếu bạn muốn xóa luôn các file cấu hình kèm theo:
+
+sudo apt purge curl -y
+
+
+Sau đó dọn rác:
+
+sudo apt autoremove -y
+
+📌 Kiểm tra curl đã bị xóa chưa
+curl --version
+
+
+Nếu curl không còn → nó sẽ báo:
+
+Command 'curl' not found
+
 
 sudo apt update
 sudo apt install -y curl git apt-transport-https ca-certificates gnupg
