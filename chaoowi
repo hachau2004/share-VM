@@ -15,6 +15,75 @@ sudo usermod -aG docker $USER
 sudo apt install -y nodejs npm
 node -v; npm -v
 
+✅ CÁCH KHẮC PHỤC (100% hiệu quả)
+Bước 1 — Gỡ toàn bộ Node.js / npm do hệ thống cài
+
+Chạy lệnh:
+
+sudo apt remove -y nodejs npm
+sudo apt autoremove -y
+
+
+Kiểm tra còn sót gì không:
+
+which node
+which npm
+
+
+Nếu còn /usr/bin/node hoặc /usr/bin/npm, xoá thủ công:
+
+sudo rm -f /usr/bin/node
+sudo rm -f /usr/bin/npm
+
+Bước 2 — Cài Node.js qua NVM (không bao giờ lỗi dependency)
+
+Nếu bạn chưa có nvm:
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+
+
+Cài Node.js v20 LTS (ỔN ĐỊNH nhất cho dự án Stellar / React):
+
+nvm install 20
+nvm use 20
+nvm alias default 20
+
+
+Kiểm tra phiên bản:
+
+node -v
+npm -v
+
+⚠️ Lưu ý quan trọng
+
+Không dùng sudo apt install nodejs npm nữa vì Ubuntu repo thường lỗi dependency.
+
+Dùng nvm luôn ổn định và không bị xung đột.
+
+✔️ Nếu bạn muốn dùng Node 22
+
+Tuy Node 22 vẫn dùng được, nhưng tốt nhất cho React + Stellar là Node 20 LTS.
+
+Nếu vẫn muốn Node 22:
+
+nvm install 22
+nvm use 22
+nvm alias default 22
+
+Nếu bạn muốn mình kiểm tra chính xác OS / ARM / phiên bản Node hiện tại
+
+Bạn chạy giúp mình lệnh sau rồi gửi kết quả:
+
+uname -a
+lsb_release -a
+node -v
+npm -v
+which node
+which npm
+
+
+Mình sẽ chẩn đoán chính xác nhất cho máy của bạn.
 
 — Sau usermod: mở shell mới hoặc logout/login.
 
