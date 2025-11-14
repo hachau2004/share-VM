@@ -1,92 +1,55 @@
-✅ Bước tiếp theo (Bước 5 – 6 trong tài liệu)
+Cách tạo file .env đúng
+1. Mở file .env trong nano
+nano .env
 
-Giờ bạn đã có bộ key trong:
+2. Dán nội dung thế này (KHÔNG có dấu < >)
 
-usdx-keys.json
+Ví dụ:
 
-
-Bạn cần:
-
-BƯỚC 5 — Lưu asset issuer vào ENV để cả hệ thống dùng
-
-Tạo file .env (nếu chưa có):
-
-touch .env
-
-
-Thêm vào:
-
-ISSUER_PUBLIC=<copy từ usdx-keys.json>
-ISSUER_SECRET=<copy từ usdx-keys.json>
-BANKA_PUBLIC=<copy>
-BANKA_SECRET=<copy>
-BANKB_PUBLIC=<copy>
-BANKB_SECRET=<copy>
+ISSUER_PUBLIC=GCOF6VJJXG...
+ISSUER_SECRET=SCBX7JH...
+BANKA_PUBLIC=GBLRAZEN...
+BANKA_SECRET=SDF2BJK...
+BANKB_PUBLIC=GAXP0TT...
+BANKB_SECRET=SCJ8G84...
 
 HORIZON=http://localhost:8000
 NETWORK_PASSPHRASE="Standalone Network ; February 2017"
 
-BƯỚC 6 — Kiểm tra tài sản USDX trên mạng
-1️⃣ Kiểm tra BankA đã có 10,000 USDX chưa
 
-Chạy:
+⚠ Lưu ý quan trọng:
 
-node
+Không dùng dấu <copy>
 
+Không dùng dấu <>
 
-Rồi trong Node REPL nhập:
+Không enter dòng lệnh trong terminal
 
-const StellarSDK = require("stellar-sdk");
-const server = new StellarSDK.Server("http://localhost:8000", { allowHttp: true });
+Chỉ paste vào file nano
 
-let acc = await server.loadAccount("<BANKA_PUBLIC>");
-console.log(acc.balances);
+3. Lưu file
 
+Nhấn:
 
-👉 Bạn sẽ thấy:
+CTRL + O   → Enter
+CTRL + X   → thoát
 
-[
-  { asset_type: 'native', balance: '9999.9999800' },
-  { asset_type: 'credit_alphanum4', asset_code: 'USDX', balance: '10000.0000000' }
-]
+⛔ Vì sao bạn bị lỗi?
 
-BƯỚC 7 — Tạo API để BANKA/BANKB giao dịch USDX
+Bạn đang nhập như sau:
 
-Nếu bạn muốn:
-
-✔ Web backend
-✔ API transfer
-✔ API issue USDX
-✔ API check balance
-✔ API verify trustline
-
-Mình có thể viết full Node.js Express server cho bạn (chỉ cần bảo mình).
-
-node scripts/create_usdx_network.js
+ISSUER_PUBLIC=<copy từ usdx-keys.json>
 
 
-Script sẽ tạo 3 keypairs, gọi friendbot (http://localhost:8000/friendbot
-) để fund, set trustlines BankA/BankB, issuer gửi 10000 USDX → BankA.
+Terminal hiểu <copy là input redirection → gây lỗi syntax error near unexpected token newline.
 
-Kết quả ghi vào ~/stellar-dev/usdx-keys.json
+🔧 Nếu bạn muốn mình tạo file .env đúng hoàn chỉnh
 
-Nếu muốn chuyển ngay:
+Hãy gửi mình file usdx-keys.json, mình sẽ viết lại .env chuẩn cho bạn.
 
-node scripts/create_usdx_network.js transfer 500
+Nếu xong rồi, bạn chạy tiếp bước sau:
 
-
-Kiểm tra balances:
-
-export ISSUER_PUBLIC=$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)
-export BANKA_PUBLIC=$(jq -r .BANKA_PUBLIC ~/stellar-dev/usdx-keys.json)
-export BANKB_PUBLIC=$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)
-
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
-
-
-Mẹo xử lý lỗi: nếu friendbot không reachable, truyền ADMIN_SECRET (root secret in logs quickstart) vào ENV trước khi chạy script để script dùng admin tạo account.
-
+node scripts/send_usdx_bankA_to_bankB.js
 Bước 3 — Cấu hình stellar.toml (phục vụ bằng static server)
 
 Tạo file static:
