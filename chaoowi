@@ -1,210 +1,143 @@
-1) Mở rộng phân vùng bằng growpart
+Giờ mình tạo file đó cho bạn (FULL CODE)
+
+Chạy từng lệnh sau:
+
+1️⃣ Tạo file
+nano ~/stellar-dev/scripts/create_usdx_network.js
+
+2️⃣ Dán toàn bộ nội dung dưới đây vào file nano
+
+(Đây là bản script đầy đủ giúp bạn tạo Issuer, BankA, BankB, tạo trustline và gửi 10,000 USDX — giống trong tài liệu chương 5)
+
+const StellarSDK = require("stellar-sdk");
+const fetch = require("node-fetch");
+require("dotenv").config();
+
+const HORIZON = "http://localhost:8000";
+const server = new StellarSDK.Server(HORIZON);
+StellarSDK.Networks.useTestNetwork();
+
+async function friendbot(pk) {
+  console.log(`Funding ${pk} ...`);
+  const res = await fetch(`${HORIZON}/friendbot?addr=${pk}`);
+  const json = await res.json();
+  return json;
+}
+
+async function createAccount() {
+  const kp = StellarSDK.Keypair.random();
+  await friendbot(kp.publicKey());
+  return kp;
+}
+
+async function setTrustline(kp, asset) {
+  const acc = await server.loadAccount(kp.publicKey());
+  const tx = new StellarSDK.TransactionBuilder(acc, {
+    fee: StellarSDK.BASE_FEE,
+    networkPassphrase: StellarSDK.Networks.TESTNET
+  })
+    .addOperation(
+      StellarSDK.Operation.changeTrust({
+        asset: asset,
+      })
+    )
+    .setTimeout(30)
+    .build();
+
+  tx.sign(kp);
+  return server.submitTransaction(tx);
+}
+
+async function sendAsset(issuerKp, to, asset, amount) {
+  const acc = await server.loadAccount(issuerKp.publicKey());
+  const tx = new StellarSDK.TransactionBuilder(acc, {
+    fee: StellarSDK.BASE_FEE,
+    networkPassphrase: StellarSDK.Networks.TESTNET
+  })
+    .addOperation(
+      StellarSDK.Operation.payment({
+        destination: to,
+        asset: asset,
+        amount: amount.toString(),
+      })
+    )
+    .setTimeout(30)
+    .build();
+
+  tx.sign(issuerKp);
+  return server.submitTransaction(tx);
+}
+
+(async () => {
+  // Create 3 accounts
+  const issuer = await createAccount();
+  const bankA = await createAccount();
+  const bankB = await createAccount();
+
+  console.log("Issuer:", issuer.publicKey());
+  console.log("BankA :", bankA.publicKey());
+  console.log("BankB :", bankB.publicKey());
+
+  const USDX = new StellarSDK.Asset("USDX", issuer.publicKey());
+
+  console.log("Setting trustlines...");
+  await setTrustline(bankA, USDX);
+  await setTrustline(bankB, USDX);
+
+  console.log("Sending 10000 USDX to BankA...");
+  await sendAsset(issuer, bankA.publicKey(), USDX, 10000);
+
+  const fs = require("fs");
+  fs.writeFileSync(
+    "./usdx-keys.json",
+    JSON.stringify(
+      {
+        ISSUER_PUBLIC: issuer.publicKey(),
+        ISSUER_SECRET: issuer.secret(),
+        BANKA_PUBLIC: bankA.publicKey(),
+        BANKA_SECRET: bankA.secret(),
+        BANKB_PUBLIC: bankB.publicKey(),
+        BANKB_SECRET: bankB.secret(),
+      },
+      null,
+      2
+    )
+  );
 
-Chạy:
-Không sao, nhưng bạn không cần xfs_growfs — vì filesystem của bạn không phải XFS.
+  console.log("DONE! Keys saved to usdx-keys.json");
+})();
 
-Ảnh trước đã cho thấy bạn dùng:
+3️⃣ Lưu file
 
-/dev/sda3   ext4   /
+Trong nano:
 
+👉 Nhấn CTRL + O → Enter
+👉 Nhấn CTRL + X để thoát
 
-Filesystem EXT4 thì lệnh đúng là:
+4️⃣ Chạy script
+cd ~/stellar-dev
+node scripts/create_usdx_network.js
 
-sudo resize2fs /dev/sda3
+🎉 Kết quả bạn sẽ thấy:
 
+3 public keys
 
-Và bạn đã chạy thành công rồi:
+Trustlines created
 
-The filesystem on /dev/sda3 is now 121911995 (4k) blocks long.
+10,000 USDX gửi vào BankA
 
-sudo growpart /dev/sda 3
+File usdx-keys.json xuất hiện trong ~/stellar-dev
 
+Nếu gặp lỗi “friendbot unreachable”
 
-Nếu báo "command not found", cài:
+Chạy thêm:
 
-sudo apt install cloud-guest-utils -y
+docker logs stellar-quickstart | grep "root"
 
 
-Sau đó chạy lại:
+Lấy ADMIN_SECRET → export:
 
-sudo growpart /dev/sda 3
-
-▶️ 2) Resize filesystem lại lần nữa (EXT4):
-sudo resize2fs /dev/sda3
-
-▶️ 3) Kiểm tra xem root đã lớn chưa:
-df -h /
-
-
-Và:
-
-lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-
-Chạy từng lệnh:
-
-sudo apt remove -y nodejs npm
-sudo apt purge -y nodejs npm
-sudo apt autoremove -y
-
-
-Kiểm tra xem còn sót binary nào không:
-
-which node
-which npm
-
-
-Nếu trả về /usr/bin/node hoặc /usr/bin/npm, hãy xóa:
-
-sudo rm -f /usr/bin/node
-sudo rm -f /usr/bin/npm
-
-✅ BƯỚC 2 — CÀI NVM (cách đúng)
-
-Chạy lệnh:
-
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
-
-Load NVM:
-
-source ~/.bashrc
-
-
-Kiểm tra:
-
-nvm --version
-
-
-Nếu hiện số phiên bản → OK.
-
-✅ BƯỚC 3 — CÀI NODE 20 LTS (khuyến nghị)
-nvm install 20
-nvm use 20
-nvm alias default 20
-
-
-Kiểm tra:
-
-node -v
-npm -v
-
-
-Bạn sẽ thấy:
-
-v20.x.x
-10.x.x
-
-⚠️ QUAN TRỌNG: KHÔNG được chạy các lệnh sau nữa
-
-❌ sudo apt install nodejs
-❌ sudo apt install npm
-❌ sudo apt upgrade nodejs
-
-Vì bạn đang dùng máy ARM64 (Mac M1/M2/M3 hoặc Ubuntu ARM), APT luôn lỗi.
-
-🎯 Sai chỗ nào trong quá trình vừa rồi?
-
-→ Bạn đã cài Node 22 bằng NVM (OK),
-nhưng sau đó lại chạy:
-
-sudo apt install curl git apt-transport-https ...
-
-
-và máy đề xuất:
-
-sudo apt install nodejs
-sudo apt install npm
-
-
-Bạn có thể đã bấm nhầm và apt kéo lại nodejs.
-
-👉 Đó là lý do Node biến mất và xung đột xảy ra.
-
-
-sudo apt update
-sudo apt install -y curl git apt-transport-https ca-certificates gnupg
-# Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-sudo usermod -aG docker $USER
-# Node/npm
-sudo apt install -y nodejs npm
-node -v; npm -v
-
-✅ CÁCH KHẮC PHỤC (100% hiệu quả)
-Bước 1 — Gỡ toàn bộ Node.js / npm do hệ thống cài
-
-Chạy lệnh:
-
-sudo apt remove -y nodejs npm
-sudo apt autoremove -y
-
-
-Kiểm tra còn sót gì không:
-
-which node
-which npm
-
-
-Nếu còn /usr/bin/node hoặc /usr/bin/npm, xoá thủ công:
-
-sudo rm -f /usr/bin/node
-sudo rm -f /usr/bin/npm
-
-Bước 2 — Cài Node.js qua NVM (không bao giờ lỗi dependency)
-
-Nếu bạn chưa có nvm:
-
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-source ~/.bashrc
-
-
-Cài Node.js v20 LTS (ỔN ĐỊNH nhất cho dự án Stellar / React):
-
-nvm install 20
-nvm use 20
-nvm alias default 20
-
-
-Kiểm tra phiên bản:
-
-node -v
-npm -v
-
-⚠️ Lưu ý quan trọng
-
-Không dùng sudo apt install nodejs npm nữa vì Ubuntu repo thường lỗi dependency.
-
-Dùng nvm luôn ổn định và không bị xung đột.
-
-✔️ Nếu bạn muốn dùng Node 22
-
-Tuy Node 22 vẫn dùng được, nhưng tốt nhất cho React + Stellar là Node 20 LTS.
-
-Nếu vẫn muốn Node 22:
-
-nvm install 22
-nvm use 22
-nvm alias default 22
-
-Nếu bạn muốn mình kiểm tra chính xác OS / ARM / phiên bản Node hiện tại
-
-Bạn chạy giúp mình lệnh sau rồi gửi kết quả:
-
-uname -a
-lsb_release -a
-node -v
-npm -v
-which node
-which npm
-
-
-Mình sẽ chẩn đoán chính xác nhất cho máy của bạn.
-
-— Sau usermod: mở shell mới hoặc logout/login.
-
+export ADMIN_SECRET="SECRET_FROM_LOGS"
 Bước 1 — Khởi động Stellar quickstart (Horizon + Core) bằng Docker
 
 Kéo image & chạy:
