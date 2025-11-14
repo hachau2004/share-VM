@@ -1,19 +1,50 @@
-✅ Quy tắc: tất cả lệnh tiếp theo đều chạy trong ~/stellar-dev
+Giải pháp: KHỞI ĐỘNG HORIZON + CORE BẰNG DOCKER
 
-Ví dụ:
+Bạn chưa start container Stellar Quickstart nên Node không thể kết nối.
 
-cd ~/stellar-dev
+🎯 Bước 1: XÓA container cũ nếu đang treo
+
+Kiểm tra container có chạy không:
+
+docker ps -a
 
 
-Sau đó:
+Nếu thấy container tên stellar-quickstart → xóa nó:
 
-nano .env
+docker rm -f stellar-quickstart
+
+🎯 Bước 2: KHỞI ĐỘNG LẠI Stellar Quickstart
+
+Chạy lệnh đúng (bản latest):
+
+docker run --rm -it \
+  -p 8000:8000 \
+  --name stellar-quickstart \
+  stellar/quickstart:latest \
+  --standalone
+
+
+⚠️ Giữ cửa sổ này mở
+— Đây là server Horizon + Friendbot
+— Nếu tắt thì script Node chết liền.
+
+🎯 Bước 3: KIỂM TRA Horizon đang chạy
+
+Mở terminal khác, chạy:
+
+curl http://localhost:8000
+
+
+Nếu thấy JSON trả về → OK.
+
+🎯 Bước 4: CHẠY LẠI SCRIPT
+
+Terminal mới (đang ở ~/stellar-dev):
+
 node scripts/create_usdx_network.js
-node scripts/send_usdx_bankA_to_bankB.js
-Cách tạo file .env đúng
-1. Mở file .env trong nano
-nano .env
 
+🔍 Nếu bạn muốn kiểm tra Friendbot:
+curl "http://localhost:8000/friendbot?addr=GB.
 2. Dán nội dung thế này (KHÔNG có dấu < >)
 
 Ví dụ:
