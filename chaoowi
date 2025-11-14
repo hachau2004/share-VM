@@ -1,47 +1,17 @@
-KẾT QUẢ ĐÚNG NHƯ MONG MUỐN
-cat ~/stellar-dev/usdx-keys.json
+ISSUER_PUBLIC=GCROB3IGAIHJTSEXQ2PFGLR74OLJXEMCMIPXVAVHWU5SO5IXKWNGBZL
+ISSUER_SECRET=SDHEMZJ4APQC3JXZAZUE2XHWN7F356XJGYLMMYWLM C6A6ES77LLKBBY
 
-Bạn nhận được output:
+BANKA_PUBLIC=GAFLGAYEVWODNBACYHLDM6BPLCLCBD23RDL2PZJN74LBHSCRW5YSSF
+BANKA_SECRET=SBBAXSGUWCIJULW4JKPNW27LLWES7VP7CCB3INXSNEKZVFMQYUCOE3AM
 
-Issuer:  GCROB3...
-BankA :  GAFLGAYE...
-BankB :  GDUZFLKQ...
-Setting trustlines...
-Sending 10000 USDX to BankA...
-DONE! Keys saved to usdx-keys.json
-
-
-→ Chính xác 100% theo tài liệu.
-
-📌 TIẾP THEO PHẢI LÀM GÌ (CHƯƠNG 5)?
-
-Bây giờ bạn cần:
-
-1️⃣ Tạo file .env trong đúng thư mục ~/stellar-dev/
-
-Chạy:
-
-cd ~/stellar-dev
-nano .env
-
-
-Dán vào:
-
-ISSUER_PUBLIC=<copy từ usdx-keys.json>
-ISSUER_SECRET=<copy từ usdx-keys.json>
-
-BANKA_PUBLIC=<copy>
-BANKA_SECRET=<copy>
-BANKB_PUBLIC=<copy>
-BANKB_SECRET=<copy>
+BANKB_PUBLIC=GDUZFLKQ4JV5XOCDDBPPMYMNW7Q7SWOAM3STE7NL3B5D33VZC223IRTKP
+BANKB_SECRET=SBOYROM57URYWMUL6WQVMHIBFT4QX6DTM3TDVCZ3TX5EGKJHO65DKVUT
 
 HORIZON=http://localhost:8000
 NETWORK_PASSPHRASE="Standalone Network ; February 2017"
 
 
-📌 Lưu lại với: CTRL + O → ENTER → CTRL + X
-
-2️⃣ Đảm bảo Docker quickstart vẫn chạy
+ảm bảo Docker quickstart vẫn chạy
 
 Chạy kiểm tra:
 
