@@ -8,11 +8,8 @@ Bạn có 2 lựa chọn:
 🅰 GIẢI PHÁP 1 – DỌN DUNG LƯỢNG (DỄ NHẤT)
 
 Chạy:
+sudo rm -rf /var/snap /snap /var/lib/snapd
 
-sudo apt autoremove -y
-sudo apt clean
-sudo rm -rf ~/.cache/*
-sudo journalctl --vacuum-size=100M
 
 
 Xem thứ gì đang chiếm nhiều chỗ:
