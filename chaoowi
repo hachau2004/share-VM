@@ -1,127 +1,18 @@
-const StellarSDK = require("stellar-sdk");
-const fetch = require("node-fetch");
-require("dotenv").config();
+Trước khi chạy, nhớ bật Quickstart:
 
-// Horizon local Quickstart
-const HORIZON = "http://localhost:8000";
-const NETWORK_PASSPHRASE = "Standalone Network ; February 2017";
-
-const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
-
-// Friendbot để cấp XLM cho local Quickstart
-async function friendbot(pk) {
-  console.log(`Funding ${pk} ...`);
-  const res = await fetch(`${HORIZON}/friendbot?addr=${pk}`);
-  const json = await res.json();
-  return json;
-}
-
-// Tạo account mới
-async function createAccount() {
-  const kp = StellarSDK.Keypair.random();
-  await friendbot(kp.publicKey());
-  return kp;
-}
-
-// Tạo trustline
-async function setTrustline(kp, asset) {
-  const acc = await server.loadAccount(kp.publicKey());
-
-  const tx = new StellarSDK.TransactionBuilder(acc, {
-    fee: StellarSDK.BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
-    .addOperation(
-      StellarSDK.Operation.changeTrust({
-        asset: asset,
-      })
-    )
-    .setTimeout(30)
-    .build();
-
-  tx.sign(kp);
-  return server.submitTransaction(tx);
-}
-
-// Gửi tài sản USDX
-async function sendAsset(issuerKp, to, asset, amount) {
-  const acc = await server.loadAccount(issuerKp.publicKey());
-
-  const tx = new StellarSDK.TransactionBuilder(acc, {
-    fee: StellarSDK.BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
-    .addOperation(
-      StellarSDK.Operation.payment({
-        destination: to,
-        asset: asset,
-        amount: amount.toString(),
-      })
-    )
-    .setTimeout(30)
-    .build();
-
-  tx.sign(issuerKp);
-  return server.submitTransaction(tx);
-}
-
-(async () => {
-  // Tạo 3 account
-  const issuer = await createAccount();
-  const bankA = await createAccount();
-  const bankB = await createAccount();
-
-  console.log("Issuer:", issuer.publicKey());
-  console.log("BankA :", bankA.publicKey());
-  console.log("BankB :", bankB.publicKey());
-
-  const USDX = new StellarSDK.Asset("USDX", issuer.publicKey());
-
-  console.log("Setting trustlines...");
-  await setTrustline(bankA, USDX);
-  await setTrustline(bankB, USDX);
-
-  console.log("Sending 10000 USDX to BankA...");
-  await sendAsset(issuer, bankA.publicKey(), USDX, 10000);
-
-  const fs = require("fs");
-  fs.writeFileSync(
-    "./usdx-keys.json",
-    JSON.stringify(
-      {
-        ISSUER_PUBLIC: issuer.publicKey(),
-        ISSUER_SECRET: issuer.secret(),
-        BANKA_PUBLIC: bankA.publicKey(),
-        BANKA_SECRET: bankA.secret(),
-        BANKB_PUBLIC: bankB.publicKey(),
-        BANKB_SECRET: bankB.secret(),
-      },
-      null,
-      2
-    )
-  );
-
-  console.log("DONE! Keys saved to usdx-keys.json");
-})();
+docker run --rm -it \
+  -p 8000:8000 \
+  --name stellar-quickstart \
+  stellar/quickstart:latest \
+  --standalone
 
 
-Hãy mở file:
+Rồi chạy script:
 
-nano scripts/create_usdx_network.js
-
-
-Và chỉnh lại như sau:
-
-require("dotenv").config();
-const StellarSDK = require("stellar-sdk");
-
-const HORIZON = "http://localhost:8000";
-const NETWORK_PASSPHRASE = "Standalone Network ; February 2017";
-
-const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
+node scripts/create_usdx_network.js
 
 
-‼️ LƯU Ý
+❗ Nếu gặp lỗi friendbot, trustline, hoặc payment, gửi screenshot mình fix tiếp cho đến khi chạy hoàn hảo 100%.
 Bước 2 — Tạo Issuer, BankA, BankB và issue asset USDX
 
 File mẫu script: ~/stellar-dev/scripts/create_usdx_network.js (đã có nội dung trong file). Thực hiện:
