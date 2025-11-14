@@ -1,30 +1,41 @@
 Bước 0 — Chuẩn bị môi trường
 
-Hệ điều hành: Ubuntu / Debian recommended. Cài Docker, Node, npm.
-Ví dụ (copy/paste):
-Xóa curl khỏi hệ thống
+✅ BƯỚC 2 — Cài NVM (nếu chưa có)
 
-Chạy lệnh:
+Chạy lệnh này:
 
-sudo apt remove curl -y
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 
-Nếu bạn muốn xóa luôn các file cấu hình kèm theo:
+Sau đó load NVM:
 
-sudo apt purge curl -y
-
-
-Sau đó dọn rác:
-
-sudo apt autoremove -y
-
-📌 Kiểm tra curl đã bị xóa chưa
-curl --version
+source ~/.bashrc
 
 
-Nếu curl không còn → nó sẽ báo:
+Kiểm tra:
 
-Command 'curl' not found
+nvm --version
+
+
+Nếu thấy số phiên bản → OK.
+
+✅ BƯỚC 3 — Cài Node 20 LTS qua NVM (ổn định nhất)
+nvm install 20
+nvm use 20
+nvm alias default 20
+
+
+Kiểm tra:
+
+node -v
+npm -v
+
+
+Bạn sẽ thấy:
+
+v20.x.x
+10.x.x (hoặc tương tự)
+
 
 
 sudo apt update
