@@ -1,2 +1,19 @@
+FIX NGAY – CHỈ 1 LỆNH DUY NHẤT!
+
+Bạn phải tải lại file .env, vì bạn chỉ tạo file nhưng chưa bao giờ source nó.
+
+Chạy:
+
+cd ~/stellar-dev
+source .env
+
+
+Sau đó kiểm tra lại:
+
 echo "$BANKA_PUBLIC"
 echo "$BANKA_SECRET"
+echo "$BANKB_PUBLIC"
+echo "$ISSUER_PUBLIC"
+
+
+👉 Lần này chắc chắn phải hiện ra các khóa public/secret bạn đã sao chép từ usdx-keys.json.
