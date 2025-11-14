@@ -1,36 +1,65 @@
-✅ BƯỚC 1 — GỠ SẠCH nodejs & npm (apt)
-2) Bật thêm SWAP ngay để tránh treo
+1) Kiểm tra layout hiện tại & filesystem
 
-🎯 GIẢI PHÁP BẮT BUỘC PHẢI LÀM NGAY
+Chạy 2 lệnh này để xác nhận tên thiết bị, vị trí phân vùng và loại filesystem:
 
-Bạn có 2 lựa chọn:
-
-🅰 GIẢI PHÁP 1 – DỌN DUNG LƯỢNG (DỄ NHẤT)
-
-Chạy:
-sudo rm -rf /var/snap /snap /var/lib/snapd
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
+sudo parted -l
 
 
+Mục tiêu: chắc rằng /dev/sda3 tồn tại và phía sau nó có unallocated space.
 
-Xem thứ gì đang chiếm nhiều chỗ:
+2) Cài công cụ growpart (cloud-guest-utils)
 
-sudo du -sh /* | sort -h
+Nếu apt vẫn chạy (còn chỗ trống), cài nó:
 
-
-Xóa log nặng:
-
-sudo rm -rf /var/log/*
-
-
-Xóa snap nặng:
-
-sudo rm -rf /var/lib/snapd/snaps/*
+sudo apt update
+sudo apt install -y cloud-guest-utils
 
 
-Xóa Docker images cũ:
+Nếu apt báo lỗi do đầy disk, trước hết chạy (đỡ tốn chỗ):
 
-docker system prune -a -f
+sudo apt clean
+sudo journalctl --vacuum-size=100M
 
+
+Rồi thử cài lại.
+
+3) Chạy growpart mở rộng partition table
+
+Giả sử device là /dev/sda và bạn muốn mở rộng partition số 3:
+
+sudo growpart /dev/sda 3
+
+
+Kết quả thành công sẽ in ra kích thước phân vùng mới (ví dụ: CHANGED: partition=3 start=... end=...).
+
+Nếu bạn nhận lỗi not enough space hoặc Device or resource busy, dán nguyên văn lỗi vào mình.
+
+4) Cập nhật kernel partition table (nếu cần)
+
+Thường growpart tự làm việc, nhưng để an toàn:
+
+sudo partprobe /dev/sda
+
+5) Mở rộng filesystem trên /dev/sda3
+
+Kiểm tra filesystem type (từ bước 1 hoặc lsblk -f). Nếu là ext4 (thông dụng), chạy:
+
+sudo resize2fs /dev/sda3
+
+
+Nếu filesystem là xfs, dùng thay:
+
+sudo xfs_growfs /
+
+
+(Lưu ý xfs_growfs cần mount point, ở đây là /)
+
+6) Kiểm tra kết quả
+df -h /
+
+
+Bạn sẽ thấy kích thước / tăng lên theo dung lượng đã thêm (ví dụ ~45G hoặc ~60G).
 Chạy từng lệnh:
 
 sudo apt remove -y nodejs npm
