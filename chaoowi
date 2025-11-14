@@ -1,16 +1,40 @@
-Horizon error: {
-  "type": "https://stellar.org/horizon-errors/transaction_failed",
-  "title": "Transaction Failed",
-  "status": 400,
-  "detail": "The transaction failed when submitted to the stellar network. The `extras.result_codes` field on this response contains further details.  Descriptions of each code can be found at: https://developers.stellar.org/api/errors/http-status-codes/horizon-specific/transaction-failed/",
-  "extras": {
-    "envelope_xdr": "AAAAAgAAAAAKswMErZw2jCAWDrGzwXrEsQR63Ea9Pylv+LCeQo27iQAAAGQAAAE3AAAAAgAAAAEAAAAAAAAAAAAAAABpFyW7AAAAAAAAAAEAAAAAAAAAAQAAAADpkq1Q4mvbuEML3sw1lvw/KzgM3KZPtXsPR73XIta2iAAAAAFVU0RYAAAAAKLg7QYCDpnIlxQ0V5lx/xy03IwTEPvUFT2p3ruouqzTAAAAASoF8gAAAAAAAAAAAUKNu4kAAABA4KQmEk8TrY+kgxiCtiydrgbN04GOLsaMlzFss/CWrilwxyU9lwnHm63LnPe8OU+2FWG39vrc5m+ILwU9ErEqBw==",
-    "result_codes": {
-      "transaction": "tx_bad_auth"
-    },
-    "result_xdr": "AAAAAAAAAGT////6AAAAAA=="
-  }
-}
+✅ Cách sửa ngay
+
+Mở file:
+
+nano ~/stellar-dev/scripts/transfer_banka_to_bankb.js
+
+
+Tìm dòng:
+
+networkPassphrase: S.Networks.TESTNET
+
+
+THAY BẰNG:
+
+networkPassphrase: "Standalone Network ; February 2017"
+
+
+Lưu lại:
+
+Ctrl + O → Enter
+
+Ctrl + X
+
+❗Tiếp theo: export lại ENV để chắc chắn
+export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
+export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export HORIZON="http://localhost:8000"
+
+🚀 Chạy lại lệnh chuyển 500 USDX
+node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
+
+
+Nếu networkPassphrase + secret key đúng → output sẽ là:
+
+Payment submitted, tx hash: XXXXXXXXXXXXXXX
+
 
 
 ✅ 6.3 — Chạy chuyển 500 USDX từ BankA → BankB
