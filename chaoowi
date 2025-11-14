@@ -1,20 +1,46 @@
-Copy nguyên lệnh này, dán vào terminal:
+Chạy lệnh này để xem 5 giao dịch mới nhất trong Horizon:
+curl -s "http://localhost:8000/transactions?order=desc&limit=5" | jq .
 
-curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
+📌 Bạn gửi mình kết quả JSON này, mình sẽ chọn đúng TX hash thật cho bạn.
+
+🔥 Trong lúc chờ bạn gửi kết quả, đây là lệnh để xem HASH đúng của lần chuyển USDX:
+Nếu lần chuyển trước đó thành công, bạn cũng có thể xem payment theo BankA:
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=5" | jq .
+
+Hoặc theo BankB:
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=5" | jq .
+
+Trong output sẽ có dạng:
+{
+  "id": "12345",
+  "transaction_hash": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  ...
+}
+
+🎯 Bạn chỉ cần gửi lại dòng "transaction_hash" đó.
+
+👇 Sau khi có hash đúng, bạn sẽ chạy lệnh này:
+curl -s "http://localhost:8000/transactions/<HASH_DÚNG>/operations" | jq .
 
 
-⚠️ KHÔNG được xuống dòng
-⚠️ KHÔNG có dấu cách giữa “transactions” và “/fe44b0a11…”
+⚠ Lý do bạn vẫn lỗi 404:
 
-❗ NHẮC LẠI HASH ĐÚNG CỦA BẠN:
-fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b
 
-📌 Sau đó chạy tiếp 3 lệnh kiểm tra balances:
-BankA:
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
+Có thể hash cũ không tồn tại.
 
-BankB:
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
 
-Payments BankB:
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq .
+Có thể Docker quickstart restart nên ledger reset.
+
+
+Có thể thanh toán thực tế không vào ledger nếu script trước gặp lỗi.
+
+
+Có thể bạn copy sai URL (trong hình có ký tự tiếng Ả Rập: “وز”).
+
+
+→ Cho nên cần lấy hash trực tiếp từ Horizon.
+
+📸 Gửi mình output của lệnh:
+curl -s "http://localhost:8000/transactions?order=desc&limit=5" | jq .
+
+Mình chọn đúng hash và đưa bạn đúng lệnh cần chạy.
