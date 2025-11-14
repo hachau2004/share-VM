@@ -1,18 +1,12 @@
-Cách chạy đúng (bản mới)
+3️⃣ Xóa container cũ (đúng cách)
+docker rm -f stellar-quickstart
 
-Chạy lệnh sau:
-
+4️⃣ Chạy lại lệnh Quickstart (đúng)
 docker run --rm -it \
     -p 8000:8000 \
     --name stellar-quickstart \
     stellar/quickstart:latest \
     --standalone
-
-Nếu Docker chưa kéo image → nó sẽ tự động tải (~2 GB)
-
-Bạn sẽ thấy:
-
-latest: Pulling from stellar/quickstart
 
 
 Chờ tải xong rồi sẽ chạy Horizon + Core.
