@@ -1,13 +1,31 @@
-Bước 0 — Chuẩn bị môi trường
+✅ BƯỚC 1 — GỠ SẠCH nodejs & npm (apt)
 
-✅ BƯỚC 2 — Cài NVM (nếu chưa có)
+Chạy từng lệnh:
 
-Chạy lệnh này:
+sudo apt remove -y nodejs npm
+sudo apt purge -y nodejs npm
+sudo apt autoremove -y
+
+
+Kiểm tra xem còn sót binary nào không:
+
+which node
+which npm
+
+
+Nếu trả về /usr/bin/node hoặc /usr/bin/npm, hãy xóa:
+
+sudo rm -f /usr/bin/node
+sudo rm -f /usr/bin/npm
+
+✅ BƯỚC 2 — CÀI NVM (cách đúng)
+
+Chạy lệnh:
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 
-Sau đó load NVM:
+Load NVM:
 
 source ~/.bashrc
 
@@ -17,9 +35,9 @@ Kiểm tra:
 nvm --version
 
 
-Nếu thấy số phiên bản → OK.
+Nếu hiện số phiên bản → OK.
 
-✅ BƯỚC 3 — Cài Node 20 LTS qua NVM (ổn định nhất)
+✅ BƯỚC 3 — CÀI NODE 20 LTS (khuyến nghị)
 nvm install 20
 nvm use 20
 nvm alias default 20
@@ -34,8 +52,33 @@ npm -v
 Bạn sẽ thấy:
 
 v20.x.x
-10.x.x (hoặc tương tự)
+10.x.x
 
+⚠️ QUAN TRỌNG: KHÔNG được chạy các lệnh sau nữa
+
+❌ sudo apt install nodejs
+❌ sudo apt install npm
+❌ sudo apt upgrade nodejs
+
+Vì bạn đang dùng máy ARM64 (Mac M1/M2/M3 hoặc Ubuntu ARM), APT luôn lỗi.
+
+🎯 Sai chỗ nào trong quá trình vừa rồi?
+
+→ Bạn đã cài Node 22 bằng NVM (OK),
+nhưng sau đó lại chạy:
+
+sudo apt install curl git apt-transport-https ...
+
+
+và máy đề xuất:
+
+sudo apt install nodejs
+sudo apt install npm
+
+
+Bạn có thể đã bấm nhầm và apt kéo lại nodejs.
+
+👉 Đó là lý do Node biến mất và xung đột xảy ra.
 
 
 sudo apt update
