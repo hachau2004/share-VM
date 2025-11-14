@@ -1,24 +1,100 @@
-✅ CÁCH SỬA (dùng phiên bản mới của Stellar SDK)
+const StellarSDK = require("stellar-sdk");
+const fetch = require("node-fetch");
+require("dotenv").config();
 
-Trong SDK mới, bạn KHÔNG cần gọi useTestNetwork() nữa.
-
-Bạn chỉ cần đặt network passphrase khi ký giao dịch:
-
-XÓA dòng:
-
+const HORIZON = "http://localhost:8000";
+const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
 StellarSDK.Networks.useTestNetwork();
 
+async function friendbot(pk) {
+  console.log(`Funding ${pk} ...`);
+  const res = await fetch(`${HORIZON}/friendbot?addr=${pk}`);
+  const json = await res.json();
+  return json;
+}
 
-THAY BẰNG:
+async function createAccount() {
+  const kp = StellarSDK.Keypair.random();
+  await friendbot(kp.publicKey());
+  return kp;
+}
 
-const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
+async function setTrustline(kp, asset) {
+  const acc = await server.loadAccount(kp.publicKey());
+  const tx = new StellarSDK.TransactionBuilder(acc, {
+    fee: StellarSDK.BASE_FEE,
+    networkPassphrase: StellarSDK.Networks.TESTNET
+  })
+    .addOperation(
+      StellarSDK.Operation.changeTrust({
+        asset: asset,
+      })
+    )
+    .setTimeout(30)
+    .build();
 
+  tx.sign(kp);
+  return server.submitTransaction(tx);
+}
 
-Hoặc nếu bạn dùng Quickstart local (docker):
+async function sendAsset(issuerKp, to, asset, amount) {
+  const acc = await server.loadAccount(issuerKp.publicKey());
+  const tx = new StellarSDK.TransactionBuilder(acc, {
+    fee: StellarSDK.BASE_FEE,
+    networkPassphrase: StellarSDK.Networks.TESTNET
+  })
+    .addOperation(
+      StellarSDK.Operation.payment({
+        destination: to,
+        asset: asset,
+        amount: amount.toString(),
+      })
+    )
+    .setTimeout(30)
+    .build();
 
-const NETWORK_PASSPHRASE = "Standalone Network ; February 2017";
+  tx.sign(issuerKp);
+  return server.submitTransaction(tx);
+}
 
-📌 File đúng mẫu (đoạn đầu)
+(async () => {
+  // Create 3 accounts
+  const issuer = await createAccount();
+  const bankA = await createAccount();
+  const bankB = await createAccount();
+
+  console.log("Issuer:", issuer.publicKey());
+  console.log("BankA :", bankA.publicKey());
+  console.log("BankB :", bankB.publicKey());
+
+  const USDX = new StellarSDK.Asset("USDX", issuer.publicKey());
+
+  console.log("Setting trustlines...");
+  await setTrustline(bankA, USDX);
+  await setTrustline(bankB, USDX);
+
+  console.log("Sending 10000 USDX to BankA...");
+  await sendAsset(issuer, bankA.publicKey(), USDX, 10000);
+
+  const fs = require("fs");
+  fs.writeFileSync(
+    "./usdx-keys.json",
+    JSON.stringify(
+      {
+        ISSUER_PUBLIC: issuer.publicKey(),
+        ISSUER_SECRET: issuer.secret(),
+        BANKA_PUBLIC: bankA.publicKey(),
+        BANKA_SECRET: bankA.secret(),
+        BANKB_PUBLIC: bankB.publicKey(),
+        BANKB_SECRET: bankB.secret(),
+      },
+      null,
+      2
+    )
+  );
+
+  console.log("DONE! Keys saved to usdx-keys.json");
+})();
 
 Hãy mở file:
 
