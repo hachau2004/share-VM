@@ -1,45 +1,159 @@
-ISSUER_PUBLIC=GCROB3IGAIHJTSEXQ2PFGLR74OLJXEMCMIPXVAVHWU5SO5IXKWNGBZL
-ISSUER_SECRET=SDHEMZJ4APQC3JXZAZUE2XHWN7F356XJGYLMMYWLM C6A6ES77LLKBBY
+node -e "require('dotenv').config(); console.log(process.env.ISSUER_PUBLIC)"
+BƯỚC 6 — Viết API cho hệ thống USDX (Issuer / BankA / BankB)
 
-BANKA_PUBLIC=GAFLGAYEVWODNBACYHLDM6BPLCLCBD23RDL2PZJN74LBHSCRW5YSSF
-BANKA_SECRET=SBBAXSGUWCIJULW4JKPNW27LLWES7VP7CCB3INXSNEKZVFMQYUCOE3AM
+Bạn sẽ tạo 1 thư mục:
 
-BANKB_PUBLIC=GDUZFLKQ4JV5XOCDDBPPMYMNW7Q7SWOAM3STE7NL3B5D33VZC223IRTKP
-BANKB_SECRET=SBOYROM57URYWMUL6WQVMHIBFT4QX6DTM3TDVCZ3TX5EGKJHO65DKVUT
-
-HORIZON=http://localhost:8000
-NETWORK_PASSPHRASE="Standalone Network ; February 2017"
+mkdir api
 
 
-ảm bảo Docker quickstart vẫn chạy
+Trong đó có 3 server để mô phỏng giao dịch trong mạng ngân hàng.
 
-Chạy kiểm tra:
+✔ File 1: api/issuer.js
 
-docker ps
+Issuer sẽ chỉ có nhiệm vụ:
+
+kiểm tra số dư
+
+cấp thêm USDX
+
+Dán vào file:
+
+const express = require("express");
+const StellarSDK = require("stellar-sdk");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+
+const server = new StellarSDK.Server(process.env.HORIZON, { allowHttp: true });
+
+const issuerKp = StellarSDK.Keypair.fromSecret(process.env.ISSUER_SECRET);
+
+const USDX = new StellarSDK.Asset("USDX", issuerKp.publicKey());
+
+// Check balance
+app.get("/balance", async (req, res) => {
+  const acc = await server.loadAccount(issuerKp.publicKey());
+  const bal = acc.balances;
+  res.json(bal);
+});
+
+// Issue new USDX → send to someone
+app.post("/issue", async (req, res) => {
+  const { to, amount } = req.body;
+
+  try {
+    const acc = await server.loadAccount(issuerKp.publicKey());
+
+    const tx = new StellarSDK.TransactionBuilder(acc, {
+      fee: StellarSDK.BASE_FEE,
+      networkPassphrase: process.env.NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        StellarSDK.Operation.payment({
+          destination: to,
+          asset: USDX,
+          amount: amount.toString(),
+        })
+      )
+      .setTimeout(30)
+      .build();
+
+    tx.sign(issuerKp);
+
+    const result = await server.submitTransaction(tx);
+    res.json(result);
+  } catch (e) {
+    res.json({ error: e.toString() });
+  }
+});
+
+app.listen(3001, () => console.log("Issuer API running on 3001"));
 
 
-Bạn phải thấy container:
+Chạy:
 
-stellar-quickstart
+node api/issuer.js
+
+✅ BƯỚC 7 — Tạo API cho BankA (Distributor)
+✔ File 2: api/bankA.js
+
+Dán vào:
+
+const express = require("express");
+const StellarSDK = require("stellar-sdk");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+
+const server = new StellarSDK.Server(process.env.HORIZON, { allowHttp: true });
+
+const kp = StellarSDK.Keypair.fromSecret(process.env.BANKA_SECRET);
+const USDX = new StellarSDK.Asset("USDX", process.env.ISSUER_PUBLIC);
+
+// Check balance
+app.get("/balance", async (req, res) => {
+  const acc = await server.loadAccount(kp.publicKey());
+  res.json(acc.balances);
+});
+
+// Transfer USDX to someone (like BankB)
+app.post("/transfer", async (req, res) => {
+  const { to, amount } = req.body;
+
+  try {
+    const acc = await server.loadAccount(kp.publicKey());
+    const tx = new StellarSDK.TransactionBuilder(acc, {
+      fee: StellarSDK.BASE_FEE,
+      networkPassphrase: process.env.NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        StellarSDK.Operation.payment({
+          destination: to,
+          asset: USDX,
+          amount: amount.toString(),
+        })
+      )
+      .setTimeout(30)
+      .build();
+
+    tx.sign(kp);
+    res.json(await server.submitTransaction(tx));
+  } catch (e) {
+    res.json({ error: e.toString() });
+  }
+});
+
+app.listen(3002, () => console.log("BankA API running on 3002"));
 
 
-Nếu chưa chạy:
+Chạy:
 
-docker start stellar-quickstart
+node api/bankA.js
+
+✅ BƯỚC 8 — API cho BankB (Recipient)
+✔ File 3: api/bankB.js
+const express = require("express");
+const StellarSDK = require("stellar-sdk");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+
+const server = new StellarSDK.Server(process.env.HORIZON, { allowHttp: true });
+
+const kp = StellarSDK.Keypair.fromSecret(process.env.BANKB_SECRET);
+
+// Check balance
+app.get("/balance", async (req, res) => {
+  const acc = await server.loadAccount(kp.publicKey());
+  res.json(acc.balances);
+});
+
+app.listen(3003, () => console.log("BankB API running on 3003"));
 
 
-Nếu bị conflict:
+Chạy:
 
-docker rm -f stellar-quickstart
-docker run --rm -it -p 8000:8000 --name stellar-quickstart stellar/quickstart:latest --standalone
-
-3️⃣ Tiếp tục chạy các scripts chương 5
-
-Giờ bạn có thể chạy thử:
-
-node scripts/create_trustlines.js
-node scripts/send_usdx.js
-node scripts/check_balance.js
-
-
-(tuỳ theo tài liệu bạn đang theo)
+node api/bankB.js
