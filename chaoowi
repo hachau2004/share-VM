@@ -1,46 +1,15 @@
-Chạy lệnh này để xem 5 giao dịch mới nhất trong Horizon:
-curl -s "http://localhost:8000/transactions?order=desc&limit=5" | jq .
+CHẠY LẠI LỆNH
+node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
 
-📌 Bạn gửi mình kết quả JSON này, mình sẽ chọn đúng TX hash thật cho bạn.
-
-🔥 Trong lúc chờ bạn gửi kết quả, đây là lệnh để xem HASH đúng của lần chuyển USDX:
-Nếu lần chuyển trước đó thành công, bạn cũng có thể xem payment theo BankA:
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}/payments?order=desc&limit=5" | jq .
-
-Hoặc theo BankB:
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=5" | jq .
-
-Trong output sẽ có dạng:
-{
-  "id": "12345",
-  "transaction_hash": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  ...
-}
-
-🎯 Bạn chỉ cần gửi lại dòng "transaction_hash" đó.
-
-👇 Sau khi có hash đúng, bạn sẽ chạy lệnh này:
-curl -s "http://localhost:8000/transactions/<HASH_DÚNG>/operations" | jq .
+❗ Quan trọng: trước khi chạy, phải export ENV
+export HORIZON="http://localhost:8000"
+export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
+export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
 
 
-⚠ Lý do bạn vẫn lỗi 404:
+Kiểm tra:
 
-
-Có thể hash cũ không tồn tại.
-
-
-Có thể Docker quickstart restart nên ledger reset.
-
-
-Có thể thanh toán thực tế không vào ledger nếu script trước gặp lỗi.
-
-
-Có thể bạn copy sai URL (trong hình có ký tự tiếng Ả Rập: “وز”).
-
-
-→ Cho nên cần lấy hash trực tiếp từ Horizon.
-
-📸 Gửi mình output của lệnh:
-curl -s "http://localhost:8000/transactions?order=desc&limit=5" | jq .
-
-Mình chọn đúng hash và đưa bạn đúng lệnh cần chạy.
+echo $BANKA_SECRET
+echo $BANKB_PUBLIC
+echo $ISSUER_PUBLIC
