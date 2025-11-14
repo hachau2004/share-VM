@@ -1,170 +1,32 @@
-3️⃣ Xóa container cũ (đúng cách)
-docker rm -f stellar-quickstart
+CÁCH SỬA (chỉ giữ 1 dòng duy nhất)
 
-4️⃣ Chạy lại lệnh Quickstart (đúng)
-docker run --rm -it \
-    -p 8000:8000 \
-    --name stellar-quickstart \
-    stellar/quickstart:latest \
-    --standalone
+Mở file:
+
+nano scripts/create_usdx_network.js
 
 
-Chờ tải xong rồi sẽ chạy Horizon + Core.
+Tìm 2 dòng bắt đầu bằng:
 
-❗ Sau khi chạy xong, bạn kiểm tra:
-curl http://localhost:8000
+const server = ...
 
 
-Nếu OK sẽ thấy JSON của Horizon.
-node scripts/create_usdx_network.js
+Xóa 1 dòng.
 
-const StellarSDK = require("stellar-sdk");
-const fetch = require("node-fetch");
-require("dotenv").config();
+Giữ lại đúng dòng dành cho chạy local + http:
 
-const HORIZON = "http://localhost:8000";
+const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
+
+
+❌ Xóa dòng:
+
 const server = new StellarSDK.Server(HORIZON);
-StellarSDK.Networks.useTestNetwork();
 
-async function friendbot(pk) {
-  console.log(`Funding ${pk} ...`);
-  const res = await fetch(`${HORIZON}/friendbot?addr=${pk}`);
-  const json = await res.json();
-  return json;
-}
+🎯 File đúng phải như sau (đoạn server)
+const HORIZON = "http://localhost:8000";
+const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
 
-async function createAccount() {
-  const kp = StellarSDK.Keypair.random();
-  await friendbot(kp.publicKey());
-  return kp;
-}
-
-async function setTrustline(kp, asset) {
-  const acc = await server.loadAccount(kp.publicKey());
-  const tx = new StellarSDK.TransactionBuilder(acc, {
-    fee: StellarSDK.BASE_FEE,
-    networkPassphrase: StellarSDK.Networks.TESTNET
-  })
-    .addOperation(
-      StellarSDK.Operation.changeTrust({
-        asset: asset,
-      })
-    )
-    .setTimeout(30)
-    .build();
-
-  tx.sign(kp);
-  return server.submitTransaction(tx);
-}
-
-async function sendAsset(issuerKp, to, asset, amount) {
-  const acc = await server.loadAccount(issuerKp.publicKey());
-  const tx = new StellarSDK.TransactionBuilder(acc, {
-    fee: StellarSDK.BASE_FEE,
-    networkPassphrase: StellarSDK.Networks.TESTNET
-  })
-    .addOperation(
-      StellarSDK.Operation.payment({
-        destination: to,
-        asset: asset,
-        amount: amount.toString(),
-      })
-    )
-    .setTimeout(30)
-    .build();
-
-  tx.sign(issuerKp);
-  return server.submitTransaction(tx);
-}
-
-(async () => {
-  // Create 3 accounts
-  const issuer = await createAccount();
-  const bankA = await createAccount();
-  const bankB = await createAccount();
-
-  console.log("Issuer:", issuer.publicKey());
-  console.log("BankA :", bankA.publicKey());
-  console.log("BankB :", bankB.publicKey());
-
-  const USDX = new StellarSDK.Asset("USDX", issuer.publicKey());
-
-  console.log("Setting trustlines...");
-  await setTrustline(bankA, USDX);
-  await setTrustline(bankB, USDX);
-
-  console.log("Sending 10000 USDX to BankA...");
-  await sendAsset(issuer, bankA.publicKey(), USDX, 10000);
-
-  const fs = require("fs");
-  fs.writeFileSync(
-    "./usdx-keys.json",
-    JSON.stringify(
-      {
-        ISSUER_PUBLIC: issuer.publicKey(),
-        ISSUER_SECRET: issuer.secret(),
-        BANKA_PUBLIC: bankA.publicKey(),
-        BANKA_SECRET: bankA.secret(),
-        BANKB_PUBLIC: bankB.publicKey(),
-        BANKB_SECRET: bankB.secret(),
-      },
-      null,
-      2
-    )
-  );
-
-  console.log("DONE! Keys saved to usdx-keys.json");
-})();
-
-3️⃣ Lưu file
-
-Trong nano:
-
-👉 Nhấn CTRL + O → Enter
-👉 Nhấn CTRL + X để thoát
-
-4️⃣ Chạy script
-cd ~/stellar-dev
+Sau đó chạy lại:
 node scripts/create_usdx_network.js
-
-🎉 Kết quả bạn sẽ thấy:
-
-3 public keys
-
-Trustlines created
-
-10,000 USDX gửi vào BankA
-
-File usdx-keys.json xuất hiện trong ~/stellar-dev
-
-Nếu gặp lỗi “friendbot unreachable”
-
-Chạy thêm:
-
-docker logs stellar-quickstart | grep "root"
-
-
-Lấy ADMIN_SECRET → export:
-
-export ADMIN_SECRET="SECRET_FROM_LOGS"
-Bước 1 — Khởi động Stellar quickstart (Horizon + Core) bằng Docker
-
-Kéo image & chạy:
-
-docker pull docker.io/stellar/quickstart:latest
-docker run -d --name stellar-quickstart -p 8000:8000 -p 11626:11626 docker.io/stellar/quickstart:latest
-
-
-Kiểm tra:
-
-docker ps --filter "name=stellar-quickstart" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-docker logs stellar-quickstart --tail 200
-curl http://localhost:8000/ledgers | jq '.'
-
-
-— Mong thấy JSON ledger trả về (Horizon hoạt động).
-
-Mẹo: nếu quickstart in ra Network root secret (MASTER SEED), lưu lại nếu friendbot không hoạt động.
 
 Bước 2 — Tạo Issuer, BankA, BankB và issue asset USDX
 
