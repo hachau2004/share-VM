@@ -1,31 +1,27 @@
-ƯỚC 2 — Nếu container chưa chạy → khởi động lại
+Cách chạy đúng (bản mới)
 
-Chạy:
+Chạy lệnh sau:
 
 docker run --rm -it \
     -p 8000:8000 \
     --name stellar-quickstart \
-    stellar/quickstart:stable \
+    stellar/quickstart:latest \
     --standalone
 
+Nếu Docker chưa kéo image → nó sẽ tự động tải (~2 GB)
 
-Chờ đến khi bạn thấy dòng:
+Bạn sẽ thấy:
 
-Horizon listening on port 8000
+latest: Pulling from stellar/quickstart
 
-✅ BƯỚC 3 — Kiểm tra lại port 8000
+
+Chờ tải xong rồi sẽ chạy Horizon + Core.
+
+❗ Sau khi chạy xong, bạn kiểm tra:
 curl http://localhost:8000
 
 
-Nếu OK bạn sẽ thấy:
-
-{
-  "horizon_version": "...",
-  "core_version": "...",
-  "network_passphrase": "Test SDF Network ; September 2015",
-  ...
-}
-
+Nếu OK sẽ thấy JSON của Horizon.
 node scripts/create_usdx_network.js
 
 const StellarSDK = require("stellar-sdk");
