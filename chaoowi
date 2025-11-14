@@ -1,21 +1,108 @@
-hachau@hachau:~/stellar-dev$ node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
-Error: Not Found
-'
+Bây giờ ta kiểm tra trực tiếp BankA có tồn tại không
 
-✅ KIỂM TRA lại trước khi chạy script
+Chạy lệnh này:
+
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
+
+
+Nếu trả về:
+
+{
+  "type": "https://stellar.org/horizon-errors/not_found",
+  "status": 404,
+  "title": "Resource Missing"
+}
+
+
+→ Account chưa được fund hoặc chưa được tạo.
+
+❗ Đây chính là nguyên nhân bạn không thể transfer.
+✅ Giờ ta làm đúng quy trình:
+1️⃣ Kiểm tra lại key BankA và Fund nó bằng Friendbot
 
 Chạy:
 
 echo $BANKA_PUBLIC
-echo $BANKA_SECRET
-echo $BANKB_PUBLIC
-echo $ISSUER_PUBLIC
 
 
-Tất cả phải khớp với usdx-keys.json.
+Nó phải ra:
 
-✅ CHẠY LẠI TRANSFER
+GAFLGAYEVWODNDBACYHLDM6BPLCLCBD23RDL2PZJN74LBHSCRW5YSSXF
+
+
+Nếu đúng → fund:
+
+curl -s "http://localhost:8000/friendbot?addr=${BANKA_PUBLIC}" | jq .
+
+2️⃣ Kiểm tra BankA đã tồn tại
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
+
+
+Nếu lúc này thấy:
+
+"balances": [...]
+
+
+→ OK.
+
+3️⃣ Làm lại trustline USDX cho BankA
+
+Vì balance mới nên bạn cần tạo lại trustline.
+
+Chạy script trustline (nằm trong create_usdx_network.js)
+hoặc mình gửi lệnh nhanh:
+
+node ~/stellar-dev/scripts/create_usdx_network.js
+
+
+Nếu script đó auto tạo account mới → không dùng.
+
+👉 Giải pháp nhanh nhất: chạy trustline manually
+
+Tạo file tạm:
+
+nano ~/stellar-dev/scripts/settrust.js
+
+
+Dán vào:
+
+const S = require("stellar-sdk");
+const fetch = require("node-fetch");
+const server = new S.Server("http://localhost:8000", { allowHttp: true });
+
+(async () => {
+  const kp = S.Keypair.fromSecret(process.env.BANKA_SECRET);
+  const issuer = process.env.ISSUER_PUBLIC;
+  const asset = new S.Asset("USDX", issuer);
+  const acct = await server.loadAccount(kp.publicKey());
+  const fee = await server.fetchBaseFee();
+
+  const tx = new S.TransactionBuilder(acct, {
+    fee,
+    networkPassphrase: S.Networks.TESTNET,
+  })
+    .addOperation(S.Operation.changeTrust({ asset }))
+    .setTimeout(30)
+    .build();
+
+  tx.sign(kp);
+  const res = await server.submitTransaction(tx);
+  console.log(res);
+})();
+
+
+Lưu lại → Chạy:
+
+node ~/stellar-dev/scripts/settrust.js
+
+4️⃣ Giờ thử lại chuyển 500 USDX
 node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
 
 
-Bạn sẽ thấy:
+Lúc này chắc chắn sẽ ra:
+
+Payment submitted successfully!
+TX Hash: xxxxxxxxxx
+
+📌 BẠN HÃY GỬI MÌNH NGAY KẾT QUẢ LỆNH NÀY:
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
