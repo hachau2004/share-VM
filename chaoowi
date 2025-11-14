@@ -1,11 +1,39 @@
-Hướng dẫn Chi Tiết Sửa Script
-1. Gỡ SDK mới và cài bản đúng
-cd ~/stellar-dev
-npm uninstall stellar-sdk
-npm install stellar-sdk@10
+CÁCH FIX NHANH NHẤT (RECOMMENDED)
 
-2. Chạy lại script
-node scripts/create_usdx_network.jsSDX — giống trong tài liệu chương 5)
+👉 Thêm option allowHttp: true khi tạo server.
+
+Mở file:
+
+nano scripts/create_usdx_network.js
+
+
+Tìm dòng giống như:
+
+const server = new StellarSDK.Server(HORIZON);
+
+
+Thay bằng:
+
+const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
+
+🎉 Ví dụ đầy đủ
+const StellarSDK = require("stellar-sdk");
+
+const HORIZON = "http://localhost:8000";
+
+const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
+
+💡 Kiểm tra lại Horizon có chạy không
+
+Chạy:
+
+curl http://localhost:8000
+
+
+Nếu nó trả JSON → OK.
+
+Sau đó chạy lại:
+node scripts/create_usdx_network.js
 
 const StellarSDK = require("stellar-sdk");
 const fetch = require("node-fetch");
