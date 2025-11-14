@@ -1,39 +1,122 @@
-✅ Cách sửa ngay
+COPY NGUYÊN FILE NÀY → DÁN LẠI TOÀN BỘ FILE transfer_banka_to_bankb.js
 
-Mở file:
+Chạy:
 
 nano ~/stellar-dev/scripts/transfer_banka_to_bankb.js
 
 
-Tìm dòng:
+Nhấn Ctrl+A → Delete để xóa TRẮNG FILE.
 
-networkPassphrase: S.Networks.TESTNET
+Dán toàn bộ nội dung này:
+
+const S = require("stellar-sdk");
+const fetch = global.fetch || require("node-fetch");
+
+const HORIZON = process.env.HORIZON || "http://localhost:8000";
+
+// Get correct horizon server constructor
+let ServerClass =
+  S.Server || (S.Horizon && S.Horizon.Server) || S.Horizon;
+if (!ServerClass) {
+  console.error(
+    "Cannot find Server/Horizon constructor. stellar-sdk exports:",
+    Object.keys(S).join(",")
+  );
+  process.exit(2);
+}
+
+// Build horizon client
+let server;
+try {
+  server = new ServerClass(HORIZON, { allowHttp: true });
+} catch (err) {
+  try {
+    server = new ServerClass(HORIZON);
+  } catch (e) {
+    console.error("Failed to init Horizon:", err.message || err);
+    process.exit(3);
+  }
+}
+
+(async () => {
+  try {
+    const FROM_SECRET = process.env.BANKA_SECRET;
+    const TO_PUBLIC = process.env.BANKB_PUBLIC;
+    const ISSUER_PUBLIC = process.env.ISSUER_PUBLIC;
+    const AMOUNT = process.argv[2] || "100";
+
+    if (!FROM_SECRET) {
+      console.error("Missing BANKA_SECRET env");
+      process.exit(1);
+    }
+    if (!TO_PUBLIC) {
+      console.error("Missing BANKB_PUBLIC env");
+      process.exit(1);
+    }
+    if (!ISSUER_PUBLIC) {
+      console.error("Missing ISSUER_PUBLIC env");
+      process.exit(1);
+    }
+
+    const fromKP = S.Keypair.fromSecret(FROM_SECRET);
+    const account = await server.loadAccount(fromKP.publicKey());
+    const asset = new S.Asset("USDX", ISSUER_PUBLIC);
+
+    const baseFee = await server.fetchBaseFee();
+
+    const tx = new S.TransactionBuilder(account, {
+      fee: String(baseFee),
+      networkPassphrase: "Standalone Network ; February 2017"
+    })
+      .addOperation(
+        S.Operation.payment({
+          destination: TO_PUBLIC,
+          asset,
+          amount: AMOUNT.toString()
+        })
+      )
+      .setTimeout(30)
+      .build();
+
+    tx.sign(fromKP);
+
+    const res = await server.submitTransaction(tx);
+    console.log("Payment submitted successfully!");
+    console.log("TX Hash:", res.hash);
+    process.exit(0);
+  } catch (e) {
+    if (e.response && e.response.data) {
+      console.error(
+        "Horizon error:",
+        JSON.stringify(e.response.data, null, 2)
+      );
+    } else {
+      console.error("Error:", e.message || e);
+    }
+    process.exit(1);
+  }
+})();
 
 
-THAY BẰNG:
+Lưu file:
+Ctrl + O → Enter → Ctrl + X
 
-networkPassphrase: "Standalone Network ; February 2017"
-
-
-Lưu lại:
-
-Ctrl + O → Enter
-
-Ctrl + X
-
-❗Tiếp theo: export lại ENV để chắc chắn
-export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
-export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export HORIZON="http://localhost:8000"
-
-🚀 Chạy lại lệnh chuyển 500 USDX
+✅ CHẠY LẠI LỆNH
 node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
 
+❗ Quan trọng: trước khi chạy, phải export ENV
+export HORIZON="http://localhost:8000"
+export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
+export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
+export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
 
-Nếu networkPassphrase + secret key đúng → output sẽ là:
 
-Payment submitted, tx hash: XXXXXXXXXXXXXXX
+Kiểm tra:
+
+echo $BANKA_SECRET
+echo $BANKB_PUBLIC
+echo $ISSUER_PUBLIC
+
 
 
 
