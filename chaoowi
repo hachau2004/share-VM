@@ -1,6 +1,21 @@
 1) Mở rộng phân vùng bằng growpart
 
 Chạy:
+Không sao, nhưng bạn không cần xfs_growfs — vì filesystem của bạn không phải XFS.
+
+Ảnh trước đã cho thấy bạn dùng:
+
+/dev/sda3   ext4   /
+
+
+Filesystem EXT4 thì lệnh đúng là:
+
+sudo resize2fs /dev/sda3
+
+
+Và bạn đã chạy thành công rồi:
+
+The filesystem on /dev/sda3 is now 121911995 (4k) blocks long.
 
 sudo growpart /dev/sda 3
 
