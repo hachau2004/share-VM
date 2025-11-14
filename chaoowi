@@ -1,33 +1,42 @@
-CÁCH SỬA (chỉ giữ 1 dòng duy nhất)
+✅ CÁCH SỬA (dùng phiên bản mới của Stellar SDK)
 
-Mở file:
+Trong SDK mới, bạn KHÔNG cần gọi useTestNetwork() nữa.
+
+Bạn chỉ cần đặt network passphrase khi ký giao dịch:
+
+XÓA dòng:
+
+StellarSDK.Networks.useTestNetwork();
+
+
+THAY BẰNG:
+
+const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
+
+
+Hoặc nếu bạn dùng Quickstart local (docker):
+
+const NETWORK_PASSPHRASE = "Standalone Network ; February 2017";
+
+📌 File đúng mẫu (đoạn đầu)
+
+Hãy mở file:
 
 nano scripts/create_usdx_network.js
 
 
-Tìm 2 dòng bắt đầu bằng:
+Và chỉnh lại như sau:
 
-const server = ...
+require("dotenv").config();
+const StellarSDK = require("stellar-sdk");
 
-
-Xóa 1 dòng.
-
-Giữ lại đúng dòng dành cho chạy local + http:
-
-const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
-
-
-❌ Xóa dòng:
-
-const server = new StellarSDK.Server(HORIZON);
-
-🎯 File đúng phải như sau (đoạn server)
 const HORIZON = "http://localhost:8000";
+const NETWORK_PASSPHRASE = "Standalone Network ; February 2017";
+
 const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
 
-Sau đó chạy lại:
-node scripts/create_usdx_network.js
 
+‼️ LƯU Ý
 Bước 2 — Tạo Issuer, BankA, BankB và issue asset USDX
 
 File mẫu script: ~/stellar-dev/scripts/create_usdx_network.js (đã có nội dung trong file). Thực hiện:
