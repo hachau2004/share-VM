@@ -61,3 +61,52 @@ Kết quả đúng sẽ thấy 1 entry:
 "amount": "500"
 
 🎉 Khi bạn chạy xong 3 lệnh trên, hãy gửi mình 3 screenshot kết quả.
+
+
+Giải pháp: KHỞI ĐỘNG HORIZON + CORE BẰNG DOCKER
+
+Bạn chưa start container Stellar Quickstart nên Node không thể kết nối.
+
+🎯 Bước 1: XÓA container cũ nếu đang treo
+
+Kiểm tra container có chạy không:
+
+docker ps -a
+
+
+Nếu thấy container tên stellar-quickstart → xóa nó:
+
+docker rm -f stellar-quickstart
+
+🎯 Bước 2: KHỞI ĐỘNG LẠI Stellar Quickstart
+
+Chạy lệnh đúng (bản latest):
+
+docker run --rm -it \
+  -p 8000:8000 \
+  --name stellar-quickstart \
+  stellar/quickstart:latest \
+  --standalone
+
+
+⚠️ Giữ cửa sổ này mở
+— Đây là server Horizon + Friendbot
+— Nếu tắt thì script Node chết liền.
+
+🎯 Bước 3: KIỂM TRA Horizon đang chạy
+
+Mở terminal khác, chạy:
+
+curl http://localhost:8000
+
+
+Nếu thấy JSON trả về → OK.
+
+🎯 Bước 4: CHẠY LẠI SCRIPT
+
+Terminal mới (đang ở ~/stellar-dev):
+
+node scripts/create_usdx_network.js
+
+🔍 Nếu bạn muốn kiểm tra Friendbot:
+curl "http://localhost:8000/friendbot?addr=GB...."
