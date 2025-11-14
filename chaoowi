@@ -2,12 +2,11 @@
 
 Bạn đã có TX hash:
 
-5a416f5cd839b204eac23340dc67c6022a6219bad49bdc81f83c675dcf4ea0b3
-
+fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b
 
 Chạy:
 
-curl -s "http://localhost:8000/transactions/5a416f5cd839b204eac23340dc67c6022a6219bad49bdc81f83c675dcf4ea0b3/operations" | jq .
+curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
 
 
 👉 Kết quả đúng sẽ có:
