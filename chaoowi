@@ -1,99 +1,17 @@
-BƯỚC 6 — Chuyển USDX từ BankA → BankB
-6.1 — Tạo file transfer_banka_to_bankb.js
-
-Chạy:
-
-cd ~/stellar-dev/scripts
-nano transfer_banka_to_bankb.js
-
-
-➡ Bây giờ dán NGUYÊN TOÀN BỘ đoạn code này vào (đây là bản đã kiểm tra & chuẩn):
-
-const S = require('stellar-sdk');
-const fetch = global.fetch || require('node-fetch');
-
-const HORIZON = process.env.HORIZON || 'http://localhost:8000';
-
-// compatibility: find Server/Horizon constructor
-let ServerClass = S.Server || (S.Horizon && S.Horizon.Server) || S.Horizon;
-if (!ServerClass) {
-  console.error('Cannot find Server/Horizon constructor in stellar-sdk exports. Installed version:', Object.keys(S).join(','));
-  process.exit(2);
-}
-
-// Try to instantiate with allowHttp if supported, otherwise fallback
-let server;
-try {
-  server = new ServerClass(HORIZON, { allowHttp: true });
-} catch (err) {
-  try {
-    server = new ServerClass(HORIZON);
-  } catch (e) {
-    console.error('Failed to construct Horizon server client:', err.message || err);
-    process.exit(3);
+Horizon error: {
+  "type": "https://stellar.org/horizon-errors/transaction_failed",
+  "title": "Transaction Failed",
+  "status": 400,
+  "detail": "The transaction failed when submitted to the stellar network. The `extras.result_codes` field on this response contains further details.  Descriptions of each code can be found at: https://developers.stellar.org/api/errors/http-status-codes/horizon-specific/transaction-failed/",
+  "extras": {
+    "envelope_xdr": "AAAAAgAAAAAKswMErZw2jCAWDrGzwXrEsQR63Ea9Pylv+LCeQo27iQAAAGQAAAE3AAAAAgAAAAEAAAAAAAAAAAAAAABpFyW7AAAAAAAAAAEAAAAAAAAAAQAAAADpkq1Q4mvbuEML3sw1lvw/KzgM3KZPtXsPR73XIta2iAAAAAFVU0RYAAAAAKLg7QYCDpnIlxQ0V5lx/xy03IwTEPvUFT2p3ruouqzTAAAAASoF8gAAAAAAAAAAAUKNu4kAAABA4KQmEk8TrY+kgxiCtiydrgbN04GOLsaMlzFss/CWrilwxyU9lwnHm63LnPe8OU+2FWG39vrc5m+ILwU9ErEqBw==",
+    "result_codes": {
+      "transaction": "tx_bad_auth"
+    },
+    "result_xdr": "AAAAAAAAAGT////6AAAAAA=="
   }
 }
 
-(async () => {
-  try {
-    const FROM_SECRET = process.env.BANKA_SECRET;
-    const TO_PUBLIC = process.env.BANKB_PUBLIC || process.argv[2];
-    const ISSUER_PUBLIC = process.env.ISSUER_PUBLIC;
-    const AMOUNT = process.argv[2] && process.argv[2].match(/^\d/) ? process.argv[2] : (process.argv[3] || '100');
-
-    if (!FROM_SECRET) { console.error('Set BANKA_SECRET env'); process.exit(1); }
-    if (!TO_PUBLIC) { console.error('Set BANKB_PUBLIC env or pass as first arg'); process.exit(1); }
-    if (!ISSUER_PUBLIC) { console.error('Set ISSUER_PUBLIC env'); process.exit(1); }
-
-    const fromKP = S.Keypair.fromSecret(FROM_SECRET);
-    const acct = await server.loadAccount(fromKP.publicKey());
-    const asset = new S.Asset('USDX', ISSUER_PUBLIC);
-    const baseFee = await server.fetchBaseFee();
-
-    const tx = new S.TransactionBuilder(acct, { fee: String(baseFee), networkPassphrase: S.Networks.TESTNET })
-      .addOperation(S.Operation.payment({ destination: TO_PUBLIC, asset, amount: String(AMOUNT) }))
-      .setTimeout(30)
-      .build();
-
-    tx.sign(fromKP);
-    const res = await server.submitTransaction(tx);
-    console.log('Payment submitted, tx hash:', res.hash);
-    process.exit(0);
-  } catch (e) {
-    if (e.response && e.response.data) {
-      console.error('Horizon error:', JSON.stringify(e.response.data, null, 2));
-    } else {
-      console.error('Error:', e.message || e);
-    }
-    process.exit(1);
-  }
-})();
-
-
-Lưu file:
-
-Ctrl + O → Enter
-
-Ctrl + X
-
-✅ 6.2 — Set ENV để script dùng đúng key
-
-Chạy:
-
-export ISSUER_PUBLIC="$(jq -r .ISSUER_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export ISSUER_SECRET="$(jq -r .ISSUER_SECRET ~/stellar-dev/usdx-keys.json)"
-export BANKA_PUBLIC="$(jq -r .BANKA_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export BANKA_SECRET="$(jq -r .BANKA_SECRET ~/stellar-dev/usdx-keys.json)"
-export BANKB_PUBLIC="$(jq -r .BANKB_PUBLIC ~/stellar-dev/usdx-keys.json)"
-export BANKB_SECRET="$(jq -r .BANKB_SECRET ~/stellar-dev/usdx-keys.json)"
-export HORIZON="http://localhost:8000"
-
-
-Kiểm tra:
-
-echo $BANKA_SECRET
-echo $BANKB_PUBLIC
-echo $ISSUER_PUBLIC
 
 ✅ 6.3 — Chạy chuyển 500 USDX từ BankA → BankB
 
