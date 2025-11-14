@@ -1,13 +1,11 @@
-Giờ mình tạo file đó cho bạn (FULL CODE)
+Hướng dẫn Chi Tiết Sửa Script
+1. Gỡ SDK mới và cài bản đúng
+cd ~/stellar-dev
+npm uninstall stellar-sdk
+npm install stellar-sdk@10
 
-Chạy từng lệnh sau:
-
-1️⃣ Tạo file
-nano ~/stellar-dev/scripts/create_usdx_network.js
-
-2️⃣ Dán toàn bộ nội dung dưới đây vào file nano
-
-(Đây là bản script đầy đủ giúp bạn tạo Issuer, BankA, BankB, tạo trustline và gửi 10,000 USDX — giống trong tài liệu chương 5)
+2. Chạy lại script
+node scripts/create_usdx_network.jsSDX — giống trong tài liệu chương 5)
 
 const StellarSDK = require("stellar-sdk");
 const fetch = require("node-fetch");
