@@ -1,31 +1,66 @@
-Trước khi chạy, nhớ bật Quickstart:
+✅ Bước tiếp theo (Bước 5 – 6 trong tài liệu)
 
-docker run --rm -it \
-  -p 8000:8000 \
-  --name stellar-quickstart \
-  stellar/quickstart:latest \
-  --standalone
+Giờ bạn đã có bộ key trong:
+
+usdx-keys.json
 
 
-Rồi chạy script:
+Bạn cần:
 
-node scripts/create_usdx_network.js
+BƯỚC 5 — Lưu asset issuer vào ENV để cả hệ thống dùng
 
+Tạo file .env (nếu chưa có):
 
-❗ Nếu gặp lỗi friendbot, trustline, hoặc payment, gửi screenshot mình fix tiếp cho đến khi chạy hoàn hảo 100%.
-Bước 2 — Tạo Issuer, BankA, BankB và issue asset USDX
-
-File mẫu script: ~/stellar-dev/scripts/create_usdx_network.js (đã có nội dung trong file). Thực hiện:
-
-Tạo thư mục & cài deps:
-
-mkdir -p ~/stellar-dev/scripts
-cd ~/stellar-dev
-npm init -y
-npm install stellar-sdk dotenv node-fetch@2
+touch .env
 
 
-Tạo / chạy script (nếu bạn đã có file trong repo, chỉ chạy):
+Thêm vào:
+
+ISSUER_PUBLIC=<copy từ usdx-keys.json>
+ISSUER_SECRET=<copy từ usdx-keys.json>
+BANKA_PUBLIC=<copy>
+BANKA_SECRET=<copy>
+BANKB_PUBLIC=<copy>
+BANKB_SECRET=<copy>
+
+HORIZON=http://localhost:8000
+NETWORK_PASSPHRASE="Standalone Network ; February 2017"
+
+BƯỚC 6 — Kiểm tra tài sản USDX trên mạng
+1️⃣ Kiểm tra BankA đã có 10,000 USDX chưa
+
+Chạy:
+
+node
+
+
+Rồi trong Node REPL nhập:
+
+const StellarSDK = require("stellar-sdk");
+const server = new StellarSDK.Server("http://localhost:8000", { allowHttp: true });
+
+let acc = await server.loadAccount("<BANKA_PUBLIC>");
+console.log(acc.balances);
+
+
+👉 Bạn sẽ thấy:
+
+[
+  { asset_type: 'native', balance: '9999.9999800' },
+  { asset_type: 'credit_alphanum4', asset_code: 'USDX', balance: '10000.0000000' }
+]
+
+BƯỚC 7 — Tạo API để BANKA/BANKB giao dịch USDX
+
+Nếu bạn muốn:
+
+✔ Web backend
+✔ API transfer
+✔ API issue USDX
+✔ API check balance
+✔ API verify trustline
+
+Mình có thể viết full Node.js Express server cho bạn (chỉ cần bảo mình).
 
 node scripts/create_usdx_network.js
 
