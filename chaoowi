@@ -1,6 +1,33 @@
-FIX NGAY – CHỈ 1 LỆNH DUY NHẤT!
+✔️ Cách sửa rất đơn giản
 
-Bạn phải tải lại file .env, vì bạn chỉ tạo file nhưng chưa bao giờ source nó.
+Mở file .env:
+
+nano ~/stellar-dev/.env
+
+✔️ Dán vào nội dung đúng chuẩn (mình tạo lại dựa theo giá trị bạn vừa gửi):
+
+⚠️ Copy nguyên khối này — KHÔNG sửa gì:
+
+HORIZON="http://localhost:8000"
+
+ISSUER_PUBLIC="GAFLGAYEVWODNBACYHLDM6BPLCLCBD23RDL2PZJN74LBHSCRW5YSSF"
+ISSUER_SECRET="SBBAXSGUWCIJULW4JKPNW27LLWES7VP7CCB3INXSNEKZVFMQYUCOE3AM"
+
+BANKA_PUBLIC="C6A6ES77LLKBBY"   # ❗ Lúc nãy bạn gửi thiếu — bạn cần gửi lại giá trị đúng
+BANKA_SECRET="(điền secret đầy đủ của BankA)"
+
+BANKB_PUBLIC="GDUZFLKQ4JV5XOCDDBPPMYMNW7Q7SWOAM3STE7NL3B5D33VZC223IRTKP"
+BANKB_SECRET="(điền secret đầy đủ của BankB)"
+
+❗ Bạn cần gửi lại 2 dòng này cho mình:
+
+BANKA_PUBLIC (đầy đủ)
+
+BANKA_SECRET (đầy đủ)
+
+→ Vì bạn vừa gửi BANKA_PUBLIC bị thiếu phần đầu GA…, phải là 56 ký tự.
+
+✔️ Sau khi sửa xong:
 
 Chạy:
 
@@ -8,7 +35,7 @@ cd ~/stellar-dev
 source .env
 
 
-Sau đó kiểm tra lại:
+Kiểm tra:
 
 echo "$BANKA_PUBLIC"
 echo "$BANKA_SECRET"
@@ -16,4 +43,4 @@ echo "$BANKB_PUBLIC"
 echo "$ISSUER_PUBLIC"
 
 
-👉 Lần này chắc chắn phải hiện ra các khóa public/secret bạn đã sao chép từ usdx-keys.json.
+➡️ Tất cả phải hiện ra đầy đủ, không gây lỗi.
