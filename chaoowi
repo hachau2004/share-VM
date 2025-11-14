@@ -1,3 +1,15 @@
+✅ Quy tắc: tất cả lệnh tiếp theo đều chạy trong ~/stellar-dev
+
+Ví dụ:
+
+cd ~/stellar-dev
+
+
+Sau đó:
+
+nano .env
+node scripts/create_usdx_network.js
+node scripts/send_usdx_bankA_to_bankB.js
 Cách tạo file .env đúng
 1. Mở file .env trong nano
 nano .env
