@@ -1,112 +1,43 @@
-) Kiểm tra CHI TIẾT GIAO DỊCH bằng transaction hash
+GIỜ DÙNG HASH ĐÚNG ĐỂ KIỂM TRA GIAO DỊCH
 
-Bạn đã có TX hash:
-
-fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b
-
-Chạy:
+Chạy đúng lệnh này:
 
 curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
 
 
-👉 Kết quả đúng sẽ có:
+Nhớ copy-paste nguyên dòng trên.
+ĐỪNG chia dòng.
+ĐỪNG để ký tự lạ “وز”.
 
-"type": "payment"
-
-"asset_code": "USDX"
-
-"from": "<BANKA_PUBLIC>"
-
-"to": "<BANKB_PUBLIC>"
-
-"amount": "500" (hoặc đúng số bạn chuyển)
-
-✅ 2) Kiểm tra BALANCE của BankA và BankB
+📌 TIẾP THEO CHẠY 2 LỆNH KIỂM TRA BALANCE
 BankA:
 curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
-
-
-Kết quả đúng:
-
-USDX giảm (10000 - 500 = 9500 nếu bạn chuyển 500)
-
-XLM không đổi nhiều (trừ phí giao dịch nhỏ)
 
 BankB:
 curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
 
 
-Kết quả đúng:
+👉 Kết quả đúng:
 
-Xuất hiện USDX đầu tiên
-ví dụ:
+BankA: USDX = 10000 − 500 = 9500
 
-{
-  "asset_type": "credit_alphanum4",
-  "asset_code": "USDX",
-  "asset_issuer": "<ISSUER_PUBLIC>",
-  "balance": "500.0000000"
-}
+BankB: USDX = 500
 
-✅ 3) Kiểm tra lịch sử payments của BankB
-curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq '.'
+📌 KIỂM TRA PAYMENTS CỦA BANKB
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq .
 
 
-Kết quả đúng sẽ thấy 1 entry:
+Bạn sẽ thấy 1 payment từ BankA → BankB.
 
-"type": "payment",
-"from": "<BANKA_PUBLIC>",
-"to": "<BANKB_PUBLIC>",
-"asset_code": "USDX",
-"amount": "500"
+🎯 TÓM LẠI BẠN CẦM CHẠY 3 LỆNH SAU:
+1️⃣ Kiểm tra operations:
+curl -s "http://localhost:8000/transactions/fe44b0a11e24e6d1b75c87c26fcd3dda3700c1f92f902b142d95f5ccafbded1b/operations" | jq .
 
-🎉 Khi bạn chạy xong 3 lệnh trên, hãy gửi mình 3 screenshot kết quả.
+2️⃣ Balance BankA:
+curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq '.balances'
 
+3️⃣ Balance BankB:
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}" | jq '.balances'
 
-Giải pháp: KHỞI ĐỘNG HORIZON + CORE BẰNG DOCKER
-
-Bạn chưa start container Stellar Quickstart nên Node không thể kết nối.
-
-🎯 Bước 1: XÓA container cũ nếu đang treo
-
-Kiểm tra container có chạy không:
-
-docker ps -a
-
-
-Nếu thấy container tên stellar-quickstart → xóa nó:
-
-docker rm -f stellar-quickstart
-
-🎯 Bước 2: KHỞI ĐỘNG LẠI Stellar Quickstart
-
-Chạy lệnh đúng (bản latest):
-
-docker run --rm -it \
-  -p 8000:8000 \
-  --name stellar-quickstart \
-  stellar/quickstart:latest \
-  --standalone
-
-
-⚠️ Giữ cửa sổ này mở
-— Đây là server Horizon + Friendbot
-— Nếu tắt thì script Node chết liền.
-
-🎯 Bước 3: KIỂM TRA Horizon đang chạy
-
-Mở terminal khác, chạy:
-
-curl http://localhost:8000
-
-
-Nếu thấy JSON trả về → OK.
-
-🎯 Bước 4: CHẠY LẠI SCRIPT
-
-Terminal mới (đang ở ~/stellar-dev):
-
-node scripts/create_usdx_network.js
-
-🔍 Nếu bạn muốn kiểm tra Friendbot:
-curl "http://localhost:8000/friendbot?addr=GB...."
+4️⃣ Payments cho BankB:
+curl -s "http://localhost:8000/accounts/${BANKB_PUBLIC}/payments?order=desc&limit=10" | jq .
