@@ -77,7 +77,33 @@ async function sendAsset(issuerKp, to, asset, amount) {
 
   const USDX = new StellarSDK.Asset("USDX", issuer.publicKey());
 
-  console.log("
+  console.log("Setting trustlines...");
+  await setTrustline(bankA, USDX);
+  await setTrustline(bankB, USDX);
+
+  console.log("Sending 10000 USDX to BankA...");
+  await sendAsset(issuer, bankA.publicKey(), USDX, 10000);
+
+  const fs = require("fs");
+  fs.writeFileSync(
+    "./usdx-keys.json",
+    JSON.stringify(
+      {
+        ISSUER_PUBLIC: issuer.publicKey(),
+        ISSUER_SECRET: issuer.secret(),
+        BANKA_PUBLIC: bankA.publicKey(),
+        BANKA_SECRET: bankA.secret(),
+        BANKB_PUBLIC: bankB.publicKey(),
+        BANKB_SECRET: bankB.secret(),
+      },
+      null,
+      2
+    )
+  );
+
+  console.log("DONE! Keys saved to usdx-keys.json");
+})();
+
 
 Hãy mở file:
 
