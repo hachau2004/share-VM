@@ -1,38 +1,31 @@
-CÁCH FIX NHANH NHẤT (RECOMMENDED)
-
-👉 Thêm option allowHttp: true khi tạo server.
-
-Mở file:
-
-nano scripts/create_usdx_network.js
-
-
-Tìm dòng giống như:
-
-const server = new StellarSDK.Server(HORIZON);
-
-
-Thay bằng:
-
-const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
-
-🎉 Ví dụ đầy đủ
-const StellarSDK = require("stellar-sdk");
-
-const HORIZON = "http://localhost:8000";
-
-const server = new StellarSDK.Server(HORIZON, { allowHttp: true });
-
-💡 Kiểm tra lại Horizon có chạy không
+ƯỚC 2 — Nếu container chưa chạy → khởi động lại
 
 Chạy:
 
+docker run --rm -it \
+    -p 8000:8000 \
+    --name stellar-quickstart \
+    stellar/quickstart:stable \
+    --standalone
+
+
+Chờ đến khi bạn thấy dòng:
+
+Horizon listening on port 8000
+
+✅ BƯỚC 3 — Kiểm tra lại port 8000
 curl http://localhost:8000
 
 
-Nếu nó trả JSON → OK.
+Nếu OK bạn sẽ thấy:
 
-Sau đó chạy lại:
+{
+  "horizon_version": "...",
+  "core_version": "...",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  ...
+}
+
 node scripts/create_usdx_network.js
 
 const StellarSDK = require("stellar-sdk");
