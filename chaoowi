@@ -1,108 +1,280 @@
-Bây giờ ta kiểm tra trực tiếp BankA có tồn tại không
+Thực hiện trên Windows với Ganache GUI
+MỤC TIÊU:
+Xây dựng một hệ thống Letter of Credit (LC) đầy đủ chạy trên blockchain bằng smart contracts, mô phỏng toàn bộ quy trình LC truyền thống trong thương mại quốc tế.
+FLOW CỦA HỆ THỐNG:
+1.	Bank phát hành LC
+Bank đăng nhập DApp, điền Buyer, Seller, số tiền, ngày hết hạn rồi bấm Create LC.
+→ Hợp đồng LC Master tạo 1 LC contract mới, khóa số tiền đó làm escrow và lưu LC ở trạng thái I (Issued).
+2.	Các bên xem LC
+Bank, Buyer, Seller đăng nhập (đổi account trong MetaMask) đều có thể vào View LC để xem danh sách LC và chi tiết (số tiền, trạng thái, ngày hết hạn…).
+3.	Seller giao hàng, tạo DocHash
+Seller tạo invoice/chứng từ, tính SHA-256 hash (DocHash) của file và chuẩn bị yêu cầu thanh toán.
+4.	Seller yêu cầu thanh toán (settle)
+Seller vào Settle LC, chọn LC, nhập số tiền cần thanh toán và DocHash, rồi gửi giao dịch.
+→ LC contract kiểm tra điều kiện, chuyển tiền token từ escrow cho Seller:
+o	Nếu thanh toán một phần → trạng thái LC sang P (Partial), số dư LC giảm.
+o	Nếu thanh toán hết → trạng thái LC sang S (Settled), số dư LC = 0.
+5.	Kết thúc LC
+Sau các lần settle, khi amount = 0 và status = S, LC coi như hoàn tất vòng đời. Mọi giao dịch, số dư và DocHash đều được ghi on-chain để audit.
+ 
+THƯ MỤC VÀ FILE
+Chapter_6
+├── contracts
+│   ├── LC.sol
+│   ├── LCMaster.sol
+│   ├── USD.sol
+│   └── Migrations.sol
+├── migrations
+│   ├── 1_initial_migration.js
+│   └── 2_deploy_contracts.js
+├── truffle-config.js
+├── build
+│   └── contracts/*.json        (tự sinh sau khi compile/migrate)
+└── LCApp                       (React app – bạn đã có)
+    └── src
+        └── Contracts/*.json    (copy từ build/contracts)
 
-Chạy lệnh này:
+PHẦN A. CÀI ĐẶT MÔI TRƯỜNG TRÊN WINDOWS
+1. Bước 1. Cài Node.js
+Kiểm tra cài đặt:
+node -v
+npm -v
 
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
+2. Bước 2. Cài Truffle
+Mở Command Prompt hoặc PowerShell:
+npm install -g truffle
+Kiểm tra:
+truffle version
+3. Bước 3. Cài Ganache GUI (bản Desktop)
+Sau khi cài xong, mở Ganache GUI → Create New Workspace → Quickstart.
+Ganache sẽ tạo:
+•	10 tài khoản
+•	mỗi tài khoản 100 ETH test
+•	RPC Server địa chỉ: HTTP://127.0.0.1:7545
+4. Bước 4 — Cài MetaMask
+•	Cài extension Chrome/Edge
+•	Tạo ví mới
+•	Chưa cần kết nối mạng – sẽ làm ở bước sau.
+- Vào link chính thức: https://metamask.io/
+- Click GET METAMASK → Add to Chrome → Chọn “Thêm tiện ích”
+Kết quả METAMASK được add vào Trình duyệt
+PHẦN B — TẠO PROJECT
+Clone source của sách:
+git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
 
+...\Blockchain-Development-for-Finance-Projects\Chapter 6\:
 
-Nếu trả về:
+THƯ MỤC VÀ FILE ĐẦY ĐỦ
+Chapter_6
+├── contracts
+│   ├── LC.sol
+│   ├── LCMaster.sol
+│   ├── USD.sol
+│   └── Migrations.sol
+├── migrations
+│   ├── 1_initial_migration.js
+│   └── 2_deploy_contracts.js
+├── truffle-config.js
+├── build
+│   └── contracts/*.json        (tự sinh sau khi compile/migrate)
+└── LCApp                       (React app – bạn đã có)
+    └── src
+        └── Contracts/*.json    (copy từ build/contracts)
 
-{
-  "type": "https://stellar.org/horizon-errors/not_found",
-  "status": 404,
-  "title": "Resource Missing"
+Trong thư mục Chapter 6 cài @openzeppelin/contracts (bản mới) thay cho openzeppelin-solidity: 
+npm install @openzeppelin/contracts
+
+1. Tạo skeleton Truffle trong Chapter 6
+•	Mở Command Prompt / PowerShell.
+•	Di chuyển tới thư mục Chapter 6
+•	Chạy lệnh:
+truffle init
+Truffle sẽ tạo thêm:
+•	contracts/Migrations.sol
+•	thư mục migrations/
+•	file truffle-config.js (có thể là bản template)
+Nếu bị hỏi overwrite, chọn Skip / No cho các file .sol đã có (LC.sol, LCMaster.sol, USD.sol).
+2. Sửa file truffle-config.js:
+Mở Chapter 6\truffle-config.js và thay toàn bộ nội dung bằng:
+module.exports = {
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,          // cổng của Ganache GUI
+      network_id: "*",     // khớp mọi network id
+    }
+  },
+
+  compilers: {
+    solc: {
+      version: "0.5.16",   // hợp với code của sách (0.5.x)
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
+    }
+  }
+};
+Chỉnh xong thì Truffle biết:
+•	dùng Ganache GUI
+•	dùng Solidity 0.5.16
+3. Đảm bảo thư mục contracts/ đủ file
+Trong Chapter 6\contracts phải có:
+•	LC.sol
+•	LCMaster.sol
+•	USD.sol
+•	Migrations.sol (Truffle đã tạo – giữ nguyên)
+Nếu thiếu Migrations.sol, tạo file mới với nội dung:
+pragma solidity ^0.5.16;
+
+contract Migrations {
+  address public owner;
+  uint public last_completed_migration;
+
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  modifier restricted() {
+    require(msg.sender == owner, "This function is restricted to the contract's owner");
+    _;
+  }
+
+  function setCompleted(uint completed) public restricted {
+    last_completed_migration = completed;
+  }
 }
+4. Tạo file migration deploy contracts
+Trong thư mục Chapter 6\migrations: 
+4.1. File 1_initial_migration.js
+Truffle đã tạo sẵn, nội dung chuẩn thường là:
+const Migrations = artifacts.require("Migrations");
+
+module.exports = function (deployer) {
+  deployer.deploy(Migrations);
+};
+Nếu khác thì sửa lại giống như trên cho đơn giản.
+4.2. Tạo 2_deploy_contracts.js
+Tạo file mới: Chapter 6\migrations\2_deploy_contracts.js với nội dung:
+const USD = artifacts.require("USD");
+const LCMaster = artifacts.require("LCMaster");
+// LC có thể được tạo bởi LCMaster, nên ở migration ta không nhất thiết deploy LC riêng
+
+module.exports = async function (deployer, network, accounts) {
+  // 1. Deploy USD token
+  await deployer.deploy(USD);
+  const usd = await USD.deployed();
+
+  // 2. Deploy LC Master
+  await deployer.deploy(LCMaster, usd.address);
+  const master = await LCMaster.deployed();
+
+  console.log("USD token deployed at:", usd.address);
+  console.log("LCMaster deployed at:", master.address);
+};
+Quan trọng: constructor của LCMaster trong code của bạn có thể khác (có cần usd.address hay không).
+•	Nếu trong LCMaster.sol thấy constructor(address tokenAddress) ... → dùng code như trên.
+•	Nếu constructor không có tham số → sửa dòng deploy thành:
+await deployer.deploy(LCMaster);
+5. Compile + migrate contracts
+- Mở Ganache GUI, bật workspace (Quickstart).
+- Trong PowerShell ở Chapter 6, chạy:
+truffle compile
+Kết quả:
+ 
+•	Tất cả contract đã compile thành công
+•	Đúng với Solidity 0.8.21
+•	Artifact .json đã được sinh vào C:\Chapter6\build\contracts
+- Deploy contract lên Ganache:
+•	Mở Ganache GUI (Quickstart, port 7545).
+•	Ở thư mục C:\Chapter6 chạy:
+
+truffle migrate --reset --network development
+	Kết quả: 
+  
+ 
+ 
+Nếu file 2_deploy_contracts.js như trên thì migrate sẽ:
+•	deploy USD → in ra địa chỉ
+•	deploy LCMaster (nhận usd.address) → in ra địa chỉ
+=> copy 2 địa chỉ đó lưu lại (dùng cho React khi cần).
+USD address      = 0xb8E6e14074155ad2D515dE39FE42878D25FE77a0 
+LCMaster address = 0x10477C62Be30555a1354dab71AD9Ab5700895a9a
+Kết quả như các hình trên thấy:
+•	Migrations deploy OK
+•	USD deploy OK → USD deployed at: 0xB6E6…5E77a0
+•	LCMaster deploy OK → LCMaster deployed at: 0x1047…B95a9a
+Như vậy phần smart contract + Truffle + Ganache đã hoàn thành xong
+Tiếp theo ta thực hiện nối với LCApp (React) và chạy flow LC.
+6. Kết nối với LCApp (React) và chạy flow LC
+- Copy ABI sang LCApp:
+Sau khi compile, migrate xong, Truffle đã tạo trong C:\Chapter6\build\contracts các file:
+•	LC.json
+•	LCMaster.json
+•	USD.json
+•	Migrations.json
+Tiếp theo thực hiện:
+•	Mở thư mục: C:\Chapter6\build\contracts
+•	Copy 3 file:
+o	LC.json
+o	LCMaster.json
+o	USD.json
+•	Dán vào thư mục: C:\Chapter6\LCApp\src\Contracts\
+- Cấu hình địa chỉ trong LCApp
+Mở file: C:\Chapter6\LCApp\src\App.js
+hoặc một file config nào đó trong LCApp\src (tuỳ code sách), tìm xem có đoạn sau:
+const LCMasterAddress = "0x...";  // địa chỉ mẫu
+const USDAddress      = "0x...";
+Bạn sửa lại: theo 2 địa chỉ lưu ở bước trên
+Nếu app không hard-code mà đọc từ JSON:
+const networkId = await web3.eth.net.getId();
+const deployedNetwork = LCMaster.networks[networkId];
+const LCMasterAddress = deployedNetwork.address;
+thì bạn không cần sửa gì, miễn là:
+•	Ganache đang chạy (network_id: 5777 – đúng như log).
+•	MetaMask đang kết nối tới mạng đó (RPC: http://127.0.0.1:7545, ChainId 5777).
+- Chạy LCApp
+Trong một terminal khác:
+cd C:\Chapter6\LCApp
+npm install   # nếu chưa chạy lần nào
+npm start
+Trình duyệt mở http://localhost:3000:
+1.	MetaMask bật popup → Connect.
+2.	Đảm bảo network trong MetaMask là Ganache (http://127.0.0.1:7545).
+3.	Import 3 account từ Ganache:
+o	Account 1: Bank
+o	Account 2: Buyer
+o	Account 3: Seller
+- Test nhanh flow LC:
+•  Bank tạo LC
+•	Trong MetaMask chọn account Bank.
+•	Vào tab Bank trong DApp → form Create LC.
+•	Nhập:
+o	Buyer = địa chỉ account Buyer
+o	Seller = địa chỉ account Seller
+o	Amount = 1000 (chẳng hạn)
+o	Expiry date (tuỳ app)
+•	Bấm Submit → MetaMask confirm.
+•  Xem LC
+•	Bank vào View LC → thấy LC mới.
+•	Đổi MetaMask sang Buyer → login Buyer → View LC.
+•	Đổi sang Seller → login Seller → View LC.
+•  Seller settle LC
+•	Tạo file invoice giả, tính hash SHA-256 → thêm 0x ở đầu.
+•	Trong DApp, tab Seller → Settle LC:
+o	Chọn LCNo
+o	Amount = 500 (partial)
+o	DocHash = chuỗi hash vừa tạo
+•	Bấm Submit → confirm trong MetaMask.
+•	Xem lại View LC:
+o	Amount giảm,
+o	Status đổi từ I → P.
+•  Settle nốt để LC = Settled
+•	Làm tương tự với amount bằng số còn lại → Status phải về S, amount = 0.
 
 
-→ Account chưa được fund hoặc chưa được tạo.
-
-❗ Đây chính là nguyên nhân bạn không thể transfer.
-✅ Giờ ta làm đúng quy trình:
-1️⃣ Kiểm tra lại key BankA và Fund nó bằng Friendbot
-
-Chạy:
-
-echo $BANKA_PUBLIC
 
 
-Nó phải ra:
 
-GAFLGAYEVWODNDBACYHLDM6BPLCLCBD23RDL2PZJN74LBHSCRW5YSSXF
-
-
-Nếu đúng → fund:
-
-curl -s "http://localhost:8000/friendbot?addr=${BANKA_PUBLIC}" | jq .
-
-2️⃣ Kiểm tra BankA đã tồn tại
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
-
-
-Nếu lúc này thấy:
-
-"balances": [...]
-
-
-→ OK.
-
-3️⃣ Làm lại trustline USDX cho BankA
-
-Vì balance mới nên bạn cần tạo lại trustline.
-
-Chạy script trustline (nằm trong create_usdx_network.js)
-hoặc mình gửi lệnh nhanh:
-
-node ~/stellar-dev/scripts/create_usdx_network.js
-
-
-Nếu script đó auto tạo account mới → không dùng.
-
-👉 Giải pháp nhanh nhất: chạy trustline manually
-
-Tạo file tạm:
-
-nano ~/stellar-dev/scripts/settrust.js
-
-
-Dán vào:
-
-const S = require("stellar-sdk");
-const fetch = require("node-fetch");
-const server = new S.Server("http://localhost:8000", { allowHttp: true });
-
-(async () => {
-  const kp = S.Keypair.fromSecret(process.env.BANKA_SECRET);
-  const issuer = process.env.ISSUER_PUBLIC;
-  const asset = new S.Asset("USDX", issuer);
-  const acct = await server.loadAccount(kp.publicKey());
-  const fee = await server.fetchBaseFee();
-
-  const tx = new S.TransactionBuilder(acct, {
-    fee,
-    networkPassphrase: S.Networks.TESTNET,
-  })
-    .addOperation(S.Operation.changeTrust({ asset }))
-    .setTimeout(30)
-    .build();
-
-  tx.sign(kp);
-  const res = await server.submitTransaction(tx);
-  console.log(res);
-})();
-
-
-Lưu lại → Chạy:
-
-node ~/stellar-dev/scripts/settrust.js
-
-4️⃣ Giờ thử lại chuyển 500 USDX
-node ~/stellar-dev/scripts/transfer_banka_to_bankb.js 500
-
-
-Lúc này chắc chắn sẽ ra:
-
-Payment submitted successfully!
-TX Hash: xxxxxxxxxx
-
-📌 BẠN HÃY GỬI MÌNH NGAY KẾT QUẢ LỆNH NÀY:
-curl -s "http://localhost:8000/accounts/${BANKA_PUBLIC}" | jq .
