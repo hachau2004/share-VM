@@ -1,4 +1,121 @@
-https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects/archive/refs/heads/master.zip
+BƯỚC 2 — VÀO THƯ MỤC CHAPTER 6
+
+Trong CMD, chạy:
+
+cd "Blockchain-Development-for-Finance-Projects/Chapter 6"
+
+
+(Hoặc bạn mở File Explorer → mở đúng thư mục Chapter 6)
+
+✅ BƯỚC 3 — TẠO SKELETON TRUFFLE
+
+Trong thư mục Chapter 6, chạy:
+
+truffle init
+
+
+Nếu hỏi overwrite file .sol → chọn N (No).
+
+Truffle sẽ tạo:
+
+migrations/
+
+Migrations.sol (nếu chưa có)
+
+truffle-config.js mẫu
+
+✅ BƯỚC 4 — SỬA FILE truffle-config.js
+
+Mở file:
+
+Chapter 6/truffle-config.js
+
+
+Xóa hết → thay bằng nội dung sau:
+
+module.exports = {
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*",
+    }
+  },
+
+  compilers: {
+    solc: {
+      version: "0.5.16",
+      settings: {
+        optimizer: { enabled: true, runs: 200 }
+      }
+    }
+  }
+};
+
+
+💡 Giải thích:
+
+Ganache GUI chạy trên 7545
+
+Code LC dùng Solidity 0.5.x, nên chọn 0.5.16
+
+✅ BƯỚC 5 — TẠO FILE MIGRATION DEPLOY CONTRACTS
+5.1 Kiểm tra file 1_initial_migration.js
+
+Trong migrations/1_initial_migration.js phải giống:
+
+const Migrations = artifacts.require("Migrations");
+
+module.exports = function (deployer) {
+  deployer.deploy(Migrations);
+};
+
+5.2 Tạo file 2_deploy_contracts.js
+
+Tạo file:
+
+migrations/2_deploy_contracts.js
+
+
+Dán nội dung:
+
+const USD = artifacts.require("USD");
+const LCMaster = artifacts.require("LCMaster");
+
+module.exports = async function (deployer, network, accounts) {
+  await deployer.deploy(USD);
+  const usd = await USD.deployed();
+
+  await deployer.deploy(LCMaster, usd.address);
+  const master = await LCMaster.deployed();
+
+  console.log("USD token deployed at:", usd.address);
+  console.log("LCMaster deployed at:", master.address);
+};
+
+✅ BƯỚC 6 — COMPILE CONTRACT
+
+Mở Ganache GUI (Quickstart), rồi chạy:
+
+truffle compile
+
+
+Nếu OK, sẽ thấy build/contracts/*.json xuất hiện.
+
+✅ BƯỚC 7 — DEPLOY CONTRACT LÊN GANACHE
+
+Chạy:
+
+truffle migrate --reset --network development
+
+
+Sau khi deploy xong, Truffle sẽ in ra:
+
+USD token deployed at: 0x....
+LCMaster deployed at: 0x....
+
+
+👉 Ghi lại 2 địa chỉ này để dùng trong frontend (React).
 
 Thực hiện trên Windows với Ganache GUI
 MỤC TIÊU:
