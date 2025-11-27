@@ -465,14 +465,45 @@ Chapter 6
 
 và làm tiếp các bước:
 
-1️⃣ truffle init
-2️⃣ sửa truffle-config.js
-3️⃣ tạo file 2_deploy_contracts.js
-4️⃣ compile
-5️⃣ migrate
-6️⃣ chạy LCApp
+Chạy:
 
-→ Tất cả các bước này mình đã hướng dẫn rõ trong tin nhắn trước.
+npm install @openzeppelin/contracts
+
+
+Sau khi cài, bạn sẽ có thư mục:
+
+node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol
+
+
+→ lúc này import mới hoạt động.
+
+❗ BƯỚC RẤT QUAN TRỌNG — DO NODE CỦA BẠN QUÁ MỚI
+
+Bạn đang dùng:
+
+Node v22.19.0
+
+
+⚠️ Truffle 5 không ổn định với Node 22
+→ Lỗi tương thích UWS, nhưng tạm thời vẫn compile được.
+
+Tuy nhiên nếu bạn thấy lỗi kỳ lạ sau này → mình sẽ hướng dẫn bạn hạ xuống Node 18 LTS.
+
+✅ BƯỚC 3 — COMPILE LẠI
+
+Trong thư mục Chapter 6:
+
+truffle compile --all
+
+
+Kết quả đúng phải là:
+
+Compiling ./contracts/Migrations.sol
+Compiling ./contracts/LC.sol
+Compiling ./contracts/LCMaster.sol
+Compiling ./contracts/USD.sol
+...
+Writing artifacts to ./build/contracts
 
 
 
