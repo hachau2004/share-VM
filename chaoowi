@@ -275,6 +275,87 @@ o	Status đổi từ I → P.
 •	Làm tương tự với amount bằng số còn lại → Status phải về S, amount = 0.
 
 
+✅ CÁCH 1 — CLONE BẰNG GIT (nếu bạn đã cài Git thành công)
+✔ Kiểm tra lại Git
+
+Mở cmd hoặc PowerShell:
+
+git --version
+
+
+Nếu hiện:
+
+git version 2.x.x
+
+
+→ OK, chuyển sang bước tiếp.
+
+Nếu vẫn báo lỗi → bạn chưa cài Git đúng → quay lại tin nhắn trước để cài Git.
+
+✔ Clone source của sách (bước bạn đang làm)
+
+Chạy:
+
+git clone https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects.git
+
+
+Sau khi clone xong, bạn sẽ thấy thư mục:
+
+Blockchain-Development-for-Finance-Projects
+
+
+Bên trong đó có:
+
+Chapter 6
+Chapter 7
+...
+
+
+Giờ bạn chỉ cần vào thư mục:
+
+Blockchain-Development-for-Finance-Projects\Chapter 6
+
+
+→ Đây chính là thư mục mà toàn bộ hướng dẫn các bước tiếp theo đều sẽ dùng.
+
+✅ CÁCH 2 — KHÔNG CẦN GIT (nếu bạn muốn làm nhanh nhất)
+
+Nếu bạn không muốn cài Git, bạn hoàn toàn có thể tải trực tiếp file ZIP.
+
+✔ Tải ZIP:
+
+🔗 https://github.com/PacktPublishing/Blockchain-Development-for-Finance-Projects/archive/refs/heads/master.zip
+
+✔ Giải nén → bạn sẽ thấy một folder:
+Blockchain-Development-for-Finance-Projects-master
+
+
+Trong đó có:
+
+Chapter 6
+
+
+→ Đây là thư mục bạn cần để làm các bước tiếp theo.
+
+🎯 SAU KHI BẠN CÓ THƯ MỤC "Chapter 6"
+
+Bạn chỉ cần mở terminal tại:
+
+Chapter 6
+
+
+và làm tiếp các bước:
+
+1️⃣ truffle init
+2️⃣ sửa truffle-config.js
+3️⃣ tạo file 2_deploy_contracts.js
+4️⃣ compile
+5️⃣ migrate
+6️⃣ chạy LCApp
+
+→ Tất cả các bước này mình đã hướng dẫn rõ trong tin nhắn trước.
+
+
 
 
 
