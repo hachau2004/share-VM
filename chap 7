@@ -1,0 +1,285 @@
+✅ HƯỚNG DẪN CHƯƠNG 7 — THEO ĐÚNG BÀI GỐC (KHÔNG THÊM BỚT)
+
+XÂY DỰNG HỆ THỐNG LƯU TRỮ TÀI LIỆU CHỐNG CHỈNH SỬA (TAMPER-PROOF) BẰNG HYPERLEDGER FABRIC
+
+-----------------------------------------------------
+PHẦN A – CÀI DỰNG MÔI TRƯỜNG
+-----------------------------------------------------
+1. Update Ubuntu
+sudo apt update
+sudo apt upgrade -y
+
+2. Cài Docker Engine
+sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo mkdir -m 0755 -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+| sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+
+Kiểm tra:
+
+docker --version
+
+3. Cho Docker chạy
+sudo systemctl start docker
+sudo systemctl enable docker
+
+4. Cho phép user dùng Docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+5. Cài Node.js + npm
+sudo apt install -y nodejs npm
+
+6. Tải Fabric 3.1.3 + CA 1.5.10
+mkdir -p $HOME/fabric-work
+cd $HOME/fabric-work
+curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh
+chmod +x install-fabric.sh
+./install-fabric.sh --fabric-version 3.1.3 --ca-version 1.5.10 binary samples docker
+
+
+Thêm vào PATH:
+
+echo 'export PATH=$HOME/fabric-work/fabric-samples/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+-----------------------------------------------------
+PHẦN B – TẠO BLOCKCHAIN NETWORK
+-----------------------------------------------------
+1. Khởi tạo test-network
+cd ~/fabric-work/fabric-samples/test-network
+./network.sh down
+./network.sh up createChannel -c mychannel -ca
+
+
+Kiểm tra:
+
+docker ps
+
+-----------------------------------------------------
+PHẦN C – TRIỂN KHAI CHAINCODE “DocsApp”
+-----------------------------------------------------
+
+Thiết lập môi trường CLI:
+
+cd ~/fabric-work/fabric-samples/test-network
+export PATH=$HOME/fabric-work/fabric-samples/bin:$PATH
+export FABRIC_CFG_PATH=$HOME/fabric-work/fabric-samples/config
+source scripts/envVar.sh
+
+1. Tạo chaincode external DocsApp
+1.1. Tạo thư mục
+cd ~/fabric-work/fabric-samples
+mkdir -p chaincode/docsapp-external
+cd chaincode/docsapp-external
+
+1.2. Tạo file package.json
+nano package.json
+
+
+Nội dung đúng bài gốc:
+
+{
+  "name": "docsapp-external",
+  "version": "1.0.0",
+  "main": "chaincode.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "fabric-shim": "^2.5.0"
+  }
+}
+
+
+Cài dependency:
+
+npm install
+
+1.3. Tạo chaincode.js
+
+Nội dung không được sửa, trích nguyên bản từ bài gốc (đã hiển thị đầy đủ trong file gốc) 
+
+Chapter_7_SV
+
+2. Tạo gói external (metadata + connection)
+cd ~/fabric-work/fabric-samples/chaincode
+mkdir -p docsapp-ccaas
+cd docsapp-ccaas
+
+2.1. metadata.json
+nano metadata.json
+
+
+Nội dung:
+
+{
+  "type": "ccaas",
+  "label": "docsapp_1.0"
+}
+
+2.2. connection.json
+
+Dùng đúng IP của bạn (bài gốc dùng 10.0.2.15)
+
+{
+  "address": "10.0.2.15:9999",
+  "dial_timeout": "10s",
+  "tls_required": false
+}
+
+3. Đóng gói chaincode
+tar -czf code.tar.gz connection.json
+tar -czf docsapp-ccaas.tgz metadata.json code.tar.gz
+mv docsapp-ccaas.tgz ~/fabric-work/fabric-samples/test-network/
+
+4. INSTALL chaincode lên peer
+Org1
+cd ~/fabric-work/fabric-samples/test-network
+source scripts/envVar.sh
+setGlobals 1
+peer lifecycle chaincode install docsapp-ccaas.tgz
+
+Org2
+setGlobals 2
+peer lifecycle chaincode install docsapp-ccaas.tgz
+
+5. Lấy PACKAGE_ID
+setGlobals 1
+peer lifecycle chaincode queryinstalled
+
+
+Copy:
+
+export PKG_ID="docsapp_1.0:xxxx..."
+
+6. Approve definition
+Org1
+setGlobals 1
+peer lifecycle chaincode approveformyorg \
+  -o localhost:7050 \
+  --ordererTLSHostnameOverride orderer.example.com \
+  --tls \
+  --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem \
+  --channelID mychannel \
+  --name docsapp \
+  --version 1 \
+  --sequence 1 \
+  --package-id $PKG_ID \
+  --waitForEvent
+
+Org2
+setGlobals 2
+peer lifecycle chaincode approveformyorg \
+  -o localhost:7050 \
+  --ordererTLSHostnameOverride orderer.example.com \
+  --tls \
+  --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem \
+  --channelID mychannel \
+  --name docsapp \
+  --version 1 \
+  --sequence 1 \
+  --package-id $PKG_ID \
+  --waitForEvent
+
+7. Commit definition
+setGlobals 1
+peer lifecycle chaincode commit \
+  -o localhost:7050 \
+  --ordererTLSHostnameOverride orderer.example.com \
+  --tls \
+  --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem \
+  --channelID mychannel \
+  --name docsapp \
+  --version 1 \
+  --sequence 1 \
+  --peerAddresses localhost:7051 \
+  --tlsRootCertFiles $PWD/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt \
+  --peerAddresses localhost:9051 \
+  --tlsRootCertFiles $PWD/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+
+8. Chạy chaincode server
+cd ~/fabric-work/fabric-samples/chaincode/docsapp-external
+npm install
+
+export CHAINCODE_ID=docsapp
+export CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999
+
+node chaincode.js
+
+
+(Giữ terminal này mở)
+
+9. Test chaincode
+cd ~/fabric-work/fabric-samples/test-network
+source scripts/envVar.sh
+setGlobals 1
+
+peer chaincode query \
+  -C mychannel \
+  -n docsapp \
+  -c '{"Args":["getSnapshot","123"]}'
+
+-----------------------------------------------------
+PHẦN D – BACKEND (Node.js) — THEO NGUYÊN BẢN
+-----------------------------------------------------
+1. Tạo workspace
+mkdir ~/docsapp
+cd ~/docsapp
+mkdir wallet
+
+
+Copy file từ Chapter 7:
+
+cp ~/Blockchain-Development-for-Finance-Projects/Chapter\ 7/enrollAdmin.js .
+cp ~/Blockchain-Development-for-Finance-Projects/Chapter\ 7/registerUser.js .
+cp ~/Blockchain-Development-for-Finance-Projects/Chapter\ 7/package.json .
+
+2. Sửa đường dẫn wallet + CCP
+
+(Bài gốc đã liệt kê đầy đủ — giữ nguyên)
+
+3. Install dependencies
+npm install
+
+4. Tạo admin + user
+node enrollAdmin.js
+node registerUser.js
+
+5. Copy server.js và chạy
+npm install express keccak fabric-network fs-extra cors
+node server.js
+
+
+Backend chạy tại http://localhost:3600
+
+-----------------------------------------------------
+PHẦN E – FRONTEND REACT — THEO NGUYÊN BẢN
+-----------------------------------------------------
+1. Tạo app
+cd ~/docsapp
+npx create-react-app docsapp-frontend
+cd docsapp-frontend
+npm install axios
+
+2. Copy components Chapter 7
+cp ~/Blockchain-Development-for-Finance-Projects/Chapter\ 7/frontend/* src/
+
+3. Chạy frontend
+npm start
+
+-----------------------------------------------------
+PHẦN F – TEST TAMPER-PROOF — THEO NGUYÊN BẢN
+-----------------------------------------------------
+1. Secure Folder (ghi hash + MTH + FTH lên blockchain)
+2. Thay đổi file trong thư mục
+
+→ UI báo TAMPERED
+
+3. Hiện danh sách file bị thay đổi
+
+(Added / Deleted / Modified)
